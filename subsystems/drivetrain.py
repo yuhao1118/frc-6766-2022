@@ -1,4 +1,5 @@
-from commands2 import SubsystemBase, RamseteCommand
+from commands1 import WaitCommand
+from commands2 import SubsystemBase, RamseteCommand, InstantCommand, WaitCommand
 
 from wpilib import SerialPort, SmartDashboard, Field2d
 from wpimath.kinematics import DifferentialDriveOdometry, DifferentialDriveWheelSpeeds
@@ -38,15 +39,21 @@ class Drivetrain(SubsystemBase):
         self.LR_motor.setInverted(ctre.TalonFXInvertType.FollowMaster)
         self.RF_motor.setInverted(constants.kRightMotorRotate)
         self.RR_motor.setInverted(ctre.TalonFXInvertType.FollowMaster)
-
+        self.setOpenloopRamp(0.5)
         self.resetEncoder()
 
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
+        
         self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
+
+        self.leftPIDController = PIDController(constants.kPDriveVel, 0, 0)
+        self.rightPIDController = PIDController(constants.kPDriveVel, 0, 0)
 
     def log(self):
         SmartDashboard.putData("Field2d", self.field2d)
+        SmartDashboard.putData("LeftPIDController", self.leftPIDController)
+        SmartDashboard.putData("RightPIDController", self.rightPIDController)
         SmartDashboard.putNumber("Left Encoder Speed",
                                  self.getLeftEncoderSpeed())
         SmartDashboard.putNumber(
@@ -82,6 +89,12 @@ class Drivetrain(SubsystemBase):
         self.RF_motor.set(ctre.ControlMode.PercentOutput, rightVolts / 12)
 
     def arcadeDrive(self, throttle, turn):
+        if abs(throttle) < 0.05:
+            throttle = 0
+        
+        if abs(turn) < 0.05:
+            turn = 0
+            
         self.LF_motor.set(ctre.ControlMode.PercentOutput, throttle + turn)
         self.RF_motor.set(ctre.ControlMode.PercentOutput, throttle - turn)
 
@@ -118,15 +131,15 @@ class Drivetrain(SubsystemBase):
             trajectory,
             self.getPose,
             RamseteController(constants.kRamseteB, constants.kRamseteZeta),
-            # SimpleMotorFeedforwardMeters(
-            #     constants.ksVolts,
-            #     constants.kvVoltSecondsPerMeter,
-            #     constants.kaVoltSecondsSquaredPerMeter,
-            # ),
+            SimpleMotorFeedforwardMeters(
+                constants.ksVolts,
+                constants.kvVoltSecondsPerMeter,
+                constants.kaVoltSecondsSquaredPerMeter,
+            ),
             constants.kDriveKinematics,
-            # self.getWheelSpeeds,
-            # PIDController(constants.kPDriveVel, 0, 0),
-            # PIDController(constants.kPDriveVel, 0, 0),
+            self.getWheelSpeeds,
+            self.leftPIDController,
+            self.rightPIDController,
             self.tankDriveVolts,
             [self],
         )
@@ -145,13 +158,13 @@ class Drivetrain(SubsystemBase):
         return speeds
 
     def getLeftEncoderSpeed(self):
-        return self.LF_motor.getSelectedSensorVelocity() * constants.kEncoderDistancePerPulse * 10
+        return self.LF_motor.getSelectedSensorVelocity() * constants.kDriveTrainEncoderDistancePerPulse * 10
 
     def getRightEncoderSpeed(self):
-        return self.RF_motor.getSelectedSensorVelocity() * constants.kEncoderDistancePerPulse * 10
+        return self.RF_motor.getSelectedSensorVelocity() * constants.kDriveTrainEncoderDistancePerPulse * 10
 
     def getLeftEncoderDistance(self):
-        return self.LF_motor.getSelectedSensorPosition() * constants.kEncoderDistancePerPulse
+        return self.LF_motor.getSelectedSensorPosition() * constants.kDriveTrainEncoderDistancePerPulse
 
     def getRightEncoderDistance(self):
-        return self.RF_motor.getSelectedSensorPosition() * constants.kEncoderDistancePerPulse
+        return self.RF_motor.getSelectedSensorPosition() * constants.kDriveTrainEncoderDistancePerPulse

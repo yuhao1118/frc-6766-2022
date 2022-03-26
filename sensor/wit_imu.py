@@ -247,6 +247,8 @@ class WitIMU(Gyro):
         self.io = WIT_IO(serialPort)
         self.ioThread = WIT_THREAD(self, self.io)
 
+        print(self.ioThread)
+
         self.ioThread.start()
 
     def __del__(self):

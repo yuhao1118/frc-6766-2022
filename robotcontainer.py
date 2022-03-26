@@ -1,20 +1,12 @@
 ### Code Reference ###
 # https://github.com/SteelRidgeRobotics/2021-2022_FRC_Season/tree/main/Captain%20Hook
 
-from commands2 import RunCommand, RamseteCommand
-from commands2.button import JoystickButton, Button
+from commands2 import RunCommand
+from commands2.button import JoystickButton
 from wpilib import XboxController
-from wpimath.controller import (
-    RamseteController,
-    PIDController,
-    SimpleMotorFeedforwardMeters,
-)
-from wpilib.interfaces import GenericHID
-from wpimath.kinematics import ChassisSpeeds
-from wpimath.trajectory.constraint import DifferentialDriveVoltageConstraint
-from wpimath.trajectory import TrajectoryConfig, TrajectoryGenerator, Trajectory
-from wpimath.geometry import Pose2d, Rotation2d, Translation2d
+from wpimath.geometry import Pose2d, Rotation2d
 from subsystems.drivetrain import Drivetrain
+from subsystems.climb import Climb
 
 import constants
 from trajectory.pathtrajectory import PathTrajectory
@@ -33,8 +25,9 @@ class RobotContainer:
         # Create the driver's controller.
         self.driverController = XboxController(constants.kDriverControllerPort)
 
-        # Create an instance of the drivetrain subsystem.
+        # Create instances of the subsystems.
         self.robotDrive = Drivetrain()
+        self.climbDrive = Climb()
 
         # Configure and set the button bindings for the driver's controller.
         self.configureButtons()
@@ -44,13 +37,13 @@ class RobotContainer:
 
         self.robotDrive.setDefaultCommand(
             RunCommand(
-                lambda: self.robotDrive.arcadeDrive(
-                    self.driverController.getRawAxis(
-                        3) - self.driverController.getRawAxis(2),
-                    self.driverController.getRawAxis(0) * 0.65,
-                ),
-                self.robotDrive,
-            )
+                    lambda: self.robotDrive.arcadeDrive(
+                        self.driverController.getRawAxis(
+                            3) - self.driverController.getRawAxis(2),
+                        self.driverController.getRawAxis(0) * 0.65,
+                    ),
+                    self.robotDrive,
+                )
         )
 
         self.pathTrajectory = PathTrajectory()
@@ -68,4 +61,24 @@ class RobotContainer:
             JoystickButton(self.driverController, XboxController.Button.kA)
             .whenPressed(lambda: self.robotDrive.setMaxOutput(0.5))
             .whenReleased(lambda: self.robotDrive.setMaxOutput(1))
+        )
+
+        (
+            JoystickButton(self.driverController, XboxController.Button.kB)
+            .whenPressed(lambda: self.climbDrive.set(0.6))
+            .whenReleased(lambda: self.climbDrive.set(0))
+        )
+
+        (
+            JoystickButton(self.driverController, XboxController.Button.kX)
+            .whenPressed(lambda: self.climbDrive.set(-0.6))
+            .whenReleased(lambda: self.climbDrive.set(0))
+        )
+
+        def reset():
+            pass
+
+        (
+            JoystickButton(self.driverController, XboxController.Button.kBack)
+            .whenPressed(reset)
         )
