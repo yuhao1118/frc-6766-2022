@@ -101,14 +101,20 @@ class Drivetrain(SubsystemBase):
             ctre.TalonFXControlMode.PercentOutput, rightPercentage)
 
     def tankDriveVelocity(self, leftVelocity, rightVelocity):
+        # Convert velocity in native Talon encoder units per 100ms.
         leftVelocity = leftVelocity / constants.kDriveTrainEncoderDistancePerPulse / 10
         rightVelocity = rightVelocity / constants.kDriveTrainEncoderDistancePerPulse / 10
 
+        # Calculate the feedforward voltage and normalised in [-1, 1].
         leftFF = self.feedforwardController.calculate(
             leftVelocity) / constants.kNominalVoltage
         rightFF = self.feedforwardController.calculate(
             rightVelocity) / constants.kNominalVoltage
 
+        # The first demand is the velocity (in native unit) setpoint.
+        # When specifying the second demand type to be ArbitraryFeedForward, it will just
+        # takes any compensated value ranging from -1 to 1. So that we can feed it with the
+        # (normalised) feedforward voltages.
         self.LF_motor.set(ctre.TalonFXControlMode.Velocity, leftVelocity,
                           ctre.TalonFXDemandType.ArbitraryFeedForward, leftFF)
         self.RF_motor.set(ctre.TalonFXControlMode.Velocity, rightVelocity,
@@ -148,13 +154,16 @@ class Drivetrain(SubsystemBase):
     def getTrajetoryCommand(self, trajectory, shouldInitPose=True):
         # Ref: https://www.chiefdelphi.com/t/feedforward-for-talonfx-pid/401200/8
         #
-        # It is indeed a close-loop RamseteCommand althrough it does not looks like. What we do
-        # here is to apply on-falcon pid control + the on-rio feedforward control to follow the trajectory
+        # It is indeed a close-loop RamseteCommand althrough it does not look like. What we do
+        # here is to apply on-falcon pid control + the on-rio feedforward control to follow a trajectory.
+        # Developer must be careful about the unit conversion, especially the velocity which native Talon
+        # measures it in 100ms instead of 1s.
         #
-        # The benefits are:
-        # 1. The on-falcon PID reacts faster, and is easy to tune (using Phoenix Tuner).
+        # The benefits (instead of doing it all on-rio nor on-falcon) are:
+        # 1. The on-falcon PID reacts faster and is easy to tune (using Phoenix Tuner).
         # 2. The on-rio feedforward control (namely the SimpleMotorFeedforwardMeters) could compensate the
-        # for the static friction, which we think it is important for the drivetrain.
+        # for the static friction, which only setting kF is insufficient. We think the static force compensation
+        # is important for the drivetrain but not for other subsystems.
 
         ramseteCommand = RamseteCommand(
             trajectory,
