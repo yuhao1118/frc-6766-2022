@@ -1,5 +1,4 @@
-from commands1 import WaitCommand
-from commands2 import SubsystemBase, RamseteCommand, InstantCommand, WaitCommand
+from commands2 import SubsystemBase, RamseteCommand, InstantCommand, WaitCommand, SequentialCommandGroup
 
 from wpilib import SerialPort, SmartDashboard, Field2d
 from wpimath.kinematics import DifferentialDriveOdometry, DifferentialDriveWheelSpeeds
@@ -15,6 +14,12 @@ class Drivetrain(SubsystemBase):
     def __init__(self):
 
         super().__init__()
+        self.feedforwardController = SimpleMotorFeedforwardMeters(
+            constants.ksVolts,
+            constants.kvVoltSecondsPerMeter,
+            constants.kaVoltSecondsSquaredPerMeter,
+        )
+
         self.field2d = Field2d()    # Display field image in dashboard
 
         self.LF_motor = ctre.TalonFX(constants.kLeftMotor1Port)
@@ -39,16 +44,21 @@ class Drivetrain(SubsystemBase):
         self.LR_motor.setInverted(ctre.TalonFXInvertType.FollowMaster)
         self.RF_motor.setInverted(constants.kRightMotorRotate)
         self.RR_motor.setInverted(ctre.TalonFXInvertType.FollowMaster)
-        self.setOpenloopRamp(0.5)
+
+        self.LF_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
+        self.LR_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
+        self.RF_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
+        self.RR_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
+
+        self.setMaxOutput(0.75)
         self.resetEncoder()
 
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
-        
+
         self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
 
-        self.leftPIDController = PIDController(constants.kPDriveVel, 0, 0)
-        self.rightPIDController = PIDController(constants.kPDriveVel, 0, 0)
+        self.configPID(constants.kP, constants.kI, constants.kD)
 
     def log(self):
         SmartDashboard.putData("Field2d", self.field2d)
@@ -84,67 +94,89 @@ class Drivetrain(SubsystemBase):
         self.resetEncoder()
         self.odometry.resetPosition(pose, self.gyro.getRotation2d())
 
-    def tankDriveVolts(self, leftVolts, rightVolts):
-        self.LF_motor.set(ctre.ControlMode.PercentOutput, leftVolts / 12)
-        self.RF_motor.set(ctre.ControlMode.PercentOutput, rightVolts / 12)
+    def tankDrive(self, leftPercentage, rightPercentage):
+        self.LF_motor.set(
+            ctre.TalonFXControlMode.PercentOutput, leftPercentage)
+        self.RF_motor.set(
+            ctre.TalonFXControlMode.PercentOutput, rightPercentage)
+
+    def tankDriveVelocity(self, leftVelocity, rightVelocity):
+        leftVelocity = leftVelocity / constants.kDriveTrainEncoderDistancePerPulse / 10
+        rightVelocity = rightVelocity / constants.kDriveTrainEncoderDistancePerPulse / 10
+
+        leftFF = self.feedforwardController.calculate(
+            leftVelocity) / constants.kNominalVoltage
+        rightFF = self.feedforwardController.calculate(
+            rightVelocity) / constants.kNominalVoltage
+
+        self.LF_motor.set(ctre.TalonFXControlMode.Velocity, leftVelocity,
+                          ctre.TalonFXDemandType.ArbitraryFeedForward, leftFF)
+        self.RF_motor.set(ctre.TalonFXControlMode.Velocity, rightVelocity,
+                          ctre.TalonFXDemandType.ArbitraryFeedForward, rightFF)
 
     def arcadeDrive(self, throttle, turn):
         if abs(throttle) < 0.05:
             throttle = 0
-        
+
         if abs(turn) < 0.05:
             turn = 0
-            
-        self.LF_motor.set(ctre.ControlMode.PercentOutput, throttle + turn)
-        self.RF_motor.set(ctre.ControlMode.PercentOutput, throttle - turn)
+
+        self.tankDrive(throttle + turn, throttle - turn)
 
     def zeroHeading(self):
         self.gyro.reset()
 
     def setMaxOutput(self, maxOutput):
         self.LF_motor.configPeakOutputForward(maxOutput, 20)
-        self.LR_motor.configPeakOutputForward(maxOutput, 20)
         self.RF_motor.configPeakOutputForward(maxOutput, 20)
-        self.RR_motor.configPeakOutputForward(maxOutput, 20)
+        self.LF_motor.configPeakOutputReverse(-maxOutput, 20)
+        self.RF_motor.configPeakOutputReverse(-maxOutput, 20)
 
-    def setOpenloopRamp(self, rampRate):
-        self.LF_motor.configOpenloopRamp(rampRate, 20)
-        self.LR_motor.configOpenloopRamp(rampRate, 20)
-        self.RF_motor.configOpenloopRamp(rampRate, 20)
-        self.RR_motor.configOpenloopRamp(rampRate, 20)
+    def configPID(self, kP, kI, kD):
+        for motor in [self.LF_motor, self.RF_motor]:
+            motor.configSelectedFeedbackSensor(
+                ctre.TalonFXFeedbackDevice.IntegratedSensor, 0, 20)
+
+            motor.config_kP(0, kP, 20)
+            motor.config_kI(0, kI, 20)
+            motor.config_kD(0, kD, 20)
+
+        # Stop motors
+        self.tankDriveVelocity(0, 0)
 
     ############## Getter functions ##############
-
     def getTrajetoryCommand(self, trajectory, shouldInitPose=True):
-        def before():
-            self.setOpenloopRamp(0)
-            if shouldInitPose:
-                self.resetOdometry(trajectory.initialPose())
+        # Ref: https://www.chiefdelphi.com/t/feedforward-for-talonfx-pid/401200/8
+        #
+        # It is indeed a close-loop RamseteCommand althrough it does not looks like. What we do
+        # here is to apply on-falcon pid control + the on-rio feedforward control to follow the trajectory
+        #
+        # The benefits are:
+        # 1. The on-falcon PID reacts faster, and is easy to tune (using Phoenix Tuner).
+        # 2. The on-rio feedforward control (namely the SimpleMotorFeedforwardMeters) could compensate the
+        # for the static friction, which we think it is important for the drivetrain.
 
-        def after():
-            self.setOpenloopRamp(0.5)
-            self.tankDriveVolts(0.0, 0.0)
-
-        beforeCommand = InstantCommand(before)
-        afterCommand = InstantCommand(after)
         ramseteCommand = RamseteCommand(
             trajectory,
             self.getPose,
             RamseteController(constants.kRamseteB, constants.kRamseteZeta),
-            SimpleMotorFeedforwardMeters(
-                constants.ksVolts,
-                constants.kvVoltSecondsPerMeter,
-                constants.kaVoltSecondsSquaredPerMeter,
-            ),
             constants.kDriveKinematics,
-            self.getWheelSpeeds,
-            self.leftPIDController,
-            self.rightPIDController,
-            self.tankDriveVolts,
+            self.tankDriveVelocity,
             [self],
         )
 
-        return beforeCommand.andThen(ramseteCommand.andThen(afterCommand))
+        if shouldInitPose:
+            return SequentialCommandGroup(
+                InstantCommand(lambda: self.resetOdometry(
+                    trajectory.initialPose())),
+                ramseteCommand,
+                InstantCommand(lambda: self.tankDriveVelocity(0, 0))
+            )
+
+        return SequentialCommandGroup(
+            ramseteCommand,
+            InstantCommand(lambda: self.tankDriveVelocity(0, 0))
+        )
 
     def getPose(self):
         # return the estimated pose of the robot
