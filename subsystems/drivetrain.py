@@ -1,13 +1,13 @@
-from commands2 import SubsystemBase, RamseteCommand, InstantCommand, WaitCommand, SequentialCommandGroup
+from commands2 import SubsystemBase, RamseteCommand, InstantCommand, SequentialCommandGroup
 
 from wpilib import SerialPort, SmartDashboard, Field2d
 from wpimath.kinematics import DifferentialDriveOdometry, DifferentialDriveWheelSpeeds
 from wpimath.controller import RamseteController, PIDController, SimpleMotorFeedforwardMeters
+import ctre
 
 import constants
-import ctre
 from sensor.wit_imu import WitIMU
-
+import math
 
 class Drivetrain(SubsystemBase):
 
@@ -57,8 +57,8 @@ class Drivetrain(SubsystemBase):
         self.gyro.calibrate()
 
         self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
-
-        self.configPID(constants.kP, constants.kI, constants.kD)
+        self.leftPIDController = PIDController(constants.kP, constants.kI, constants.kD)
+        self.rightPIDController = PIDController(constants.kP, constants.kI, constants.kD)
 
     def log(self):
         SmartDashboard.putData("Field2d", self.field2d)
@@ -95,30 +95,14 @@ class Drivetrain(SubsystemBase):
         self.odometry.resetPosition(pose, self.gyro.getRotation2d())
 
     def tankDrive(self, leftPercentage, rightPercentage):
+        
         self.LF_motor.set(
             ctre.TalonFXControlMode.PercentOutput, leftPercentage)
         self.RF_motor.set(
             ctre.TalonFXControlMode.PercentOutput, rightPercentage)
 
-    def tankDriveVelocity(self, leftVelocity, rightVelocity):
-        # Convert velocity in native Talon encoder units per 100ms.
-        leftVelocity = leftVelocity / constants.kDriveTrainEncoderDistancePerPulse / 10
-        rightVelocity = rightVelocity / constants.kDriveTrainEncoderDistancePerPulse / 10
-
-        # Calculate the feedforward voltage and normalised in [-1, 1].
-        leftFF = self.feedforwardController.calculate(
-            leftVelocity) / constants.kNominalVoltage
-        rightFF = self.feedforwardController.calculate(
-            rightVelocity) / constants.kNominalVoltage
-
-        # The first demand is the velocity (in native unit) setpoint.
-        # When specifying the second demand type to be ArbitraryFeedForward, it will just
-        # takes any compensated value ranging from -1 to 1. So that we can feed it with the
-        # (normalised) feedforward voltages.
-        self.LF_motor.set(ctre.TalonFXControlMode.Velocity, leftVelocity,
-                          ctre.TalonFXDemandType.ArbitraryFeedForward, leftFF)
-        self.RF_motor.set(ctre.TalonFXControlMode.Velocity, rightVelocity,
-                          ctre.TalonFXDemandType.ArbitraryFeedForward, rightFF)
+    def tankDriveVolts(self, leftVolts, rightVolts):
+        self.tankDrive(leftVolts / 12, rightVolts / 12)
 
     def arcadeDrive(self, throttle, turn):
         if abs(throttle) < 0.05:
@@ -127,6 +111,8 @@ class Drivetrain(SubsystemBase):
         if abs(turn) < 0.05:
             turn = 0
 
+        # Decrease the turning sensitive on low inputs
+        turn = math.copysign(turn ** 2, turn)
         self.tankDrive(throttle + turn, throttle - turn)
 
     def zeroHeading(self):
@@ -138,39 +124,21 @@ class Drivetrain(SubsystemBase):
         self.LF_motor.configPeakOutputReverse(-maxOutput, 20)
         self.RF_motor.configPeakOutputReverse(-maxOutput, 20)
 
-    def configPID(self, kP, kI, kD):
-        for motor in [self.LF_motor, self.RF_motor]:
-            motor.configSelectedFeedbackSensor(
-                ctre.TalonFXFeedbackDevice.IntegratedSensor, 0, 20)
-
-            motor.config_kP(0, kP, 20)
-            motor.config_kI(0, kI, 20)
-            motor.config_kD(0, kD, 20)
-
-        # Stop motors
-        self.tankDriveVelocity(0, 0)
 
     ############## Getter functions ##############
     def getTrajetoryCommand(self, trajectory, shouldInitPose=True):
-        # Ref: https://www.chiefdelphi.com/t/feedforward-for-talonfx-pid/401200/8
-        #
-        # It is indeed a close-loop RamseteCommand althrough it does not look like. What we do
-        # here is to apply on-falcon pid control + the on-rio feedforward control to follow a trajectory.
-        # Developer must be careful about the unit conversion, especially the velocity which native Talon
-        # measures it in 100ms instead of 1s.
-        #
-        # The benefits (instead of doing it all on-rio nor on-falcon) are:
-        # 1. The on-falcon PID reacts faster and is easy to tune (using Phoenix Tuner).
-        # 2. The on-rio feedforward control (namely the SimpleMotorFeedforwardMeters) could compensate the
-        # for the static friction, which only setting kF is insufficient. We think the static force compensation
-        # is important for the drivetrain but not for other subsystems.
+        # Close loop RaseteCommand
 
         ramseteCommand = RamseteCommand(
             trajectory,
             self.getPose,
             RamseteController(constants.kRamseteB, constants.kRamseteZeta),
+            self.feedforwardController,
             constants.kDriveKinematics,
-            self.tankDriveVelocity,
+            self.getWheelSpeeds,
+            self.leftPIDController,
+            self.rightPIDController,
+            self.tankDriveVolts,
             [self],
         )
 
@@ -179,12 +147,12 @@ class Drivetrain(SubsystemBase):
                 InstantCommand(lambda: self.resetOdometry(
                     trajectory.initialPose())),
                 ramseteCommand,
-                InstantCommand(lambda: self.tankDriveVelocity(0, 0))
+                InstantCommand(lambda: self.tankDriveVolts(0, 0))
             )
 
         return SequentialCommandGroup(
             ramseteCommand,
-            InstantCommand(lambda: self.tankDriveVelocity(0, 0))
+            InstantCommand(lambda: self.tankDriveVolts(0, 0))
         )
 
     def getPose(self):

@@ -4,9 +4,9 @@
 from commands2 import RunCommand
 from commands2.button import JoystickButton
 from wpilib import XboxController
-from wpimath.geometry import Pose2d, Rotation2d
 from subsystems.drivetrain import Drivetrain
 from subsystems.climb import Climb
+from subsystems.shooter import Shooter
 
 import constants
 from trajectory.pathtrajectory import PathTrajectory
@@ -28,6 +28,7 @@ class RobotContainer:
         # Create instances of the subsystems.
         self.robotDrive = Drivetrain()
         self.climbDrive = Climb()
+        self.shooterDrive = Shooter()
 
         # Configure and set the button bindings for the driver's controller.
         self.configureButtons()
@@ -58,27 +59,24 @@ class RobotContainer:
         """Configure the buttons for the driver's controller"""
 
         (
-            JoystickButton(self.driverController, XboxController.Button.kA)
-            .whenPressed(lambda: self.robotDrive.setMaxOutput(0.5))
-            .whenReleased(lambda: self.robotDrive.setMaxOutput(1))
+            JoystickButton(self.driverController, XboxController.Button.kY)
+            .whenPressed(lambda: self.climbDrive.setVolts(0.6 * 12))
+            .whenReleased(lambda: self.climbDrive.setVolts(0))
         )
 
         (
-            JoystickButton(self.driverController, XboxController.Button.kB)
-            .whenPressed(lambda: self.climbDrive.set(0.6))
-            .whenReleased(lambda: self.climbDrive.set(0))
+            JoystickButton(self.driverController, XboxController.Button.kA)
+            .whenPressed(lambda: self.climbDrive.setVolts(-0.6 * 12))
+            .whenReleased(lambda: self.climbDrive.setVolts(0))
         )
 
         (
             JoystickButton(self.driverController, XboxController.Button.kX)
-            .whenPressed(lambda: self.climbDrive.set(-0.6))
-            .whenReleased(lambda: self.climbDrive.set(0))
+            .whenPressed(lambda: self.shooterDrive.setVelocity(10))
+            .whenReleased(lambda: self.shooterDrive.setVolts(0))
         )
 
-        def reset():
-            pass
-
         (
-            JoystickButton(self.driverController, XboxController.Button.kBack)
-            .whenPressed(reset)
+            JoystickButton(self.driverController, XboxController.Button.kB)
+            .whenPressed(lambda: self.shooterDrive.setVelocity(self.shooterDrive.shootSpeed))
         )
