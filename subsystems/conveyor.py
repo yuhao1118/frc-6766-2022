@@ -15,4 +15,4 @@ class Conveyor(SubsystemBase):
         self.conveyor.setInverted(constants.kConveyorRotate)
 
     def set(self, output):
-        self.shooter.set(ctre.ControlMode.PercentOutput, output)
+        self.conveyor.set(ctre.ControlMode.PercentOutput, output)

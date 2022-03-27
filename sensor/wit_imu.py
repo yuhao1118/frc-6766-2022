@@ -242,14 +242,18 @@ class WitIMU(Gyro):
     gyroAngles = [0., 0., 0.]
     accels = [0., 0., 0.]
 
+    io = None
+    ioThread = None
+
     def __init__(self, serialPort):
         super().__init__()
-        self.io = WIT_IO(serialPort)
-        self.ioThread = WIT_THREAD(self, self.io)
+        try:
+            self.io = WIT_IO(serialPort)
+            self.ioThread = WIT_THREAD(self, self.io)
+            self.ioThread.start()
+        except:
+            log.warning("IMU not found!")
 
-        print(self.ioThread)
-
-        self.ioThread.start()
 
     def __del__(self):
         if self.ioThread is not None:
@@ -288,8 +292,10 @@ class WitIMU(Gyro):
         return Rotation2d.fromDegrees(self.getAngle())
 
     def calibrate(self):
-        self.io.calibrate()
+        if self.io is not None:
+            self.io.calibrate()
 
     def reset(self):
-        self.ioThread.onThread(self.ioThread.imuIO.zeroAngles)
-        self.ioThread.onThread(self.ioThread.imuIO.zeroAccels)
+        if self.io is not None:
+            self.ioThread.onThread(self.ioThread.imuIO.zeroAngles)
+            self.ioThread.onThread(self.ioThread.imuIO.zeroAccels)

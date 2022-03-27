@@ -16,6 +16,10 @@ kNominalVoltage = 12.0
 # Joystick
 kDriverControllerPort = 0
 
+# Intake Solenoid
+kSolenoidLeft = 0
+kSolenoidRight = 1
+
 
 # Motor controller port
 kLeftMotor1Port = 6

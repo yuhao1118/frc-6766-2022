@@ -1,14 +1,15 @@
 ### Code Reference ###
 # https://github.com/SteelRidgeRobotics/2021-2022_FRC_Season/tree/main/Captain%20Hook
 
-from commands2 import RunCommand, ParallelCommandGroup, StartEndCommand
+from commands2 import RunCommand, ParallelCommandGroup, InstantCommand, SequentialCommandGroup, StartEndCommand, WaitCommand
 from commands2.button import JoystickButton
-from wpilib import XboxController
+from wpilib import XboxController, SmartDashboard
 from subsystems.drivetrain import Drivetrain
 from subsystems.climber import Climber
 from subsystems.shooter import Shooter
 from subsystems.conveyor import Conveyor
 from subsystems.intaker import Intaker
+from subsystems.pneumatic import Pneumatic
 
 import constants
 from trajectory.pathtrajectory import PathTrajectory
@@ -33,6 +34,7 @@ class RobotContainer:
         self.shooterDrive = Shooter()
         self.conveyorDrive = Conveyor()
         self.intakerDrive = Intaker()
+        self.pneumaticControl = Pneumatic()
 
         # Configure and set the button bindings for the driver's controller.
         self.configureButtons()
@@ -62,30 +64,73 @@ class RobotContainer:
     def configureButtons(self):
         """Configure the buttons for the driver's controller"""
 
-        intakeConveyCommandGroup = ParallelCommandGroup(
-            StartEndCommand(
-                lambda: self.intakerDrive.set(0.5),
-                lambda: self.intakerDrive.set(0),
-            ),
-            StartEndCommand(
-                lambda: self.conveyorDrive.set(0.25),
-                lambda: self.conveyorDrive.set(0),
-            )
+        StartIntakeConveyCommandGroup = ParallelCommandGroup(
+            InstantCommand(lambda: self.intakerDrive.set(0.35)),
+            InstantCommand(lambda: self.conveyorDrive.set(0.25))
         )
 
-        (
-            JoystickButton(self.driverController, XboxController.Button.kA)
-            .whenPressed(lambda: self.shooterDrive.setVelocity(SmartDashboard.getNumber("ShooterV", 0)))
-            .whenReleased(lambda: self.shooterDrive.setVolts(0))
+        StopIntakeConveyCommandGroup = ParallelCommandGroup(
+            InstantCommand(lambda: self.intakerDrive.set(0)),
+            InstantCommand(lambda: self.conveyorDrive.set(0))
+        )
+
+        backBallCommand = SequentialCommandGroup(
+            RunCommand(lambda: self.conveyorDrive.set(-0.2)).withTimeout(0.4),
+            InstantCommand(lambda: self.conveyorDrive.set(0)),
+        )
+
+        StopShootCommandGroup = ParallelCommandGroup(
+            InstantCommand(lambda: self.shooterDrive.setVelocity(0)),
+            InstantCommand(lambda: self.conveyorDrive.set(0))
+        )
+
+        StartShootCommandGroup = SequentialCommandGroup(
+            backBallCommand,
+            ParallelCommandGroup(
+                InstantCommand(lambda: self.shooterDrive.setVelocity(21)),
+                WaitCommand(1.3).andThen(RunCommand(lambda: self.conveyorDrive.set(0.3)))
+            ).withTimeout(3),
+            StopShootCommandGroup
         )
 
         (
             JoystickButton(self.driverController, XboxController.Button.kY)
-            .whenPressed(intakeConveyCommandGroup)
+            .whenPressed(StartShootCommandGroup)
         )
 
         (
             JoystickButton(self.driverController, XboxController.Button.kB)
-            .whenPressed(lambda: self.conveyorDrive.set(-0.2))
+            .whileHeld(StartIntakeConveyCommandGroup)
+            .whenReleased(StopIntakeConveyCommandGroup)
+        )
+        (
+            JoystickButton(self.driverController, XboxController.Button.kX)
+            .whenPressed(InstantCommand(lambda: self.intakerDrive.set(-0.3)))
+            .whenReleased(InstantCommand(lambda: self.intakerDrive.set(0)))
+        )
+
+        (
+            JoystickButton(self.driverController, XboxController.Button.kLeftBumper)
+            .whileHeld(lambda: self.pneumaticControl.set(True))
+            .whenReleased(lambda: self.pneumaticControl.set(False))
+        )
+
+        (
+            JoystickButton(self.driverController, XboxController.Button.kRightBumper)
+            .toggleWhenPressed(StartEndCommand(
+                lambda: self.pneumaticControl.setCompressor(True),
+                lambda: self.pneumaticControl.setCompressor(False)
+            ))
+        )
+
+        (
+            JoystickButton(self.driverController, XboxController.Button.kA)
+            .whenPressed(lambda: self.conveyorDrive.set(0.3))
+            .whenReleased(lambda: self.conveyorDrive.set(0))
+        )
+
+        (
+            JoystickButton(self.driverController, XboxController.Button.kBack)
+            .whenPressed(lambda: self.conveyorDrive.set(-0.3))
             .whenReleased(lambda: self.conveyorDrive.set(0))
         )
