@@ -1,12 +1,14 @@
 ### Code Reference ###
 # https://github.com/SteelRidgeRobotics/2021-2022_FRC_Season/tree/main/Captain%20Hook
 
-from commands2 import RunCommand
+from commands2 import RunCommand, ParallelCommandGroup, StartEndCommand
 from commands2.button import JoystickButton
 from wpilib import XboxController
 from subsystems.drivetrain import Drivetrain
-from subsystems.climb import Climb
+from subsystems.climber import Climber
 from subsystems.shooter import Shooter
+from subsystems.conveyor import Conveyor
+from subsystems.intaker import Intaker
 
 import constants
 from trajectory.pathtrajectory import PathTrajectory
@@ -27,8 +29,10 @@ class RobotContainer:
 
         # Create instances of the subsystems.
         self.robotDrive = Drivetrain()
-        self.climbDrive = Climb()
+        self.climberDrive = Climber()
         self.shooterDrive = Shooter()
+        self.conveyorDrive = Conveyor()
+        self.intakerDrive = Intaker()
 
         # Configure and set the button bindings for the driver's controller.
         self.configureButtons()
@@ -38,13 +42,13 @@ class RobotContainer:
 
         self.robotDrive.setDefaultCommand(
             RunCommand(
-                    lambda: self.robotDrive.arcadeDrive(
-                        self.driverController.getRawAxis(
-                            3) - self.driverController.getRawAxis(2),
-                        self.driverController.getRawAxis(0) * 0.65,
-                    ),
-                    self.robotDrive,
-                )
+                lambda: self.robotDrive.arcadeDrive(
+                    self.driverController.getRawAxis(
+                        3) - self.driverController.getRawAxis(2),
+                    self.driverController.getRawAxis(0) * 0.65,
+                ),
+                self.robotDrive,
+            )
         )
 
         self.pathTrajectory = PathTrajectory()
@@ -58,25 +62,30 @@ class RobotContainer:
     def configureButtons(self):
         """Configure the buttons for the driver's controller"""
 
-        (
-            JoystickButton(self.driverController, XboxController.Button.kY)
-            .whenPressed(lambda: self.climbDrive.setVolts(0.6 * 12))
-            .whenReleased(lambda: self.climbDrive.setVolts(0))
+        intakeConveyCommandGroup = ParallelCommandGroup(
+            StartEndCommand(
+                lambda: self.intakerDrive.set(0.5),
+                lambda: self.intakerDrive.set(0),
+            ),
+            StartEndCommand(
+                lambda: self.conveyorDrive.set(0.25),
+                lambda: self.conveyorDrive.set(0),
+            )
         )
 
         (
             JoystickButton(self.driverController, XboxController.Button.kA)
-            .whenPressed(lambda: self.climbDrive.setVolts(-0.6 * 12))
-            .whenReleased(lambda: self.climbDrive.setVolts(0))
-        )
-
-        (
-            JoystickButton(self.driverController, XboxController.Button.kX)
-            .whenPressed(lambda: self.shooterDrive.setVelocity(10))
+            .whenPressed(lambda: self.shooterDrive.setVelocity(SmartDashboard.getNumber("ShooterV", 0)))
             .whenReleased(lambda: self.shooterDrive.setVolts(0))
         )
 
         (
+            JoystickButton(self.driverController, XboxController.Button.kY)
+            .whenPressed(intakeConveyCommandGroup)
+        )
+
+        (
             JoystickButton(self.driverController, XboxController.Button.kB)
-            .whenPressed(lambda: self.shooterDrive.setVelocity(self.shooterDrive.shootSpeed))
+            .whenPressed(lambda: self.conveyorDrive.set(-0.2))
+            .whenReleased(lambda: self.conveyorDrive.set(0))
         )

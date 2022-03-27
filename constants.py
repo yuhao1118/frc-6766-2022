@@ -28,6 +28,8 @@ kRightClimbMotorPort = 14
 
 kShooter = 10
 
+kConveyorPort = 11
+kIntakePort = 12
 
 # Motor Rotation
 kLeftMotorRotate = TalonFXInvertType.Clockwise
@@ -37,6 +39,10 @@ kLeftClimbMotorRotate = TalonFXInvertType.CounterClockwise
 kRightClimbMotorRotate = TalonFXInvertType.Clockwise
 
 kShooterRotate = TalonFXInvertType.Clockwise
+
+kConveyorRotate = TalonFXInvertType.CounterClockwise
+kIntakeRotate = TalonFXInvertType.CounterClockwise
+
 
 # Motor to wheel ratio
 kEncoderCPR = 2048

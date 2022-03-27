@@ -5,7 +5,7 @@ import ctre
 import constants
 
 
-class Climb(SubsystemBase):
+class Climber(SubsystemBase):
 
     def __init__(self):
         super().__init__()
@@ -24,7 +24,6 @@ class Climb(SubsystemBase):
 
         self.resetEncoder()
 
-
     def log(self):
         SmartDashboard.putNumber("Climb left", self.getLeftEncoderDistance())
         SmartDashboard.putNumber("Climb right", self.getRightEncoderDistance())
@@ -32,14 +31,13 @@ class Climb(SubsystemBase):
     def periodic(self):
         self.log()
 
-    def setVolts(self, outputVolts, rightOutputVolts = None):
+    def setVolts(self, outputVolts, rightOutputVolts=None):
         leftOutput, rightOutput = outputVolts, outputVolts
         if rightOutputVolts is not None:
             rightOutput = rightOutputVolts
 
         self.L_motor.set(ctre.ControlMode.PercentOutput, leftOutput / 12)
         self.R_motor.set(ctre.ControlMode.PercentOutput, rightOutput / 12)
-
 
     def resetEncoder(self):
         self.L_motor.setSelectedSensorPosition(0, 0, 20)
@@ -49,6 +47,4 @@ class Climb(SubsystemBase):
         return self.L_motor.getSelectedSensorPosition() * constants.kClimbEncoderDistancePerPulse
 
     def getRightEncoderDistance(self):
-            return self.R_motor.getSelectedSensorPosition() * constants.kClimbEncoderDistancePerPulse
-    
-    
+        return self.R_motor.getSelectedSensorPosition() * constants.kClimbEncoderDistancePerPulse

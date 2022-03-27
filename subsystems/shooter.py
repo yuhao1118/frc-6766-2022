@@ -15,7 +15,6 @@ class Shooter(SubsystemBase):
         self.shooter.configFactoryDefault()
         self.shooter.setNeutralMode(ctre.NeutralMode.Coast)
         self.shooter.setInverted(constants.kShooterRotate)
-        self.shootSpeed = 10
 
         self.feedforwardController = SimpleMotorFeedforwardMeters(
             constants.ksVoltsShooter,
@@ -31,7 +30,6 @@ class Shooter(SubsystemBase):
 
     def periodic(self):
         self.log()
-        self.shootSpeed = SmartDashboard.getNumber("ShooterV", 0)
 
     def setVolts(self, outputVolts):
         self.shooter.set(ctre.ControlMode.PercentOutput, outputVolts / 12)
