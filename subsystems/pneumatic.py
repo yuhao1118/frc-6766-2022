@@ -2,27 +2,33 @@ from commands2 import Subsystem
 from wpilib import Compressor, Solenoid, PneumaticsModuleType
 import constants
 
+
 class Pneumatic(Subsystem):
 
     def __init__(self):
         super().__init__()
+        try:
+            self.compressor = Compressor(PneumaticsModuleType.CTREPCM)
+        except:
+            print("Compressor Not Connected!")
 
-        self.compressor = Compressor(PneumaticsModuleType.CTREPCM)
-        self.solenoidRight = Solenoid(PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
-        self.solenoidLeft = Solenoid(PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
+        self.solenoidRight = Solenoid(
+            PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
+        self.solenoidLeft = Solenoid(
+            PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
         self.compressor.stop()
-        self.prevState = False
+        self.prevSolenoidState = False
 
     def setCompressor(self, enable):
-        if enable:
-            self.compressor.start()
-        else:
-            self.compressor.stop()
+        if self.compressor is not None:
+            if enable:
+                self.compressor.start()
+            else:
+                self.compressor.stop()
 
     def set(self, enable):
-        if enable != self.prevState:
+        if enable != self.prevSolenoidState:
             self.solenoidLeft.set(enable)
             self.solenoidRight.set(not enable)
 
-        self.prevState = enable
-
+        self.prevSolenoidState = enable

@@ -19,6 +19,46 @@ class Climber(SubsystemBase):
         self.L_motor.setNeutralMode(ctre.NeutralMode.Brake)
         self.R_motor.setNeutralMode(ctre.NeutralMode.Brake)
 
+        self.L_motor.configStatorCurrentLimit(ctre.StatorCurrentLimitConfiguration(
+            True,
+            constants.kClimbMotorCurrentLimit,
+            constants.kClimbMotorThresholdCurrent,
+            constants.kClimbMotorThresholdDuration
+        ))
+        self.L_motor.configSupplyCurrentLimit(ctre.SupplyCurrentLimitConfiguration(
+            True,
+            constants.kClimbMotorCurrentLimit,
+            constants.kClimbMotorThresholdCurrent,
+            constants.kClimbMotorThresholdDuration
+        ))
+
+        self.R_motor.configStatorCurrentLimit(ctre.StatorCurrentLimitConfiguration(
+            True,
+            constants.kClimbMotorCurrentLimit,
+            constants.kClimbMotorThresholdCurrent,
+            constants.kClimbMotorThresholdDuration
+        ))
+        self.R_motor.configSupplyCurrentLimit(ctre.SupplyCurrentLimitConfiguration(
+            True,
+            constants.kClimbMotorCurrentLimit,
+            constants.kClimbMotorThresholdCurrent,
+            constants.kClimbMotorThresholdDuration
+        ))
+
+        self.L_motor.configForwardSoftLimitThreshold(
+            constants.kClimbMotorSoftLimitForward, 0)
+        self.L_motor.configForwardSoftLimitEnable(True, 0)
+        self.L_motor.configReverseSoftLimitThreshold(
+            constants.kClimbMotorSoftLimitReverse, 0)
+        self.L_motor.configReverseSoftLimitEnable(True, 0)
+
+        self.R_motor.configForwardSoftLimitThreshold(
+            constants.kClimbMotorSoftLimitForward, 0)
+        self.R_motor.configForwardSoftLimitEnable(True, 0)
+        self.R_motor.configReverseSoftLimitThreshold(
+            constants.kClimbMotorSoftLimitReverse, 0)
+        self.R_motor.configReverseSoftLimitEnable(True, 0)
+
         self.L_motor.setInverted(constants.kLeftClimbMotorRotate)
         self.R_motor.setInverted(constants.kRightClimbMotorRotate)
 
@@ -31,13 +71,13 @@ class Climber(SubsystemBase):
     def periodic(self):
         self.log()
 
-    def setVolts(self, outputVolts, rightOutputVolts=None):
-        leftOutput, rightOutput = outputVolts, outputVolts
-        if rightOutputVolts is not None:
-            rightOutput = rightOutputVolts
+    def set(self, output, rightOutput=None):
+        leftOutput, rightOutput = output, output
+        if rightOutput is not None:
+            rightOutput = rightOutput
 
-        self.L_motor.set(ctre.ControlMode.PercentOutput, leftOutput / 12)
-        self.R_motor.set(ctre.ControlMode.PercentOutput, rightOutput / 12)
+        self.L_motor.set(ctre.ControlMode.PercentOutput, leftOutput)
+        self.R_motor.set(ctre.ControlMode.PercentOutput, rightOutput)
 
     def resetEncoder(self):
         self.L_motor.setSelectedSensorPosition(0, 0, 20)

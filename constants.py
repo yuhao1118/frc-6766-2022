@@ -15,6 +15,23 @@ kNominalVoltage = 12.0
 
 # Joystick
 kDriverControllerPort = 0
+kSiderControllerPort = 1
+
+
+class POVEnum():
+    """
+    Enum for the POV on the driver's controller.
+    """
+    kUp = 0
+    kUpRight = 45
+    kRight = 90
+    kDownRight = 135
+    kDown = 180
+    kDownLeft = 225
+    kLeft = 270
+    kUpLeft = 315
+    kOff = -1
+
 
 # Intake Solenoid
 kSolenoidLeft = 0
@@ -34,6 +51,7 @@ kShooter = 10
 
 kConveyorPort = 11
 kIntakePort = 12
+
 
 # Motor Rotation
 kLeftMotorRotate = TalonFXInvertType.Clockwise
@@ -66,13 +84,27 @@ kClimbEncoderDistancePerPulse = (
 kShooterEncoderDistancePerPulse = (
     kShooterWheelDiameterMeters * math.pi) / (kEncoderCPR * kShooterGearRatio)
 
+
+# Climber motor-safety constants
+
+# Once the kClimbMotorThresholdCurrent is reached for kClimbMotorThresholdDuration seconds,
+# the motor will limit the current to kClimbMotorCurrentLimit.
+kClimbMotorCurrentLimit = 40
+kClimbMotorThresholdCurrent = 50
+kClimbMotorThresholdDuration = 0.5
+
+kClimbMotorSoftLimitForward = 26.9 / kClimbEncoderDistancePerPulse
+kClimbMotorSoftLimitReverse = -2.0 / kClimbEncoderDistancePerPulse
+
 # Drivetrain kinematics
 kTrackWidthMeters = 0.585
 kDriveKinematics = DifferentialDriveKinematics(kTrackWidthMeters)
-kOpenloopRampRate = 0.5
-
+kOpenloopRampRate = 0.25
+kDeadband = 0.07
 
 # Drivetrain Forward-backward constants
+kDrivetrainMaxOutput = 0.75
+
 ksVolts = 0.56729
 kvVoltSecondsPerMeter = 2.3548
 kaVoltSecondsSquaredPerMeter = 0
@@ -81,11 +113,25 @@ kP = 2.8
 kI = 0.0
 kD = 0.0
 
+# Max v,a when performing auto-path planning
+kMaxSpeedMetersPerSecond = 0.7
+kMaxAccelerationMetersPerSecondSquared = 0.4
+
+
+# Ramsete constants for trajectory following
+# Usually not changed
+kRamseteB = 2
+kRamseteZeta = 0.5
+
 
 # Shooter Forward-backward constants
 ksVoltsShooter = 0.56601
 kvVoltSecondsPerMeterShooter = 0.33631
 kaVoltSecondsSquaredPerMeterShooter = 0
+
+kPShooter = 0.91289
+kIShooter = 0.0
+kDShooter = 0.0
 
 shooterSpeedHigh = {
     '0cm': 19.3,
@@ -99,12 +145,16 @@ shooterSpeedLow = {
     '0m': 11.3
 }
 
-# Max v,a when performing auto-path planning
-kMaxSpeedMetersPerSecond = 0.7
-kMaxAccelerationMetersPerSecondSquared = 0.4
 
+# Shooter Vision
+kVisionTargetHeight = 2.58   # (meters) Height of the target off the ground
+kVisionCameraHeight = 0.6    # (meters) Height of the camera off the ground
+kVisionCameraPitch = math.radians(60)     # (radians) Pitch of the camera
 
-# Ramsete constants for trajectory following
-# Usually not changed
-kRamseteB = 2
-kRamseteZeta = 0.5
+kPVisionTurn = 0.01
+kIVisionTurn = 0.0
+kDVisionTurn = 0.0
+
+kPVisionForward = 0.01
+kIVisionForward = 0.0
+kDVisionForward = 0.0

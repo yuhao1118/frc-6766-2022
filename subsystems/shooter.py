@@ -1,6 +1,6 @@
 from commands2 import SubsystemBase
 from wpilib import SmartDashboard
-from wpimath.controller import SimpleMotorFeedforwardMeters
+from wpimath.controller import SimpleMotorFeedforwardMeters, PIDController
 
 import ctre
 import constants
@@ -15,17 +15,25 @@ class Shooter(SubsystemBase):
         self.shooter.configFactoryDefault()
         self.shooter.setNeutralMode(ctre.NeutralMode.Coast)
         self.shooter.setInverted(constants.kShooterRotate)
+        self.shooter.configVoltageCompSaturation(constants.kNominalVoltage)
+        self.shooter.enableVoltageCompensation(True)
 
         self.feedforwardController = SimpleMotorFeedforwardMeters(
             constants.ksVoltsShooter,
             constants.kvVoltSecondsPerMeterShooter,
             constants.kaVoltSecondsSquaredPerMeterShooter
         )
+        self.pidController = PIDController(
+            constants.kPShooter,
+            constants.kIShooter,
+            constants.kDShooter,
+        )
 
         self.resetEncoder()
 
 
     def log(self):
+        SmartDashboard.putData("Shooter PID", self.pidController)
         SmartDashboard.putNumber("Shooter Speed", self.getShooterEncoderSpeed())
 
     def periodic(self):
@@ -36,7 +44,8 @@ class Shooter(SubsystemBase):
 
     def setVelocity(self, outputVelocity):
         ff = self.feedforwardController.calculate(outputVelocity)
-        self.setVolts(ff)
+        bf = self.pidController.calculate(self.getShooterEncoderSpeed(), outputVelocity)
+        self.setVolts(ff + bf)
 
     def resetEncoder(self):
         self.shooter.setSelectedSensorPosition(0, 0, 20)

@@ -1,13 +1,16 @@
 from commands2 import SubsystemBase, RamseteCommand, InstantCommand, SequentialCommandGroup
 
 from wpilib import SerialPort, SmartDashboard, Field2d
+from wpilib.drive import DifferentialDrive
 from wpimath.kinematics import DifferentialDriveOdometry, DifferentialDriveWheelSpeeds
 from wpimath.controller import RamseteController, PIDController, SimpleMotorFeedforwardMeters
 import ctre
 
 import constants
+from constants import POVEnum
+
 from sensor.wit_imu import WitIMU
-import math
+
 
 class Drivetrain(SubsystemBase):
 
@@ -22,10 +25,10 @@ class Drivetrain(SubsystemBase):
 
         self.field2d = Field2d()    # Display field image in dashboard
 
-        self.LF_motor = ctre.TalonFX(constants.kLeftMotor1Port)
-        self.LR_motor = ctre.TalonFX(constants.kLeftMotor2Port)
-        self.RF_motor = ctre.TalonFX(constants.kRightMotor1Port)
-        self.RR_motor = ctre.TalonFX(constants.kRightMotor2Port)
+        self.LF_motor = ctre.WPI_TalonFX(constants.kLeftMotor1Port)
+        self.LR_motor = ctre.WPI_TalonFX(constants.kLeftMotor2Port)
+        self.RF_motor = ctre.WPI_TalonFX(constants.kRightMotor1Port)
+        self.RR_motor = ctre.WPI_TalonFX(constants.kRightMotor2Port)
 
         self.LF_motor.configFactoryDefault()
         self.LR_motor.configFactoryDefault()
@@ -50,18 +53,35 @@ class Drivetrain(SubsystemBase):
         self.RF_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
         self.RR_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
 
-        self.setMaxOutput(0.75)
+        self.LF_motor.configVoltageCompSaturation(constants.kNominalVoltage)
+        self.LR_motor.configVoltageCompSaturation(constants.kNominalVoltage)
+        self.RF_motor.configVoltageCompSaturation(constants.kNominalVoltage)
+        self.RR_motor.configVoltageCompSaturation(constants.kNominalVoltage)
+
+        self.LF_motor.enableVoltageCompensation(True)
+        self.LR_motor.enableVoltageCompensation(True)
+        self.RF_motor.enableVoltageCompensation(True)
+        self.RR_motor.enableVoltageCompensation(True)
+
+        self.setMaxOutput(constants.kDrivetrainMaxOutput)
         self.resetEncoder()
 
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
 
+        self.drive = DifferentialDrive(self.LF_motor, self.RF_motor)
+        self.drive.setDeadband(constants.kDeadband)
+
         self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
-        self.leftPIDController = PIDController(constants.kP, constants.kI, constants.kD)
-        self.rightPIDController = PIDController(constants.kP, constants.kI, constants.kD)
+
+        self.leftPIDController = PIDController(
+            constants.kP, constants.kI, constants.kD)
+        self.rightPIDController = PIDController(
+            constants.kP, constants.kI, constants.kD)
 
     def log(self):
         SmartDashboard.putData("Field2d", self.field2d)
+        SmartDashboard.putData("Drivetrain", self.drive)
         SmartDashboard.putData("LeftPIDController", self.leftPIDController)
         SmartDashboard.putData("RightPIDController", self.rightPIDController)
         SmartDashboard.putNumber("Left Encoder Speed",
@@ -95,25 +115,35 @@ class Drivetrain(SubsystemBase):
         self.odometry.resetPosition(pose, self.gyro.getRotation2d())
 
     def tankDrive(self, leftPercentage, rightPercentage):
-        
         self.LF_motor.set(
             ctre.TalonFXControlMode.PercentOutput, leftPercentage)
         self.RF_motor.set(
             ctre.TalonFXControlMode.PercentOutput, rightPercentage)
+        self.drive.feed()
 
     def tankDriveVolts(self, leftVolts, rightVolts):
         self.tankDrive(leftVolts / 12, rightVolts / 12)
 
-    def arcadeDrive(self, throttle, turn):
-        if abs(throttle) < 0.05:
-            throttle = 0
+    def arcadeDrive(self, throttle, turn, squareInputs=True):
+        self.drive.arcadeDrive(throttle, turn, squareInputs)
 
-        if abs(turn) < 0.05:
-            turn = 0
+    def curvatureDrive(self, throttle, turn, turnInplace=False):
+        # turnInplace -> False: control likes a car (front-wheel steering)
+        # turnInplace -> True: control likes a tank (in-place rotation)
 
-        # Decrease the turning sensitive on low inputs
-        turn = math.copysign(turn ** 2, turn)
-        self.tankDrive(throttle + turn, throttle - turn)
+        self.drive.curvatureDrive(throttle, turn, turnInplace)
+
+    def povDrive(self, povButton):
+        # Using POV button to adjust the drivetrain
+
+        if povButton == POVEnum.kUp:
+            self.arcadeDrive(0.4, 0)
+        elif povButton == POVEnum.kDown:
+            self.arcadeDrive(-0.4, 0)
+        elif povButton == POVEnum.kRight:
+            self.arcadeDrive(0, 0.4)
+        elif povButton == POVEnum.kLeft:
+            self.arcadeDrive(0, -0.4)
 
     def zeroHeading(self):
         self.gyro.reset()
@@ -124,8 +154,8 @@ class Drivetrain(SubsystemBase):
         self.LF_motor.configPeakOutputReverse(-maxOutput, 20)
         self.RF_motor.configPeakOutputReverse(-maxOutput, 20)
 
-
     ############## Getter functions ##############
+
     def getTrajetoryCommand(self, trajectory, shouldInitPose=True):
         # Close loop RaseteCommand
 
