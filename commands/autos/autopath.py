@@ -1,8 +1,6 @@
-from commands2 import SequentialCommandGroup, ParallelRaceGroup, ParallelCommandGroup, WaitCommand
-from wpimath.trajectory import Trajectory, TrajectoryUtil
-from wpimath.geometry import Pose2d, Rotation2d
+from commands2 import SequentialCommandGroup, ParallelRaceGroup, WaitCommand
+from wpimath.trajectory import Trajectory
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
-from commands import shootercommand
 
 from trajectory.trajectory import Trajectory
 
@@ -18,19 +16,17 @@ def Auto1CommandGroup(robotContainer):
     trajectory11 = Trajectory.Auto11
     trajectory12 = Trajectory.Auto12
 
-    # Total time: 12.41 seconds
-    # 3 balls shooted at around t=8.66s
     return SequentialCommandGroup(
-        # 2.0s
-        AutoShootCommandGroup(robotContainer),
-        # 4.86s
+        # 1.3s
+        AutoShootCommandGroup(robotContainer, backBallTime=0, timeout=1.3),
+        # 4.95s
         pathingAndIntakeCommandGroup(
-            robotContainer, trajectory),
-        # 1s
-        WaitCommand(1.0),
+            robotContainer, trajectory11),
+        # 0.5s
+        WaitCommand(0.5),
         # 2.0s
         AutoShootCommandGroup(robotContainer),
-        # 2.55s
+        # 3.09s
         robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
     )
 

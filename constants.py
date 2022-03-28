@@ -5,13 +5,15 @@ changes.
 """
 
 from wpimath.kinematics import DifferentialDriveKinematics
+from wpilib import RobotBase, RuntimeType
+from ctre import TalonFXInvertType
 
 import math
 import os
-from ctre import TalonFXInvertType
 
 # Generate paths directory
-kTrajectoryDirectory = os.getcwd() + "/deploy/pathplanner/generatedJSON/"
+kTrajectoryDirectory = "/home/lvuser/py/deploy/pathplanner/generatedJSON/" if (RobotBase.getRuntimeType(
+) == RuntimeType.kRoboRIO or RobotBase.getRuntimeType() == RuntimeType.kRoboRIO2) else os.getcwd() + "/deploy/pathplanner/generatedJSON/"
 
 # Global
 kNominalVoltage = 12.0
@@ -104,8 +106,8 @@ kI = 0.0
 kD = 0.0
 
 # Max v,a when performing auto-path planning
-kMaxSpeedMetersPerSecond = 4.15
-kMaxAccelerationMetersPerSecondSquared = 3.66
+kMaxSpeedMetersPerSecond = 3.00
+kMaxAccelerationMetersPerSecondSquared = 3.00
 
 
 # Ramsete constants for trajectory following

@@ -16,7 +16,7 @@ class Conveyor(SubsystemBase):
         self.conveyor.setInverted(constants.kConveyorRotate)
 
     def log(self):
-        SmartDashboard.putData("Conveyor", self.conveyor)
+        SmartDashboard.putData("Conveyor", self)
 
     def periodic(self):
         self.log()

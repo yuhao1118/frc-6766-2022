@@ -1,9 +1,9 @@
-from commands2 import Subsystem
+from commands2 import SubsystemBase
 from wpilib import Compressor, Solenoid, PneumaticsModuleType, SmartDashboard
 import constants
 
 
-class Pneumatic(Subsystem):
+class Pneumatic(SubsystemBase):
 
     def __init__(self):
         super().__init__()
@@ -20,7 +20,7 @@ class Pneumatic(Subsystem):
         self.prevSolenoidState = False
 
     def log(self):
-        SmartDashboard.putData("Conveyor", self.conveyor)
+        SmartDashboard.putData("Pneumatic", self)
 
     def periodic(self):
         self.log()

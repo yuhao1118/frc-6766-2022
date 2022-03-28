@@ -10,6 +10,7 @@ class ShooterCommand(CommandBase):
                  ):
 
         super().__init__()
+        super().setName("ShooterCommand")
         self.robotContainer = robotContainer
         self.output = output
         self.shouldAutoRanging=shouldAutoRanging
@@ -30,8 +31,5 @@ class ShooterCommand(CommandBase):
     def isFinished(self):
         return False
 
-    def end(self):
+    def end(self, interrupted):
         self.robotContainer.shooterDrive.setVolts(0)
-
-    def interrupted(self):
-        self.end()

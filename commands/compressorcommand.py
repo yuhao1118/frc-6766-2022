@@ -5,6 +5,7 @@ class CompressorCommand(CommandBase):
 
     def __init__(self, robotContainer, enable):
         super().__init__()
+        super().setName("CompressorCommand")
         self.robotContainer = robotContainer
         self.enable = enable
         self.addRequirements(self.robotContainer.pneumaticControl)
@@ -15,8 +16,5 @@ class CompressorCommand(CommandBase):
     def isFinished(self):
         return False
 
-    def end(self):
+    def end(self, interrupted):
         self.robotContainer.pneumaticControl.setCompressor(False)
-
-    def interrupted(self):
-        self.end()

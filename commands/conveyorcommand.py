@@ -5,6 +5,7 @@ class ConveyorCommand(CommandBase):
 
     def __init__(self, robotContainer, output):
         super().__init__()
+        super().setName("ConveyorCommand")
         self.robotContainer = robotContainer
         self.output = output
         self.addRequirements(self.robotContainer.conveyorDrive)
@@ -15,8 +16,5 @@ class ConveyorCommand(CommandBase):
     def isFinished(self):
         return False
 
-    def end(self):
+    def end(self, interrupted):
         self.robotContainer.conveyorDrive.set(0)
-
-    def interrupted(self):
-        self.end()

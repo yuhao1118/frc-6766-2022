@@ -65,7 +65,7 @@ class Drivetrain(SubsystemBase):
     def log(self):
         SmartDashboard.putData("Drivetrain", self)
         SmartDashboard.putData("Field2d", self.field2d)
-        SmartDashboard.putData("Drivetrain", self.drive)
+        SmartDashboard.putData("Driver", self.drive)
         SmartDashboard.putData("LeftPIDController", self.leftPIDController)
         SmartDashboard.putData("RightPIDController", self.rightPIDController)
         SmartDashboard.putNumber("Left Encoder Speed",
@@ -140,7 +140,7 @@ class Drivetrain(SubsystemBase):
 
     ############## Getter functions ##############
 
-    def getTrajetoryCommand(self, trajectory, shouldInitPose=True):
+    def getTrajectoryCommand(self, trajectory, shouldInitPose=True):
         # Close loop RaseteCommand
 
         ramseteCommand = RamseteCommand(

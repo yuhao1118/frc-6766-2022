@@ -16,7 +16,7 @@ class Intaker(SubsystemBase):
         self.intaker.setInverted(constants.kIntakeRotate)
 
     def log(self):
-        SmartDashboard.putData("Conveyor", self.conveyor)
+        SmartDashboard.putData("Intaker", self)
 
     def periodic(self):
         self.log()

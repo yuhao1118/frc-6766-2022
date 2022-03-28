@@ -33,7 +33,7 @@ class Shooter(SubsystemBase):
 
 
     def log(self):
-        SmartDashboard.putData("Shooter", self.shooter)
+        SmartDashboard.putData("Shooter", self)
         SmartDashboard.putData("Shooter PID", self.pidController)
         SmartDashboard.putNumber("Shooter Speed", self.getShooterEncoderSpeed())
 

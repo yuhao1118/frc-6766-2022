@@ -18,7 +18,7 @@ class Vision(SubsystemBase, PhotonCamera):
         # inRange = (0 < self.getDistance() < 0.35)
         inRange = False
         SmartDashboard.putBoolean("ShootInRange", inRange)
-        SmartDashboard.putData("Vision", SubsystemBase)
+        SmartDashboard.putData("Vision", self)
 
     def periodic(self):
         self.log()

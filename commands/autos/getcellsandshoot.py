@@ -9,14 +9,14 @@ def IntakeConveyCommandGroup(robotContainer):
     )
 
 
-def AutoShootCommandGroup(robotContainer, shouldAutoRanging=False, timeout=2.0):
+def AutoShootCommandGroup(robotContainer, shouldAutoRanging=False, timeout=2.0, backBallTime=0.4):
     return ParallelCommandGroup(
         shootercommand.ShooterCommand(
             robotContainer, shouldAutoRanging=shouldAutoRanging),
 
         SequentialCommandGroup(
             conveyorcommand.ConveyorCommand(
-                robotContainer, -0.2).withTimeout(0.4),
+                robotContainer, -0.2).withTimeout(backBallTime),
             WaitCommand(0.8).andThen(
                 conveyorcommand.ConveyorCommand(robotContainer, 0.3))
         )

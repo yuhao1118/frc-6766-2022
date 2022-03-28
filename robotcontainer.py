@@ -17,7 +17,7 @@ from trajectory.trajectory import Trajectory
 from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.autos.getrangeandaim import GetRangeAndAimCommand
-from commands.autos.autopath import Auto1CommandGroup, TestForwardCommandGroup
+from commands.autos.autopath import Auto1CommandGroup, TestCommandGroup
 
 
 class RobotContainer:
@@ -43,6 +43,9 @@ class RobotContainer:
         self.pneumaticControl = Pneumatic()
         self.visionControl = Vision()
 
+        # Create instances of the commands in SmartDashboard.
+        self.putCommandsToSmartDashboard()
+
         # Configure and set the button bindings for the driver's controller.
         self.configureButtons()
 
@@ -57,14 +60,30 @@ class RobotContainer:
         self.autoChooser.setDefaultOption(
             "Auto1", Auto1CommandGroup(self))
         self.autoChooser.addOption(
-            "Test Forward", TestForwardCommandGroup(self, Trajectory.ForwardTest))
+            "Test Forward", TestCommandGroup(self, Trajectory.ForwardTest))
         self.autoChooser.addOption(
-            "Test Backward", TestForwardCommandGroup(self, Trajectory.BackwardTest))
+            "Test Backward", TestCommandGroup(self, Trajectory.BackwardTest))
         self.autoChooser.addOption(
-            "Test Auto11", TestForwardCommandGroup(self, Trajectory.Auto11))
+            "Test Auto11", TestCommandGroup(self, Trajectory.Auto11))
         self.autoChooser.addOption(
-            "Test Auto12", TestForwardCommandGroup(self, Trajectory.Auto12))
+            "Test Auto12", TestCommandGroup(self, Trajectory.Auto12))
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
+
+    def putCommandsToSmartDashboard(self):
+        """Put commands to the SmartDashboard (Test Only)"""
+        SmartDashboard.putData("Open Intake", pneumaticcommand.PneumaticCommand(self, True))
+        SmartDashboard.putData("Close Intake", pneumaticcommand.PneumaticCommand(self, False))
+        SmartDashboard.putData("Intake and Convey", IntakeConveyCommandGroup(self))
+        SmartDashboard.putData("Auto-assisted Shoot (Fixed)", AutoShootCommandGroup(self))
+        SmartDashboard.putData("Auto-assisted Shoot (Dynamic)", AutoShootCommandGroup(self, shouldAutoRanging=True))
+        SmartDashboard.putData("Auto-assisted Aim", GetRangeAndAimCommand(self))
+        SmartDashboard.putData("Auto-assisted Ranging and Aim", GetRangeAndAimCommand(self, shouldAutoRanging=True))
+        SmartDashboard.putData("Intake motor forward", intakecommand.IntakeCommand(self, 0.3))
+        SmartDashboard.putData("Intake motor backward", intakecommand.IntakeCommand(self, -0.3))
+        SmartDashboard.putData("Conveyor motor forward", conveyorcommand.ConveyorCommand(self, 0.3))
+        SmartDashboard.putData("Conveyor motor backward", conveyorcommand.ConveyorCommand(self, -0.3))
+
+
 
     def getAutonomousCommand(self):
         return self.autoChooser.getSelected()
@@ -108,14 +127,14 @@ class RobotContainer:
 
         ############ Manual Controls ############
 
-        # (Hold) Intake Motor Backward
+        # (Hold) Intake Motor Forward
         (
             POVButton(self.siderController,
                       POVEnum.kUp)
-            .whileHeld(intakecommand.IntakeCommand(self, -0.3))
+            .whileHeld(intakecommand.IntakeCommand(self, 0.3))
         )
 
-        # (Hold) Intake Motor Forward
+        # (Hold) Intake Motor Backward
         (
             POVButton(self.siderController,
                       POVEnum.kDown)

@@ -29,10 +29,10 @@ class MyRobot(commands2.TimedCommandRobot):
         # autonomous chooser on the dashboard.
         self.container = RobotContainer()
         try:
-            PortForwarder.add(5800, "gloworm.local", 5800)
+            PortForwarder().add(5800, "gloworm.local", 5800)
             # PortForwarder.add(5800, "limelight.local", 5800)
             # PortForwarder.add(5800, "photonvision.local", 5800)
-        except e:
+        except Exception as e:
             print("Port Forwarder Not Connected!")
             print(repr(e))
 
