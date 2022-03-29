@@ -7,7 +7,7 @@ from wpimath.controller import RamseteController, PIDController, SimpleMotorFeed
 import ctre
 
 import constants
-from constants import POVEnum
+from enums.pov import POVEnum
 
 from sensor.wit_imu import WitIMU
 
@@ -30,15 +30,13 @@ class Drivetrain(SubsystemBase):
         self.RF_motor = ctre.WPI_TalonFX(constants.kRightMotor1Port)
         self.RR_motor = ctre.WPI_TalonFX(constants.kRightMotor2Port)
 
-        self.LF_motor.configFactoryDefault()
-        self.LR_motor.configFactoryDefault()
-        self.RF_motor.configFactoryDefault()
-        self.RR_motor.configFactoryDefault()
-
-        self.LF_motor.setNeutralMode(ctre.NeutralMode.Brake)
-        self.LR_motor.setNeutralMode(ctre.NeutralMode.Brake)
-        self.RF_motor.setNeutralMode(ctre.NeutralMode.Brake)
-        self.RR_motor.setNeutralMode(ctre.NeutralMode.Brake)
+        for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
+            motor.configFactoryDefault()
+            motor.setNeutralMode(ctre.NeutralMode.Brake)
+            motor.configVoltageCompSaturation(constants.kNominalVoltage)
+            motor.enableVoltageCompensation(True)
+            motor.configPeakOutputForward(constants.kDrivetrainMaxOutput)
+            motor.configPeakOutputReverse(-constants.kDrivetrainMaxOutput)
 
         self.LR_motor.follow(self.LF_motor)
         self.RR_motor.follow(self.RF_motor)
@@ -48,23 +46,8 @@ class Drivetrain(SubsystemBase):
         self.RF_motor.setInverted(constants.kRightMotorRotate)
         self.RR_motor.setInverted(ctre.TalonFXInvertType.FollowMaster)
 
-        self.LF_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
-        self.LR_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
-        self.RF_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
-        self.RR_motor.configOpenloopRamp(constants.kOpenloopRampRate, 20)
-
-        self.LF_motor.configVoltageCompSaturation(constants.kNominalVoltage)
-        self.LR_motor.configVoltageCompSaturation(constants.kNominalVoltage)
-        self.RF_motor.configVoltageCompSaturation(constants.kNominalVoltage)
-        self.RR_motor.configVoltageCompSaturation(constants.kNominalVoltage)
-
-        self.LF_motor.enableVoltageCompensation(True)
-        self.LR_motor.enableVoltageCompensation(True)
-        self.RF_motor.enableVoltageCompensation(True)
-        self.RR_motor.enableVoltageCompensation(True)
-
-        self.setMaxOutput(constants.kDrivetrainMaxOutput)
         self.resetEncoder()
+        self.setOpenloopRamp(constants.kOpenloopRampRateTeleop)
 
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
@@ -80,6 +63,7 @@ class Drivetrain(SubsystemBase):
             constants.kP, constants.kI, constants.kD)
 
     def log(self):
+        SmartDashboard.putData("Drivetrain", self)
         SmartDashboard.putData("Field2d", self.field2d)
         SmartDashboard.putData("Drivetrain", self.drive)
         SmartDashboard.putData("LeftPIDController", self.leftPIDController)
@@ -103,6 +87,12 @@ class Drivetrain(SubsystemBase):
         )
         self.field2d.setRobotPose(self.getPose())
         self.log()
+
+    def setOpenloopRamp(self, seconds):
+        self.LF_motor.configOpenloopRamp(seconds, 20)
+        self.LR_motor.configOpenloopRamp(seconds, 20)
+        self.RF_motor.configOpenloopRamp(seconds, 20)
+        self.RR_motor.configOpenloopRamp(seconds, 20)
 
     def resetEncoder(self):
         self.LF_motor.setSelectedSensorPosition(0, 0, 20)
@@ -147,12 +137,6 @@ class Drivetrain(SubsystemBase):
 
     def zeroHeading(self):
         self.gyro.reset()
-
-    def setMaxOutput(self, maxOutput):
-        self.LF_motor.configPeakOutputForward(maxOutput, 20)
-        self.RF_motor.configPeakOutputForward(maxOutput, 20)
-        self.LF_motor.configPeakOutputReverse(-maxOutput, 20)
-        self.RF_motor.configPeakOutputReverse(-maxOutput, 20)
 
     ############## Getter functions ##############
 

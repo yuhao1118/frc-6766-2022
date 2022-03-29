@@ -6,6 +6,7 @@ from wpilib import SmartDashboard
 import constants
 import math
 
+
 class Vision(SubsystemBase, PhotonCamera):
     def __init__(self):
         PhotonCamera.__init__(self, "photonvision")
@@ -17,6 +18,7 @@ class Vision(SubsystemBase, PhotonCamera):
         # inRange = (0 < self.getDistance() < 0.35)
         inRange = False
         SmartDashboard.putBoolean("ShootInRange", inRange)
+        SmartDashboard.putData("Vision", SubsystemBase)
 
     def periodic(self):
         self.log()

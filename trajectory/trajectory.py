@@ -1,13 +1,19 @@
 # wpimath is a module that helps us with poses, generating trajectories, etc.
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
-from wpimath.trajectory import TrajectoryGenerator, TrajectoryConfig
+from wpimath.trajectory import TrajectoryGenerator, TrajectoryConfig, TrajectoryUtil
 from wpimath.trajectory.constraint import DifferentialDriveVoltageConstraint
 from wpimath.controller import SimpleMotorFeedforwardMeters
+import os
 
 import constants
 
 
-class PathTrajectory:
+def getTrajectory(filename):
+    trajectoryPath = os.path.join(constants.kTrajectoryDirectory, filename)
+    return TrajectoryUtil.fromPathweaverJson(trajectoryPath)
+
+
+class TestTrajectory:
     def __init__(self):
         # super init (initializes sequentialcommandgroup)
         super().__init__()
@@ -67,3 +73,10 @@ class PathTrajectory:
         #     Pose2d(6.95, 4.64, Rotation2d(157.09)),
         #     forwardConfig
         # )
+
+
+class Trajectory:
+    ForwardTest = TestTrajectory().trajectoryForward
+    BackwardTest = TestTrajectory().trajectoryBackward
+    Auto11 = getTrajectory("Auto1-1.wpilib.json")
+    Auto12 = getTrajectory("Auto1-2.wpilib.json")

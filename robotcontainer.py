@@ -12,11 +12,12 @@ from subsystems.pneumatic import Pneumatic
 from subsystems.vision import Vision
 
 import constants
-from constants import POVEnum
-from trajectory.pathtrajectory import PathTrajectory
+from enums.pov import POVEnum
+from trajectory.trajectory import Trajectory
 from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.autos.getrangeandaim import GetRangeAndAimCommand
+from commands.autos.autopath import Auto1CommandGroup, TestForwardCommandGroup
 
 
 class RobotContainer:
@@ -52,19 +53,21 @@ class RobotContainer:
             drivecommand.DriveCommand(self, self.driverController)
         )
 
-        self.pathTrajectory = PathTrajectory()
-
         self.autoChooser = SendableChooser()
-        self.autoChooser.setDefaultOption("Forward", self.pathTrajectory.trajectoryForward)
-        self.autoChooser.addOption("Backward", self.pathTrajectory.trajectoryForward)
+        self.autoChooser.setDefaultOption(
+            "Auto1", Auto1CommandGroup(self))
+        self.autoChooser.addOption(
+            "Test Forward", TestForwardCommandGroup(self, Trajectory.ForwardTest))
+        self.autoChooser.addOption(
+            "Test Backward", TestForwardCommandGroup(self, Trajectory.BackwardTest))
+        self.autoChooser.addOption(
+            "Test Auto11", TestForwardCommandGroup(self, Trajectory.Auto11))
+        self.autoChooser.addOption(
+            "Test Auto12", TestForwardCommandGroup(self, Trajectory.Auto12))
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
 
-
     def getAutonomousCommand(self):
-        trajectory = self.autoChooser.getSelected()
-        trajectoryCommand = self.robotDrive.getTrajetoryCommand(trajectory)
-
-        return trajectoryCommand
+        return self.autoChooser.getSelected()
 
     def configureButtons(self):
         """Configure the buttons for the driver's controller"""

@@ -3,8 +3,10 @@
 import typing
 import wpilib
 import commands2
+from wpiutil import PortForwarder
 
 from robotcontainer import RobotContainer
+import constants
 
 
 class MyRobot(commands2.TimedCommandRobot):
@@ -26,6 +28,13 @@ class MyRobot(commands2.TimedCommandRobot):
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
         self.container = RobotContainer()
+        try:
+            PortForwarder.add(5800, "gloworm.local", 5800)
+            # PortForwarder.add(5800, "limelight.local", 5800)
+            # PortForwarder.add(5800, "photonvision.local", 5800)
+        except e:
+            print("Port Forwarder Not Connected!")
+            print(repr(e))
 
     def disabledInit(self) -> None:
         """This function is called once each time the robot enters Disabled mode."""
@@ -37,6 +46,9 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def autonomousInit(self) -> None:
         """This autonomous runs the autonomous command selected by your RobotContainer class."""
+        self.container.robotDrive.setOpenloopRamp(
+            constants.kOpenloopRampRateAuto)
+
         self.autonomousCommand = self.container.getAutonomousCommand()
 
         if self.autonomousCommand:
@@ -50,6 +62,9 @@ class MyRobot(commands2.TimedCommandRobot):
         # teleop starts running. If you want the autonomous to
         # continue until interrupted by another command, remove
         # this line or comment it out.
+        self.container.robotDrive.setOpenloopRamp(
+            constants.kOpenloopRampRateTeleop)
+
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
 

@@ -13,51 +13,31 @@ class Climber(SubsystemBase):
         self.L_motor = ctre.TalonFX(constants.kLeftClimbMotorPort)
         self.R_motor = ctre.TalonFX(constants.kRightClimbMotorPort)
 
-        self.L_motor.configFactoryDefault()
-        self.R_motor.configFactoryDefault()
+        for motor in [self.L_motor, self.R_motor]:
+            motor.configFactoryDefault()
+            motor.setNeutralMode(ctre.NeutralMode.Brake)
+            motor.configVoltageCompSaturation(constants.kNominalVoltage)
+            motor.enableVoltageCompensation(True)
+            motor.configStatorCurrentLimit(ctre.StatorCurrentLimitConfiguration(
+                True,
+                constants.kClimbMotorCurrentLimit,
+                constants.kClimbMotorThresholdCurrent,
+                constants.kClimbMotorThresholdDuration
+            ))
+            motor.configSupplyCurrentLimit(ctre.SupplyCurrentLimitConfiguration(
+                True,
+                constants.kClimbMotorCurrentLimit,
+                constants.kClimbMotorThresholdCurrent,
+                constants.kClimbMotorThresholdDuration
+            ))
 
-        self.L_motor.setNeutralMode(ctre.NeutralMode.Brake)
-        self.R_motor.setNeutralMode(ctre.NeutralMode.Brake)
+            motor.configForwardSoftLimitThreshold(
+                constants.kClimbMotorSoftLimitForward, 0)
+            motor.configForwardSoftLimitEnable(True, 0)
 
-        self.L_motor.configStatorCurrentLimit(ctre.StatorCurrentLimitConfiguration(
-            True,
-            constants.kClimbMotorCurrentLimit,
-            constants.kClimbMotorThresholdCurrent,
-            constants.kClimbMotorThresholdDuration
-        ))
-        self.L_motor.configSupplyCurrentLimit(ctre.SupplyCurrentLimitConfiguration(
-            True,
-            constants.kClimbMotorCurrentLimit,
-            constants.kClimbMotorThresholdCurrent,
-            constants.kClimbMotorThresholdDuration
-        ))
-
-        self.R_motor.configStatorCurrentLimit(ctre.StatorCurrentLimitConfiguration(
-            True,
-            constants.kClimbMotorCurrentLimit,
-            constants.kClimbMotorThresholdCurrent,
-            constants.kClimbMotorThresholdDuration
-        ))
-        self.R_motor.configSupplyCurrentLimit(ctre.SupplyCurrentLimitConfiguration(
-            True,
-            constants.kClimbMotorCurrentLimit,
-            constants.kClimbMotorThresholdCurrent,
-            constants.kClimbMotorThresholdDuration
-        ))
-
-        self.L_motor.configForwardSoftLimitThreshold(
-            constants.kClimbMotorSoftLimitForward, 0)
-        self.L_motor.configForwardSoftLimitEnable(True, 0)
-        self.L_motor.configReverseSoftLimitThreshold(
-            constants.kClimbMotorSoftLimitReverse, 0)
-        self.L_motor.configReverseSoftLimitEnable(True, 0)
-
-        self.R_motor.configForwardSoftLimitThreshold(
-            constants.kClimbMotorSoftLimitForward, 0)
-        self.R_motor.configForwardSoftLimitEnable(True, 0)
-        self.R_motor.configReverseSoftLimitThreshold(
-            constants.kClimbMotorSoftLimitReverse, 0)
-        self.R_motor.configReverseSoftLimitEnable(True, 0)
+            motor.configReverseSoftLimitThreshold(
+                constants.kClimbMotorSoftLimitReverse, 0)
+            motor.configReverseSoftLimitEnable(True, 0)
 
         self.L_motor.setInverted(constants.kLeftClimbMotorRotate)
         self.R_motor.setInverted(constants.kRightClimbMotorRotate)
@@ -65,6 +45,7 @@ class Climber(SubsystemBase):
         self.resetEncoder()
 
     def log(self):
+        SmartDashboard.putData("Climber", self)
         SmartDashboard.putNumber("Climb left", self.getLeftEncoderDistance())
         SmartDashboard.putNumber("Climb right", self.getRightEncoderDistance())
 

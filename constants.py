@@ -7,7 +7,11 @@ changes.
 from wpimath.kinematics import DifferentialDriveKinematics
 
 import math
+import os
 from ctre import TalonFXInvertType
+
+# Generate paths directory
+kTrajectoryDirectory = os.getcwd() + "/deploy/pathplanner/generatedJSON/"
 
 # Global
 kNominalVoltage = 12.0
@@ -16,21 +20,6 @@ kNominalVoltage = 12.0
 # Joystick
 kDriverControllerPort = 0
 kSiderControllerPort = 1
-
-
-class POVEnum():
-    """
-    Enum for the POV on the driver's controller.
-    """
-    kUp = 0
-    kUpRight = 45
-    kRight = 90
-    kDownRight = 135
-    kDown = 180
-    kDownLeft = 225
-    kLeft = 270
-    kUpLeft = 315
-    kOff = -1
 
 
 # Intake Solenoid
@@ -99,11 +88,12 @@ kClimbMotorSoftLimitReverse = -2.0 / kClimbEncoderDistancePerPulse
 # Drivetrain kinematics
 kTrackWidthMeters = 0.585
 kDriveKinematics = DifferentialDriveKinematics(kTrackWidthMeters)
-kOpenloopRampRate = 0.25
+kOpenloopRampRateTeleop = 0.25
+kOpenloopRampRateAuto = 0.0     # Let the RamseteController handle the acceleration
 kDeadband = 0.07
 
 # Drivetrain Forward-backward constants
-kDrivetrainMaxOutput = 0.75
+kDrivetrainMaxOutput = 0.85
 
 ksVolts = 0.56729
 kvVoltSecondsPerMeter = 2.3548
@@ -114,8 +104,8 @@ kI = 0.0
 kD = 0.0
 
 # Max v,a when performing auto-path planning
-kMaxSpeedMetersPerSecond = 0.7
-kMaxAccelerationMetersPerSecondSquared = 0.4
+kMaxSpeedMetersPerSecond = 4.15
+kMaxAccelerationMetersPerSecondSquared = 3.66
 
 
 # Ramsete constants for trajectory following

@@ -9,13 +9,15 @@ def IntakeConveyCommandGroup(robotContainer):
     )
 
 
-def AutoShootCommandGroup(robotContainer, shouldAutoRanging=False):
+def AutoShootCommandGroup(robotContainer, shouldAutoRanging=False, timeout=2.0):
     return ParallelCommandGroup(
-            shootercommand.ShooterCommand(
-                robotContainer, shouldAutoRanging=shouldAutoRanging),
+        shootercommand.ShooterCommand(
+            robotContainer, shouldAutoRanging=shouldAutoRanging),
 
-            SequentialCommandGroup(
-                conveyorcommand.ConveyorCommand(robotContainer, -0.2).withTimeout(0.4),
-                WaitCommand(0.8).andThen(conveyorcommand.ConveyorCommand(robotContainer, 0.3))
-            )
-        ).withTimeout(2.5)
+        SequentialCommandGroup(
+            conveyorcommand.ConveyorCommand(
+                robotContainer, -0.2).withTimeout(0.4),
+            WaitCommand(0.8).andThen(
+                conveyorcommand.ConveyorCommand(robotContainer, 0.3))
+        )
+    ).withTimeout(timeout)
