@@ -14,7 +14,7 @@ from subsystems.vision import Vision
 import constants
 from enums.pov import POVEnum
 from trajectory.trajectory import Trajectory
-from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand
+from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.autos.getrangeandaim import GetRangeAndAimCommand
 from commands.autos.autopath import Auto1CommandGroup, TestCommandGroup
@@ -82,6 +82,10 @@ class RobotContainer:
         SmartDashboard.putData("Intake motor backward", intakecommand.IntakeCommand(self, -0.3))
         SmartDashboard.putData("Conveyor motor forward", conveyorcommand.ConveyorCommand(self, 0.3))
         SmartDashboard.putData("Conveyor motor backward", conveyorcommand.ConveyorCommand(self, -0.3))
+        SmartDashboard.putData("Shooter Forward High", shootercommand.ShooterCommand(self, output=constants.shooterSpeedHigh['0cm']))
+        SmartDashboard.putData("Shooter Forward Low", shootercommand.ShooterCommand(self, output=constants.shooterSpeedLow['0cm']))
+        SmartDashboard.putData("Shooter Backward", shootercommand.ShooterCommand(self, output=-5.0))
+
 
 
 

@@ -101,7 +101,7 @@ ksVolts = 0.56729
 kvVoltSecondsPerMeter = 2.3548
 kaVoltSecondsSquaredPerMeter = 0
 
-kP = 2.8
+kP = 1.0
 kI = 0.0
 kD = 0.0
 
@@ -121,7 +121,7 @@ ksVoltsShooter = 0.56601
 kvVoltSecondsPerMeterShooter = 0.33631
 kaVoltSecondsSquaredPerMeterShooter = 0
 
-kPShooter = 0.91289
+kPShooter = 0.1
 kIShooter = 0.0
 kDShooter = 0.0
 
@@ -134,16 +134,16 @@ shooterSpeedHigh = {
 }
 
 shooterSpeedLow = {
-    '0m': 11.3
+    '0cm': 11.3
 }
 
 
 # Shooter Vision
 kVisionTargetHeight = 2.58   # (meters) Height of the target off the ground
-kVisionCameraHeight = 0.6    # (meters) Height of the camera off the ground
+kVisionCameraHeight = 0.63    # (meters) Height of the camera off the ground
 kVisionCameraPitch = math.radians(60)     # (radians) Pitch of the camera
 
-kPVisionTurn = 0.01
+kPVisionTurn = 0.03
 kIVisionTurn = 0.0
 kDVisionTurn = 0.0
 

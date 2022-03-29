@@ -13,7 +13,7 @@ class Shooter(SubsystemBase):
 
         self.shooter = ctre.TalonFX(constants.kShooter)
         self.shooter.configFactoryDefault()
-        self.shooter.setNeutralMode(ctre.NeutralMode.Coast)
+        self.shooter.setNeutralMode(ctre.NeutralMode.Brake)
         self.shooter.setInverted(constants.kShooterRotate)
         self.shooter.configVoltageCompSaturation(constants.kNominalVoltage)
         self.shooter.enableVoltageCompensation(True)

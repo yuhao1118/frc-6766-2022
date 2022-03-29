@@ -30,12 +30,12 @@ class GetRangeAndAimCommand(CommandBase):
         turnSpeed = 0
 
         if self.shouldAutoRanging:
-            range = self.robotContainer.visionControl.getRange()
+            range = self.robotContainer.visionControl.getDistance()
             if 0 < range - self.goalRange < 5:
                 forwardSpeed = -self.forwardPidController.calculate(
                     range, self.goalRange)
         
-        angle = self.robotContainer.visionControl.getAngle().degrees()
+        angle = self.robotContainer.visionControl.getRotation2d().degrees()
         turnSpeed = -self.turnPidController.calculate(angle, self.goalAngle)
 
         self.robotContainer.robotDrive.arcadeDrive(
@@ -44,8 +44,5 @@ class GetRangeAndAimCommand(CommandBase):
     def isFinished(self):
         return False
 
-    def end(self):
+    def end(self, interrputed):
         self.robotContainer.robotDrive.arcadeDrive(0, 0)
-
-    def interrupted(self):
-        self.end()

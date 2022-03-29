@@ -9,14 +9,13 @@ class Pneumatic(SubsystemBase):
         super().__init__()
         try:
             self.compressor = Compressor(PneumaticsModuleType.CTREPCM)
+            self.solenoidRight = Solenoid(
+                PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
+            self.solenoidLeft = Solenoid(
+                PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
+            self.compressor.stop()
         except:
-            print("Compressor Not Connected!")
-
-        self.solenoidRight = Solenoid(
-            PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
-        self.solenoidLeft = Solenoid(
-            PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
-        self.compressor.stop()
+            print("Compressor not connected!")
         self.prevSolenoidState = False
 
     def log(self):
@@ -26,11 +25,10 @@ class Pneumatic(SubsystemBase):
         self.log()
 
     def setCompressor(self, enable):
-        if self.compressor is not None:
-            if enable:
-                self.compressor.start()
-            else:
-                self.compressor.stop()
+        if enable:
+            self.compressor.start()
+        else:
+            self.compressor.stop()
 
     def set(self, enable):
         if enable != self.prevSolenoidState:

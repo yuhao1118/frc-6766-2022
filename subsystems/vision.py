@@ -7,24 +7,24 @@ import constants
 import math
 
 
-class Vision(SubsystemBase, PhotonCamera):
+class Vision(SubsystemBase):
     def __init__(self):
-        PhotonCamera.__init__(self, "photonvision")
-        SubsystemBase.__init__(self)
+        super().__init__()
+        self.camera = PhotonCamera("gloworm")
 
-        self.setLEDMode(LEDMode.kOn)
+        self.camera.setLEDMode(LEDMode.kOn)
 
     def log(self):
-        # inRange = (0 < self.getDistance() < 0.35)
-        inRange = False
-        SmartDashboard.putBoolean("ShootInRange", inRange)
+        SmartDashboard.putBoolean("ShootInRange",  (0 < self.getDistance() < 0.35))
+        SmartDashboard.putBoolean("Vision Has Target", self.camera.hasTargets())
+        SmartDashboard.putNumber("Vision Yaw", self.getRotation2d().degrees())
         SmartDashboard.putData("Vision", self)
 
     def periodic(self):
         self.log()
 
     def getDistance(self):
-        res = self.getLatestResult()
+        res = self.camera.getLatestResult()
         if res.hasTargets():
             return PhotonUtils.calculateDistanceToTarget(
                 constants.kVisionCameraHeight,
@@ -35,8 +35,8 @@ class Vision(SubsystemBase, PhotonCamera):
             return -1
 
     def getRotation2d(self):
-        res = self.getLatestResult()
+        res = self.camera.getLatestResult()
         if res.hasTargets():
-            return Rotation2d(res.getBestTarget().getYaw())
+            return Rotation2d.fromDegrees(res.getBestTarget().getYaw())
         else:
             return Rotation2d(0)

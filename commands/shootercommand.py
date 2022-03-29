@@ -19,11 +19,11 @@ class ShooterCommand(CommandBase):
 
     def execute(self):
         if self.shouldAutoRanging:
-            range = self.robotContainer.visionControl.getRange()
+            range = self.robotContainer.visionControl.getDistance()
             range = int(range * 100)        # Convert to cm
 
             for key in constants.shooterSpeedHigh.keys():
-                if range <= key:
+                if range <= int(key.replace("cm", "")):
                     self.output = constants.shooterSpeedHigh[key]
 
         self.robotContainer.shooterDrive.setVelocity(self.output)
