@@ -19,7 +19,8 @@ class Conveyor(SubsystemBase):
         SmartDashboard.putData("Conveyor", self)
 
     def periodic(self):
-        self.log()
+        # self.log()
+        pass
 
     def set(self, output):
         self.conveyor.set(ctre.ControlMode.PercentOutput, output)

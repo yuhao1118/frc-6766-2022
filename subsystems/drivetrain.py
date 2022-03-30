@@ -86,7 +86,7 @@ class Drivetrain(SubsystemBase):
             self.getRightEncoderDistance()
         )
         self.field2d.setRobotPose(self.getPose())
-        self.log()
+        # self.log()
 
     def setOpenloopRamp(self, seconds):
         self.LF_motor.configOpenloopRamp(seconds, 20)

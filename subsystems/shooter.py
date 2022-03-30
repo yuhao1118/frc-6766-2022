@@ -38,7 +38,8 @@ class Shooter(SubsystemBase):
         SmartDashboard.putNumber("Shooter Speed", self.getShooterEncoderSpeed())
 
     def periodic(self):
-        self.log()
+        # self.log()
+        pass
 
     def setVolts(self, outputVolts):
         self.shooter.set(ctre.ControlMode.PercentOutput, outputVolts / 12)

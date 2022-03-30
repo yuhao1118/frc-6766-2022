@@ -208,7 +208,7 @@ class WIT_IO:
 
 
 class WIT_THREAD(threading.Thread):
-    def __init__(self, proxiIMU, imuIO, updateRate=50, q=queue.Queue()):
+    def __init__(self, proxiIMU, imuIO, updateRate=25, q=queue.Queue()):
         super().__init__(self)
         self.proxiIMU = proxiIMU
         self.imuIO = imuIO
@@ -218,7 +218,7 @@ class WIT_THREAD(threading.Thread):
     def run(self):
         while True:
             try:
-                function, args, kwargs = self.q.get(timeout=0.02)
+                function, args, kwargs = self.q.get(timeout=1 / self.updateRate)
                 function(*args, **kwargs)
             except queue.Empty:
                 self.idle()
@@ -228,10 +228,10 @@ class WIT_THREAD(threading.Thread):
                     self.imuIO.getGyroAngles(),
                     self.imuIO.getAccels()
                 )
+            time.sleep(1 / self.updateRate)
 
     def idle(self):
         self.imuIO.getData()
-        time.sleep(1 / self.updateRate)
 
     def onThread(self, function, *args, **kwargs):
         self.q.put((function, args, kwargs))

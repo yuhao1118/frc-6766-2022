@@ -50,7 +50,8 @@ class Climber(SubsystemBase):
         SmartDashboard.putNumber("Climb right", self.getRightEncoderDistance())
 
     def periodic(self):
-        self.log()
+        # self.log()
+        pass
 
     def set(self, output, rightOutput=None):
         leftOutput, rightOutput = output, output

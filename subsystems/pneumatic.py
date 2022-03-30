@@ -7,22 +7,20 @@ class Pneumatic(SubsystemBase):
 
     def __init__(self):
         super().__init__()
-        try:
-            self.compressor = Compressor(PneumaticsModuleType.CTREPCM)
-            self.solenoidRight = Solenoid(
-                PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
-            self.solenoidLeft = Solenoid(
-                PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
-            self.compressor.stop()
-        except:
-            print("Compressor not connected!")
+        self.compressor = Compressor(PneumaticsModuleType.CTREPCM)
+        self.solenoidRight = Solenoid(
+            PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
+        self.solenoidLeft = Solenoid(
+            PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
+        self.compressor.stop()
         self.prevSolenoidState = False
 
     def log(self):
         SmartDashboard.putData("Pneumatic", self)
 
     def periodic(self):
-        self.log()
+        # self.log()
+        pass
 
     def setCompressor(self, enable):
         if enable:

@@ -113,13 +113,13 @@ class RobotContainer:
 
         # (Press) Aiming
         (
-            JoystickButton(self.siderController, XboxController.Button.kY)
+            JoystickButton(self.driverController, XboxController.Button.kY)
             .whenPressed(GetRangeAndAimCommand(self).withTimeout(0.8))
         )
 
         # (Press) Shooting - fixed distance
         (
-            JoystickButton(self.siderController, XboxController.Button.kB)
+            JoystickButton(self.driverController, XboxController.Button.kB)
             .whenPressed(AutoShootCommandGroup(self))
         )
 
@@ -135,14 +135,14 @@ class RobotContainer:
         (
             POVButton(self.siderController,
                       POVEnum.kUp)
-            .whileHeld(intakecommand.IntakeCommand(self, 0.3))
+            .whileHeld(intakecommand.IntakeCommand(self, 0.4))
         )
 
         # (Hold) Intake Motor Backward
         (
             POVButton(self.siderController,
                       POVEnum.kDown)
-            .whileHeld(intakecommand.IntakeCommand(self, -0.3))
+            .whileHeld(intakecommand.IntakeCommand(self, -0.4))
         )
 
         # (Toggle) Open/Close Compressor

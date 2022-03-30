@@ -143,7 +143,7 @@ kVisionTargetHeight = 2.58   # (meters) Height of the target off the ground
 kVisionCameraHeight = 0.63    # (meters) Height of the camera off the ground
 kVisionCameraPitch = math.radians(60)     # (radians) Pitch of the camera
 
-kPVisionTurn = 0.03
+kPVisionTurn = 0.01
 kIVisionTurn = 0.0
 kDVisionTurn = 0.0
 
