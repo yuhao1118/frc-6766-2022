@@ -38,6 +38,9 @@ kRightMotor2Port = 9
 kLeftClimbMotorPort = 13
 kRightClimbMotorPort = 14
 
+kLeftClimbArmMotorPort = 15
+kRightClimbArmMotorPort = 16
+
 kShooter = 10
 
 kConveyorPort = 11
@@ -51,6 +54,9 @@ kRightMotorRotate = TalonFXInvertType.CounterClockwise
 kLeftClimbMotorRotate = TalonFXInvertType.CounterClockwise
 kRightClimbMotorRotate = TalonFXInvertType.Clockwise
 
+kLeftCLimbArmMotorRotate = TalonFXInvertType.CounterClockwise
+kRightCLimbArmMotorRotate = TalonFXInvertType.OpposeMaster
+
 kShooterRotate = TalonFXInvertType.Clockwise
 
 kConveyorRotate = TalonFXInvertType.CounterClockwise
@@ -62,6 +68,7 @@ kEncoderCPR = 2048
 
 kDrivetrainGearRatio = 7
 kClimbGearRatio = 15
+kClimbArmGearRatio = 130.5
 kShooterGearRatio = 1
 
 kDrivetrainWheelDiameterMeters = 4 * 0.0254
@@ -74,6 +81,7 @@ kClimbEncoderDistancePerPulse = (
     kClimbWheelDiameterMeters * math.pi) / (kEncoderCPR * kClimbGearRatio)
 kShooterEncoderDistancePerPulse = (
     kShooterWheelDiameterMeters * math.pi) / (kEncoderCPR * kShooterGearRatio)
+kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRation)
 
 
 # Climber motor-safety constants
@@ -84,8 +92,15 @@ kClimbMotorCurrentLimit = 40
 kClimbMotorThresholdCurrent = 50
 kClimbMotorThresholdDuration = 0.5
 
-kClimbMotorSoftLimitForward = 26.9 / kClimbEncoderDistancePerPulse
-kClimbMotorSoftLimitReverse = -2.0 / kClimbEncoderDistancePerPulse
+kClimbMotorSoftLimitForward = 10 / kClimbEncoderDistancePerPulse
+kClimbMotorSoftLimitReverse = -26.9 / kClimbEncoderDistancePerPulse
+
+kClimbArmMotorSoftLimitForward = 60 / kClimbArmEncoderDegreesPerPulse
+kClimbArmMotorSoftLimitReverse = -10 / kClimbArmEncoderDegreesPerPulse
+
+kPClimbArm = 0.001
+kIClimbArm = 0.0
+kDClimbArm = 0.0
 
 # Drivetrain kinematics
 kTrackWidthMeters = 0.585
