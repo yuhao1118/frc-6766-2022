@@ -1,6 +1,7 @@
 from commands2 import ParallelCommandGroup, WaitCommand, SequentialCommandGroup
 from commands import intakecommand, conveyorcommand, shootercommand
 
+import constants
 
 def IntakeConveyCommandGroup(robotContainer):
     return ParallelCommandGroup(
@@ -9,10 +10,10 @@ def IntakeConveyCommandGroup(robotContainer):
     )
 
 
-def AutoShootCommandGroup(robotContainer, shouldAutoRanging=False, timeout=2.2, backBallTime=0.3):
+def AutoShootCommandGroup(robotContainer, shouldAutoRanging=False, timeout=2.2, backBallTime=0.3, output=constants.shooterSpeedHigh['0cm']):
     return ParallelCommandGroup(
         WaitCommand(0.1).andThen(shootercommand.ShooterCommand(
-            robotContainer, shouldAutoRanging=shouldAutoRanging)),
+            robotContainer, output=output, shouldAutoRanging=shouldAutoRanging)),
 
         SequentialCommandGroup(
             conveyorcommand.ConveyorCommand(

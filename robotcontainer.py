@@ -14,7 +14,7 @@ from subsystems.vision import Vision
 import constants
 from enums.pov import POVEnum
 from trajectory.trajectory import Trajectory
-from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand
+from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.autos.getrangeandaim import GetRangeAndAimCommand
 from commands.autos.autopath import Auto1CommandGroup, TestCommandGroup
@@ -88,7 +88,6 @@ class RobotContainer:
 
 
 
-
     def getAutonomousCommand(self):
         return self.autoChooser.getSelected()
 
@@ -97,71 +96,99 @@ class RobotContainer:
 
         ############ Auto-assisted control ############
 
-        # (Hold) Open/Close Intake
+        # (Hold) (Sider) (LB) Open/Close Intake
         (
             JoystickButton(self.siderController,
                            XboxController.Button.kLeftBumper)
             .whileHeld(pneumaticcommand.PneumaticCommand(self, True))
         )
 
-        # (Hold) Intake and convey
+        # (Hold) (Sider) (RB) Intake and convey
         (
             JoystickButton(self.siderController,
                            XboxController.Button.kRightBumper)
             .whileHeld(IntakeConveyCommandGroup(self))
         )
 
-        # (Press) Aiming
+        # (Press) (Driver) (Y) Aiming
         (
             JoystickButton(self.driverController, XboxController.Button.kY)
             .whenPressed(GetRangeAndAimCommand(self).withTimeout(0.8))
         )
 
-        # (Press) Shooting - fixed distance
+        # (Press) (Driver) (B) Shooting - high - fixed distance
         (
             JoystickButton(self.driverController, XboxController.Button.kB)
             .whenPressed(AutoShootCommandGroup(self))
         )
 
-        # (Press) Shooting - distance from vision
+        # (Press) (Driver) (X) Shooting - low
         (
             JoystickButton(self.siderController, XboxController.Button.kX)
-            .whenPressed(AutoShootCommandGroup(self, shouldAutoRanging=True))
+            .whenPressed(AutoShootCommandGroup(self, output=constants.shooterSpeedLow['0cm']))
         )
 
         ############ Manual Controls ############
 
-        # (Hold) Intake Motor Forward
+        # (Hold) (Sider) (POV-Up) Intake Motor Forward
         (
             POVButton(self.siderController,
                       POVEnum.kUp)
             .whileHeld(intakecommand.IntakeCommand(self, 0.4))
         )
 
-        # (Hold) Intake Motor Backward
+        # (Hold) (Sider) (POV-Down) Intake Motor Backward
         (
             POVButton(self.siderController,
                       POVEnum.kDown)
             .whileHeld(intakecommand.IntakeCommand(self, -0.4))
         )
 
-        # (Toggle) Open/Close Compressor
+        # (Toggle) (Sider) (Back) Open/Close Compressor
         (
             JoystickButton(self.siderController,
-                           XboxController.Button.kA)
+                           XboxController.Button.kBack)
             .toggleWhenPressed(compressorcommand.CompressorCommand(self, True))
         )
 
-        # (Hold) Conveyor Forward
-        (
-            POVButton(self.siderController,
-                      POVEnum.kLeft)
-            .whileHeld(conveyorcommand.ConveyorCommand(self, 0.3))
-        )
-
-        # (Hold) Conveyor Backward
+        # (Hold) (Sider) (POV-Right) Arm Forward
         (
             POVButton(self.siderController,
                       POVEnum.kRight)
+            .whileHeld(climbarmcommand.ClimbArmCommand(self, 0.3))
+        )
+
+        # (Hold) (Sider) (POV-Left) Arm Backward
+        (
+            POVButton(self.siderController,
+                        POVEnum.kLeft)
+            .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.3))
+        )
+
+        # (Hold) (Sider) (A) Conveyor Forward
+        (
+            JoystickButton(self.siderController,
+                      XboxController.Button.kA)
+            .whileHeld(conveyorcommand.ConveyorCommand(self, 0.3))
+        )
+
+        # (Hold) (Sider) (Y) Conveyor Backward
+        (
+            JoystickButton(self.siderController,
+                      XboxController.Button.kY)
             .whileHeld(conveyorcommand.ConveyorCommand(self, -0.3))
+        )
+
+        # (Hold) (Sider) (B) Climb Up
+        (
+            JoystickButton(self.siderController,
+                        XboxController.Button.kB)
+            .whileHeld(climbcommand.ClimbCommand(self, 0.3))
+        )
+
+        # (Hold) (Sider) (X) Climb Down 
+        (
+            JoystickButton(self.siderController,
+                        XboxController.Button.kX)
+            .whileHeld(climbcommand.ClimbCommand(self, -0.3))
         )

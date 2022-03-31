@@ -55,8 +55,11 @@ class Climber(SubsystemBase):
 
         self.L_motor.setInverted(constants.kLeftClimbMotorRotate)
         self.R_motor.setInverted(constants.kRightClimbMotorRotate)
+
         self.LArm_motor.setInverted(constants.kLeftCLimbArmMotorRotate)
         self.RArm_motor.setInverted(constants.kRightCLimbArmMotorRotate)
+
+        self.RArm_motor.follow(self.LArm_motor)
 
         self.ArmPIDController = PIDController(constants.kPClimbArm, constants.kIClimbArm, constants.kDClimbArm)
 
@@ -83,7 +86,6 @@ class Climber(SubsystemBase):
     def setArm(self, output):
         # Clockwise is positive
         self.LArm_motor.set(ctre.ControlMode.PercentOutput, output)
-        self.RArm_motor.set(ctre.ControlMode.PercentOutput, output)
 
     def resetEncoder(self):
         self.L_motor.setSelectedSensorPosition(0, 0, 20)

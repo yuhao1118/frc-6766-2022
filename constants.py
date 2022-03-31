@@ -81,7 +81,7 @@ kClimbEncoderDistancePerPulse = (
     kClimbWheelDiameterMeters * math.pi) / (kEncoderCPR * kClimbGearRatio)
 kShooterEncoderDistancePerPulse = (
     kShooterWheelDiameterMeters * math.pi) / (kEncoderCPR * kShooterGearRatio)
-kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRation)
+kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRatio)
 
 
 # Climber motor-safety constants
