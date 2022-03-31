@@ -1,3 +1,4 @@
+import math
 from commands2 import SubsystemBase, RamseteCommand, InstantCommand, SequentialCommandGroup
 
 from wpilib import SerialPort, SmartDashboard, Field2d
@@ -121,38 +122,61 @@ class Drivetrain(SubsystemBase):
         SmartDashboard.putNumber("Right Volts", rightVolts)
         self.tankDriveVolts(leftVolts, rightVolts)
 
-    def arcadeDrive(self, throttle, turn, squareInputs=True):
-        # self.drive.arcadeDrive(throttle, turn, squareInputs)
-        self.tankDrive((throttle + turn), (throttle - turn) )
+    def arcadeDrive(self, throttle, turn, smoothDrive=True):
 
-    def curvatureDrive(self, throttle, turn, turnInplace=False):
-        # turnInplace -> False: control likes a car (front-wheel steering)
-        # turnInplace -> True: control likes a tank (in-place rotation)
-        # if turnInplace:
-        if abs(throttle) < 0.07:
-            throttle = 0
-        
-        if abs(turn) < 0.07:
-            turn = 0
+        if smoothDrive:
+            if abs(throttle) < 0.07:
+                throttle = 0
+            
+            if abs(turn) < 0.07:
+                turn = 0
 
-        turn = turn ** 3
-        throttle = throttle ** 3
+            turn = turn ** 3
+            throttle = throttle ** 3
 
-        self.arcadeDrive(throttle, turn)
+        leftSpeed = throttle + turn
+        rightSpeed = throttle - turn
+
+        # maxInput = math.copysign(
+        #     max(abs(throttle), abs(turn)),
+        #     throttle
+        # )
+
+        # if throttle >= 0.0:
+        #     if turn >= 0.0:
+        #         leftSpeed = maxInput
+        #         rightSpeed = throttle - turn
+        #     else:
+        #         leftSpeed = throttle + turn
+        #         rightSpeed = maxInput
         # else:
-            # self.drive.curvatureDrive(throttle, turn, allowTurnInPlace=False)
+        #     if turn >= 0.0:
+        #         leftSpeed = throttle + turn
+        #         rightSpeed = maxInput
+        #     else:
+        #         leftSpeed = maxInput
+        #         rightSpeed = throttle - turn
+
+        # maxMagnitude = max(abs(leftSpeed), abs(rightSpeed))
+
+        # if maxMagnitude > 1.0:
+        #     leftSpeed /= maxMagnitude
+        #     rightSpeed /= maxMagnitude
+
+
+        self.tankDrive(leftSpeed, rightSpeed)
 
     def povDrive(self, povButton):
         # Using POV button to adjust the drivetrain
 
         if povButton == POVEnum.kUp:
-            self.arcadeDrive(0.2, 0)
+            self.arcadeDrive(0.2, 0, smoothDrive=False)
         elif povButton == POVEnum.kDown:
-            self.arcadeDrive(-0.2, 0)
+            self.arcadeDrive(-0.2, 0, smoothDrive=False)
         elif povButton == POVEnum.kRight:
-            self.arcadeDrive(0, 0.2)
+            self.arcadeDrive(0, 0.2, smoothDrive=False)
         elif povButton == POVEnum.kLeft:
-            self.arcadeDrive(0, -0.2)
+            self.arcadeDrive(0, -0.2, smoothDrive=False)
 
     def zeroHeading(self):
         self.gyro.reset()
@@ -200,13 +224,13 @@ class Drivetrain(SubsystemBase):
         return speeds
 
     def getLeftEncoderSpeed(self):
-        return self.LF_motor.getSelectedSensorVelocity() * constants.kDriveTrainEncoderDistancePerPulse * 10
+        return self.LF_motor.getSelectedSensorVelocity() * constants.kDrivetrainEncoderDistancePerPulse * 10
 
     def getRightEncoderSpeed(self):
-        return self.RF_motor.getSelectedSensorVelocity() * constants.kDriveTrainEncoderDistancePerPulse * 10
+        return self.RF_motor.getSelectedSensorVelocity() * constants.kDrivetrainEncoderDistancePerPulse * 10
 
     def getLeftEncoderDistance(self):
-        return self.LF_motor.getSelectedSensorPosition() * constants.kDriveTrainEncoderDistancePerPulse
+        return self.LF_motor.getSelectedSensorPosition() * constants.kDrivetrainEncoderDistancePerPulse
 
     def getRightEncoderDistance(self):
-        return self.RF_motor.getSelectedSensorPosition() * constants.kDriveTrainEncoderDistancePerPulse
+        return self.RF_motor.getSelectedSensorPosition() * constants.kDrivetrainEncoderDistancePerPulse

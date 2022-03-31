@@ -70,7 +70,6 @@ class Climber(SubsystemBase):
         SmartDashboard.putNumber("Climb left", self.getLeftEncoderDistance())
         SmartDashboard.putNumber("Climb right", self.getRightEncoderDistance())
         SmartDashboard.putNumber("Climb Arm Degree", self.getArmEncoderDegrees())
-
     def periodic(self):
         self.log()
         pass
@@ -90,6 +89,8 @@ class Climber(SubsystemBase):
     def resetEncoder(self):
         self.L_motor.setSelectedSensorPosition(0, 0, 20)
         self.R_motor.setSelectedSensorPosition(0, 0, 20)
+        self.LArm_motor.setSelectedSensorPosition(0, 0, 20)
+        self.RArm_motor.setSelectedSensorPosition(0, 0, 20)
 
     def getLeftEncoderDistance(self):
         return self.L_motor.getSelectedSensorPosition() * constants.kClimbEncoderDistancePerPulse

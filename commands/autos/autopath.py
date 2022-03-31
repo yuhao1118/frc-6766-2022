@@ -4,7 +4,6 @@ from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootC
 
 from trajectory.trajectory import Trajectory
 
-
 def pathingAndIntakeCommandGroup(robotContainer, trajectory):
     return ParallelRaceGroup(
         robotContainer.robotDrive.getTrajectoryCommand(trajectory),
@@ -18,16 +17,14 @@ def Auto1CommandGroup(robotContainer):
 
     return SequentialCommandGroup(
         # 1.3s
-        AutoShootCommandGroup(robotContainer, backBallTime=0, timeout=1.3),
+        AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5),
         # 4.95s
         pathingAndIntakeCommandGroup(
             robotContainer, trajectory11),
-        # 0.5s
-        WaitCommand(0.5),
         # 2.0s
         AutoShootCommandGroup(robotContainer),
         # 3.09s
-        robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
+        # robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
     )
 
 

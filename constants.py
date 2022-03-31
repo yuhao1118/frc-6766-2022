@@ -54,7 +54,7 @@ kRightMotorRotate = TalonFXInvertType.CounterClockwise
 kLeftClimbMotorRotate = TalonFXInvertType.CounterClockwise
 kRightClimbMotorRotate = TalonFXInvertType.Clockwise
 
-kLeftCLimbArmMotorRotate = TalonFXInvertType.CounterClockwise
+kLeftCLimbArmMotorRotate = TalonFXInvertType.Clockwise
 kRightCLimbArmMotorRotate = TalonFXInvertType.OpposeMaster
 
 kShooterRotate = TalonFXInvertType.Clockwise
@@ -75,7 +75,7 @@ kDrivetrainWheelDiameterMeters = 4 * 0.0254
 kShooterWheelDiameterMeters = 4 * 0.0254
 kClimbWheelDiameterMeters = 0.5 * 0.0254
 
-kDriveTrainEncoderDistancePerPulse = (
+kDrivetrainEncoderDistancePerPulse = (
     kDrivetrainWheelDiameterMeters * math.pi) / (kEncoderCPR * kDrivetrainGearRatio)
 kClimbEncoderDistancePerPulse = (
     kClimbWheelDiameterMeters * math.pi) / (kEncoderCPR * kClimbGearRatio)
@@ -92,11 +92,11 @@ kClimbMotorCurrentLimit = 40
 kClimbMotorThresholdCurrent = 50
 kClimbMotorThresholdDuration = 0.5
 
-kClimbMotorSoftLimitForward = 10 / kClimbEncoderDistancePerPulse
-kClimbMotorSoftLimitReverse = -26.9 / kClimbEncoderDistancePerPulse
+kClimbMotorSoftLimitForward = 0.0 / kClimbEncoderDistancePerPulse
+kClimbMotorSoftLimitReverse = -0.31 / kClimbEncoderDistancePerPulse
 
-kClimbArmMotorSoftLimitForward = 60 / kClimbArmEncoderDegreesPerPulse
-kClimbArmMotorSoftLimitReverse = -10 / kClimbArmEncoderDegreesPerPulse
+kClimbArmMotorSoftLimitForward = 30 / kClimbArmEncoderDegreesPerPulse
+kClimbArmMotorSoftLimitReverse = -30 / kClimbArmEncoderDegreesPerPulse
 
 kPClimbArm = 0.001
 kIClimbArm = 0.0
@@ -105,12 +105,13 @@ kDClimbArm = 0.0
 # Drivetrain kinematics
 kTrackWidthMeters = 0.585
 kDriveKinematics = DifferentialDriveKinematics(kTrackWidthMeters)
-kOpenloopRampRateTeleop = 0.25
+kOpenloopRampRateTeleop = 0.5
 kOpenloopRampRateAuto = 0.0     # Let the RamseteController handle the acceleration
 kDeadband = 0.07
 
 # Drivetrain Forward-backward constants
-kDrivetrainMaxOutput = 0.85
+kDrivetrainMaxOutput = 0.8
+kDrivetrainTurnSensitive = 0.65
 
 ksVolts = 0.56729
 kvVoltSecondsPerMeter = 2.3548

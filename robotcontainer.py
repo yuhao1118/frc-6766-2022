@@ -14,7 +14,7 @@ from subsystems.vision import Vision
 import constants
 from enums.pov import POVEnum
 from trajectory.trajectory import Trajectory
-from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand
+from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand, climbcommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.autos.getrangeandaim import GetRangeAndAimCommand
 from commands.autos.autopath import Auto1CommandGroup, TestCommandGroup
@@ -123,10 +123,10 @@ class RobotContainer:
         )
 
         # (Press) (Driver) (X) Shooting - low
-        (
-            JoystickButton(self.siderController, XboxController.Button.kX)
-            .whenPressed(AutoShootCommandGroup(self, output=constants.shooterSpeedLow['0cm']))
-        )
+        # (
+        #     JoystickButton(self.siderController, XboxController.Button.kX)
+        #     .whenPressed(AutoShootCommandGroup(self, output=constants.shooterSpeedLow['0cm']))
+        # )
 
         ############ Manual Controls ############
 
@@ -155,14 +155,14 @@ class RobotContainer:
         (
             POVButton(self.siderController,
                       POVEnum.kRight)
-            .whileHeld(climbarmcommand.ClimbArmCommand(self, 0.3))
+            .whileHeld(climbarmcommand.ClimbArmCommand(self, 0.1))
         )
 
         # (Hold) (Sider) (POV-Left) Arm Backward
         (
             POVButton(self.siderController,
                         POVEnum.kLeft)
-            .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.3))
+            .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.1))
         )
 
         # (Hold) (Sider) (A) Conveyor Forward
@@ -190,5 +190,5 @@ class RobotContainer:
         (
             JoystickButton(self.siderController,
                         XboxController.Button.kX)
-            .whileHeld(climbcommand.ClimbCommand(self, -0.3))
+            .whileHeld(climbcommand.ClimbCommand(self, -0.1))
         )
