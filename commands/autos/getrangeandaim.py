@@ -38,10 +38,11 @@ class GetRangeAndAimCommand(CommandBase):
         angle = self.robotContainer.visionControl.getRotation2d().degrees()
         turnSpeed = -self.turnPidController.calculate(angle, self.goalAngle)
 
-        self.robotContainer.robotDrive.arcadeDrive(forwardSpeed, turnSpeed, smoothDrive=False)
+        self.robotContainer.robotDrive.arcadeDrive(
+            forwardSpeed, turnSpeed, smoothInputs=False)
 
     def isFinished(self):
         return False
 
     def end(self, interrputed):
-        self.robotContainer.robotDrive.arcadeDrive(0, 0, smoothDrive=False)
+        self.robotContainer.robotDrive.arcadeDrive(0, 0, smoothInputs=False)

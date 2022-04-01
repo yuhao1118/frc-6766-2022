@@ -1,4 +1,5 @@
 from commands2 import CommandBase
+from wpilib import XboxController
 import constants
 
 class DriveCommand(CommandBase):
@@ -13,7 +14,8 @@ class DriveCommand(CommandBase):
     def execute(self):
         self.robotContainer.robotDrive.arcadeDrive(
             self.controller.getRawAxis(3) - self.controller.getRawAxis(2),
-            self.controller.getRawAxis(0) * constants.kDrivetrainTurnSensitive)
+            self.controller.getRawAxis(0),
+            self.controller.getRawButton(XboxController.Button.kRightBumper))
 
         self.robotContainer.robotDrive.povDrive(
             self.controller.getPOV()

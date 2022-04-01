@@ -12,7 +12,7 @@ from subsystems.pneumatic import Pneumatic
 from subsystems.vision import Vision
 
 import constants
-from enums.pov import POVEnum
+from lib.enums.pov import POVEnum
 from trajectory.trajectory import Trajectory
 from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand, climbcommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup

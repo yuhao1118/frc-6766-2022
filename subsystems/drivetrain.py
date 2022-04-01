@@ -8,10 +8,8 @@ from wpimath.controller import RamseteController, PIDController, SimpleMotorFeed
 import ctre
 
 import constants
-from enums.pov import POVEnum
-
-from sensor.wit_imu import WitIMU
-
+from lib.enums.pov import POVEnum
+from lib.sensors.wit_imu import WitIMU
 
 class Drivetrain(SubsystemBase):
 
@@ -53,8 +51,8 @@ class Drivetrain(SubsystemBase):
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
 
-        # self.drive = DifferentialDrive(self.LF_motor, self.RF_motor)
-        # self.drive.setDeadband(constants.kDeadband)
+        self.drive = DifferentialDrive(self.LF_motor, self.RF_motor)
+        self.drive.setDeadband(constants.kDeadband)
 
         self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
 
@@ -66,7 +64,6 @@ class Drivetrain(SubsystemBase):
     def log(self):
         SmartDashboard.putData("Drivetrain", self)
         SmartDashboard.putData("Field2d", self.field2d)
-        # SmartDashboard.putData("Driver", self.drive)
         SmartDashboard.putData("LeftPIDController", self.leftPIDController)
         SmartDashboard.putData("RightPIDController", self.rightPIDController)
         SmartDashboard.putNumber("Left Encoder Speed",
@@ -110,7 +107,7 @@ class Drivetrain(SubsystemBase):
             ctre.TalonFXControlMode.PercentOutput, leftPercentage)
         self.RF_motor.set(
             ctre.TalonFXControlMode.PercentOutput, rightPercentage)
-        # self.drive.feed()
+        self.drive.feed()
 
     def tankDriveVolts(self, leftVolts, rightVolts):
         self.tankDrive(leftVolts / 12, rightVolts / 12)
@@ -122,61 +119,41 @@ class Drivetrain(SubsystemBase):
         SmartDashboard.putNumber("Right Volts", rightVolts)
         self.tankDriveVolts(leftVolts, rightVolts)
 
-    def arcadeDrive(self, throttle, turn, smoothDrive=True):
-
-        if smoothDrive:
+    def arcadeDrive(self, throttle, turn, smoothInputs=True):
+        if smoothInputs:
             if abs(throttle) < 0.07:
                 throttle = 0
             
             if abs(turn) < 0.07:
                 turn = 0
 
-            turn = turn ** 3
+            turn = turn ** 3 * constants.kDrivetrainTurnSensitive
             throttle = throttle ** 3
 
         leftSpeed = throttle + turn
         rightSpeed = throttle - turn
 
-        # maxInput = math.copysign(
-        #     max(abs(throttle), abs(turn)),
-        #     throttle
-        # )
-
-        # if throttle >= 0.0:
-        #     if turn >= 0.0:
-        #         leftSpeed = maxInput
-        #         rightSpeed = throttle - turn
-        #     else:
-        #         leftSpeed = throttle + turn
-        #         rightSpeed = maxInput
-        # else:
-        #     if turn >= 0.0:
-        #         leftSpeed = throttle + turn
-        #         rightSpeed = maxInput
-        #     else:
-        #         leftSpeed = maxInput
-        #         rightSpeed = throttle - turn
-
-        # maxMagnitude = max(abs(leftSpeed), abs(rightSpeed))
-
-        # if maxMagnitude > 1.0:
-        #     leftSpeed /= maxMagnitude
-        #     rightSpeed /= maxMagnitude
-
-
         self.tankDrive(leftSpeed, rightSpeed)
+
+    def curvatureDrive(self, throttle, turn, turnInplace=False):
+        # turnInplace -> False: control likes a car (front-wheel steering)
+        # turnInplace -> True: control likes a tank (in-place rotation)
+        if turnInplace:
+            self.arcadeDrive(throttle, turn, smoothInputs=True)
+        else:
+            self.drive.curvatureDrive(throttle, turn, allowTurnInPlace=turnInplace)
 
     def povDrive(self, povButton):
         # Using POV button to adjust the drivetrain
 
         if povButton == POVEnum.kUp:
-            self.arcadeDrive(0.2, 0, smoothDrive=False)
+            self.arcadeDrive(0.2, 0, smoothInputs=False)
         elif povButton == POVEnum.kDown:
-            self.arcadeDrive(-0.2, 0, smoothDrive=False)
+            self.arcadeDrive(-0.2, 0, smoothInputs=False)
         elif povButton == POVEnum.kRight:
-            self.arcadeDrive(0, 0.2, smoothDrive=False)
+            self.arcadeDrive(0, 0.2, smoothInputs=False)
         elif povButton == POVEnum.kLeft:
-            self.arcadeDrive(0, -0.2, smoothDrive=False)
+            self.arcadeDrive(0, -0.2, smoothInputs=False)
 
     def zeroHeading(self):
         self.gyro.reset()
