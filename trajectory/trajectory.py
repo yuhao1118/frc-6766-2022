@@ -1,21 +1,15 @@
-# wpimath is a module that helps us with poses, generating trajectories, etc.
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
-from wpimath.trajectory import TrajectoryGenerator, TrajectoryConfig, TrajectoryUtil
+from wpimath.trajectory import TrajectoryGenerator, TrajectoryConfig
 from wpimath.trajectory.constraint import DifferentialDriveVoltageConstraint
 from wpimath.controller import SimpleMotorFeedforwardMeters
 import os
 
 import constants
+from lib.utils.trajectory import getTrajectoryFromFile
 
 
-def getTrajectory(filename):
-    trajectoryPath = os.path.join(constants.kTrajectoryDirectory, filename)
-    return TrajectoryUtil.fromPathweaverJson(trajectoryPath)
-
-
-class TestTrajectory:
+class Trajectories:
     def __init__(self):
-        # super init (initializes sequentialcommandgroup)
         super().__init__()
 
         autoVoltageConstraint = DifferentialDriveVoltageConstraint(
@@ -60,23 +54,25 @@ class TestTrajectory:
             reverseConfig
         )
 
-        # self.trajectoryBlue1p1 = TrajectoryGenerator.generateTrajectory(
-        #     Pose2d(6.95, 4.64, Rotation2d(157.09)),
-        #     [Translation2d(6.2, 5.16)],
-        #     Pose2d(5.53, 5.64, Rotation2d(144.25)),
-        #     reverseConfig
-        # )
+        self.auto21 = TrajectoryGenerator.generateTrajectory(
+            Pose2d(5.53, 5.64, Rotation2d(144.25)),
+            [Translation2d(6.2, 5.16)],
+            Pose2d(6.95, 4.64, Rotation2d(157.09)),
+            forwardConfig
+        )
 
-        # self.trajectoryBlue1p2 = TrajectoryGenerator.generateTrajectory(
-        #     Pose2d(5.53, 5.64, Rotation2d(144.25)),
-        #     [Translation2d(6.2, 5.16)],
-        #     Pose2d(6.95, 4.64, Rotation2d(157.09)),
-        #     forwardConfig
-        # )
+        self.auto22 = TrajectoryGenerator.generateTrajectory(
+            Pose2d(6.95, 4.64, Rotation2d(157.09)),
+            [Translation2d(6.2, 5.16)],
+            Pose2d(5.53, 5.64, Rotation2d(144.25)),
+            reverseConfig
+        )
 
 
 class Trajectory:
-    ForwardTest = TestTrajectory().trajectoryForward
-    BackwardTest = TestTrajectory().trajectoryBackward
-    Auto11 = getTrajectory("Auto1-1.wpilib.json")
-    Auto12 = getTrajectory("Auto1-2.wpilib.json")
+    ForwardTest = Trajectories().trajectoryForward
+    BackwardTest = Trajectories().trajectoryBackward
+    Auto11 = getTrajectoryFromFile("Auto1-1.wpilib.json")
+    Auto12 = getTrajectoryFromFile("Auto1-2.wpilib.json")
+    Auto21 = Trajectories().auto21
+    Auto22 = Trajectories().auto22

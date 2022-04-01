@@ -1,4 +1,5 @@
-from wpimath.trajectory import Trajectory, TrajectoryConfig
+from wpimath.trajectory import Trajectory, TrajectoryConfig, TrajectoryUtil
+import os
 
 
 def getInvertedTrajectory(trajectory: Trajectory) -> Trajectory:
@@ -22,3 +23,7 @@ def getInvertedTrajectory(trajectory: Trajectory) -> Trajectory:
         states[i] = _state
 
     return Trajectory(states)
+
+def getTrajectoryFromFile(filename, deployPath="/home/lvuser/py/deploy/pathplanner/generatedJSON/"):
+    trajectoryPath = os.path.join(deployPath, filename)
+    return TrajectoryUtil.fromPathweaverJson(trajectoryPath)

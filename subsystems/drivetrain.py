@@ -2,7 +2,6 @@ import math
 from commands2 import SubsystemBase, RamseteCommand, InstantCommand, SequentialCommandGroup
 
 from wpilib import SerialPort, SmartDashboard, Field2d
-from wpilib.drive import DifferentialDrive
 from wpimath.kinematics import DifferentialDriveOdometry, DifferentialDriveWheelSpeeds
 from wpimath.controller import RamseteController, PIDController, SimpleMotorFeedforwardMeters
 import ctre
@@ -10,7 +9,7 @@ import ctre
 import constants
 from lib.enums.pov import POVEnum
 from lib.sensors.wit_imu import WitIMU
-
+from lib.utils.math import clamp
 class Drivetrain(SubsystemBase):
 
     def __init__(self):
@@ -50,9 +49,6 @@ class Drivetrain(SubsystemBase):
 
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
-
-        self.drive = DifferentialDrive(self.LF_motor, self.RF_motor)
-        self.drive.setDeadband(constants.kDeadband)
 
         self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
 
@@ -107,7 +103,6 @@ class Drivetrain(SubsystemBase):
             ctre.TalonFXControlMode.PercentOutput, leftPercentage)
         self.RF_motor.set(
             ctre.TalonFXControlMode.PercentOutput, rightPercentage)
-        self.drive.feed()
 
     def tankDriveVolts(self, leftVolts, rightVolts):
         self.tankDrive(leftVolts / 12, rightVolts / 12)
@@ -130,18 +125,10 @@ class Drivetrain(SubsystemBase):
             turn = turn ** 3 * constants.kDrivetrainTurnSensitive
             throttle = throttle ** 3
 
-        leftSpeed = throttle + turn
-        rightSpeed = throttle - turn
+        leftSpeed = clamp(throttle + turn, -1.0, 1.0)
+        rightSpeed = clamp(throttle - turn, -1.0, 1.0)
 
         self.tankDrive(leftSpeed, rightSpeed)
-
-    def curvatureDrive(self, throttle, turn, turnInplace=False):
-        # turnInplace -> False: control likes a car (front-wheel steering)
-        # turnInplace -> True: control likes a tank (in-place rotation)
-        if turnInplace:
-            self.arcadeDrive(throttle, turn, smoothInputs=True)
-        else:
-            self.drive.curvatureDrive(throttle, turn, allowTurnInPlace=turnInplace)
 
     def povDrive(self, povButton):
         # Using POV button to adjust the drivetrain

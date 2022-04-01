@@ -1,6 +1,5 @@
 from commands2 import SubsystemBase
 from wpilib import SmartDashboard
-from wpimath.controller import PIDController
 
 import ctre
 import constants
@@ -60,8 +59,6 @@ class Climber(SubsystemBase):
         self.RArm_motor.setInverted(constants.kRightCLimbArmMotorRotate)
 
         self.RArm_motor.follow(self.LArm_motor)
-
-        self.ArmPIDController = PIDController(constants.kPClimbArm, constants.kIClimbArm, constants.kDClimbArm)
 
         self.resetEncoder()
 
