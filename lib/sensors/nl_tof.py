@@ -3,7 +3,9 @@ import time
 from wpilib import SerialPort
 import struct
 import logging
-import queue
+
+log = logging.getLogger(__name__)
+
 
 class TOF_IO:
     DATA_BITS = 8
@@ -20,7 +22,7 @@ class TOF_IO:
     byteArray = bytearray(BUFFER_SIZE)
     byteCount = 0
 
-    def __init__(self, serialPort, baud=921600):
+    def __init__(self, serialPort, baud=115200):
         self.tof = SerialPort(baud,
                               serialPort,
                               self.DATA_BITS,
@@ -31,8 +33,9 @@ class TOF_IO:
         self.byteArray[self.byteCount] = b
         self.byteCount += 1
 
-        if self.byteCount == self.NUM_OF_BYTES:
+        if self.byteCount < self.NUM_OF_BYTES:
             return
+
 
         if self.byteArray[0] != self.FRAME_HEADER:
             # Shift the byte array 1 bit left
@@ -57,11 +60,11 @@ class TOF_IO:
         # This function should be call periodically to get the latest data from the TOF
         bytesAvals = self.tof.getBytesReceived()
 
-        if bytesAval > 0:
-            rawReading = bytearray(bytesAval)
+        if bytesAvals > 0:
+            rawReading = bytearray(bytesAvals)
             bytesReceived = self.tof.read(rawReading)
 
-            if bytesAval != bytesReceived:
+            if bytesAvals != bytesReceived:
                 raise Exception("Did not receive all bytes")
 
             for b in rawReading:
