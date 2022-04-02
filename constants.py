@@ -96,7 +96,7 @@ kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRatio)      
 
 # Once the kClimbMotorThresholdCurrent is reached for kClimbMotorThresholdDuration seconds,
 # the motor will limit the current to kClimbMotorCurrentLimit.
-# 当爬升电机的电流达到<kClimbMotorThresholdCurrent>，并持续<kClimbMotorThresholdDuration>秒，
+# 当爬升电机的电流达到<kClimbMotorThresholdCurrent>，并持续<kClimbMotorThresholdDuration>秒时，
 # 将电机电流维持在<kClimbMotorCurrentLimit>
 kClimbMotorCurrentLimit = 40
 kClimbMotorThresholdCurrent = 50
@@ -164,22 +164,6 @@ kaVoltSecondsSquaredPerMeterShooter = 0
 kPShooter = 0.1
 kIShooter = 0.0
 kDShooter = 0.0
-
-# Shooter distance-speed map for high power cells
-# 射球距离-速度查找表 (高球)
-shooterSpeedHigh = {
-    '0cm': 19.3,
-    '35cm': 20,
-    '75cm': 21.2,
-    '100cm': 23,
-    '150cm': 25.5
-}
-
-# Shooter distance-speed map for low power cells
-# 射球距离-速度查找表 (低球)
-shooterSpeedLow = {
-    '0cm': 11.3
-}
 
 
 # Vision distance measurement constants, ignore them at the moment

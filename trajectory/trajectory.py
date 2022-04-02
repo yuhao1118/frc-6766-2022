@@ -54,25 +54,11 @@ class Trajectories:
             reverseConfig
         )
 
-        self.auto21 = TrajectoryGenerator.generateTrajectory(
-            Pose2d(5.53, 5.64, Rotation2d(144.25)),
-            [Translation2d(6.2, 5.16)],
-            Pose2d(6.95, 4.64, Rotation2d(157.09)),
-            forwardConfig
-        )
-
-        self.auto22 = TrajectoryGenerator.generateTrajectory(
-            Pose2d(6.95, 4.64, Rotation2d(157.09)),
-            [Translation2d(6.2, 5.16)],
-            Pose2d(5.53, 5.64, Rotation2d(144.25)),
-            reverseConfig
-        )
 
 
 class Trajectory:
     ForwardTest = Trajectories().trajectoryForward
     BackwardTest = Trajectories().trajectoryBackward
-    Auto11 = getTrajectoryFromFile("Auto1-1.wpilib.json")
-    Auto12 = getTrajectoryFromFile("Auto1-2.wpilib.json")
-    Auto21 = Trajectories().auto21
-    Auto22 = Trajectories().auto22
+    Auto11 = getTrajectoryFromFile("Auto1-1.wpilib.json", constants.kTrajectoryDirectory)
+    Auto12 = getTrajectoryFromFile("Auto1-2.wpilib.json", constants.kTrajectoryDirectory)
+    Auto2 = getTrajectoryFromFile("Auto2.wpilib.json", constants.kTrajectoryDirectory)

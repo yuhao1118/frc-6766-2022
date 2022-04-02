@@ -14,7 +14,7 @@ from subsystems.vision import Vision
 import constants
 from lib.enums.pov import POVEnum
 from trajectory.trajectory import Trajectory
-from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand, climbcommand
+from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand, climbcommand, softlimitscommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.autos.getrangeandaim import GetRangeAndAimCommand
 from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, TestCommandGroup
@@ -74,9 +74,7 @@ class RobotContainer:
         self.autoChooser.addOption(
             "Test Auto12", TestCommandGroup(self, Trajectory.Auto12))
         self.autoChooser.addOption(
-            "Test Auto21",  TestCommandGroup(self, Trajectory.Auto21))
-        self.autoChooser.addOption(
-            "Test Auto22",  TestCommandGroup(self, Trajectory.Auto22))
+            "Test Auto21",  TestCommandGroup(self, Trajectory.Auto2))
 
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
 
@@ -93,8 +91,8 @@ class RobotContainer:
         SmartDashboard.putData("Intake motor backward", intakecommand.IntakeCommand(self, -0.3))
         SmartDashboard.putData("Conveyor motor forward", conveyorcommand.ConveyorCommand(self, 0.3))
         SmartDashboard.putData("Conveyor motor backward", conveyorcommand.ConveyorCommand(self, -0.3))
-        SmartDashboard.putData("Shooter Forward High", shootercommand.ShooterCommand(self, output=constants.shooterSpeedHigh['0cm']))
-        SmartDashboard.putData("Shooter Forward Low", shootercommand.ShooterCommand(self, output=constants.shooterSpeedLow['0cm']))
+        SmartDashboard.putData("Shooter Forward High", shootercommand.ShooterCommand(self, output=shootercommand.shooterSpeedHigh['0cm']))
+        SmartDashboard.putData("Shooter Forward Low", shootercommand.ShooterCommand(self, output=shootercommand.shooterSpeedLow['0cm']))
         SmartDashboard.putData("Shooter Backward", shootercommand.ShooterCommand(self, output=-5.0))
 
 
@@ -108,7 +106,7 @@ class RobotContainer:
         ############ Auto-assisted control / 自动辅助控制 ############
 
         # (Hold) (Sider) (LB) Open/Close Intake
-        # (按住) (副操作手) (LB) 开/关 Intake
+        # (按住) (副操作手) (LB) 开/关 Intake, 按住时打开Intake, 松手自动收起
         (
             JoystickButton(self.siderController,
                            XboxController.Button.kLeftBumper)
@@ -123,21 +121,69 @@ class RobotContainer:
             .whileHeld(IntakeConveyCommandGroup(self))
         )
 
-        # (Press) (Driver) (Y) Aiming
-        # (按一下) (主操作手) (Y) 自瞄
+        # (Hold) (Sider) (Start) Backball and drop
+        # (按住) (副操作手) (Start) 退球并吐球
         (
-            JoystickButton(self.driverController, XboxController.Button.kY)
+            JoystickButton(self.siderController,
+                            XboxController.Button.kStart)
+            .whileHeld(IntakeConveyCommandGroup(self, reverse=True))
+        )
+
+        # (Press) (Sider) (Y) Aiming
+        # (按一下) (副操作手) (Y) 自瞄
+        (
+            JoystickButton(self.siderController, XboxController.Button.kY)
             .whenPressed(GetRangeAndAimCommand(self).withTimeout(0.8))
         )
 
-        # (Press) (Driver) (B) Shooting - fixed distance at 0cm
-        # (按一下) (主操作手) (B) 射球 - 0cm固定距离
+        # (Press) (Sider) (B) Shooting - fixed distance at 0cm
+        # (按一下) (副操作手) (B) 射球 - 0cm固定距离
         (
-            JoystickButton(self.driverController, XboxController.Button.kB)
+            JoystickButton(self.siderController, XboxController.Button.kB)
             .whenPressed(AutoShootCommandGroup(self))
         )
 
         ############ Manual Controls ############
+
+        # (Hold) (Driver) (B) Arm Forward
+        # (按住) (主操作手) (B) 爬升摇臂向前
+        (
+            JoystickButton(self.driverController,
+                      XboxController.Button.kB)
+            .whileHeld(climbarmcommand.ClimbArmCommand(self, 0.1))
+        )
+
+        # (Hold) (Driver) (X) Arm Backward
+        # (按住) (主操作手) (X) 爬升摇臂向后
+        (
+            JoystickButton(self.driverController,
+                        XboxController.Button.kX)
+            .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.1))
+        )
+
+        # (Hold) (Driver) (LB) Climb Up
+        # (按住) (主操作手) (LB) 爬升, <缩>伸缩杆
+        (
+            JoystickButton(self.driverController,
+                        XboxController.Button.kLeftBumper)
+            .whileHeld(climbcommand.ClimbCommand(self, 0.6))
+        )
+
+        # (Hold) (Driver) (RB) Climb Down
+        # (按住) (主操作手) (RB) 爬升, <升>伸缩杆
+        (
+            JoystickButton(self.driverController,
+                        XboxController.Button.kRightBumper)
+            .whileHeld(climbcommand.ClimbCommand(self, -0.8))
+        )
+
+        # (Toggle) (Driver) (Back) enable/disable soft limits
+        # (切换) (主操作手) (Back) 启用 / 禁用软限位, 第一次按下时为禁用(解除)软限位
+        (
+            JoystickButton(self.driverController,
+                        XboxController.Button.kBack)
+            .toggleWhenPressed(softlimitscommand.SoftLimitsCommand(self))
+        )
 
         # (Hold) (Sider) (POV-Up) Intake Motor Forward
         # (按住) (副操作手) (POV上) Intake吸球
@@ -163,27 +209,11 @@ class RobotContainer:
             .toggleWhenPressed(compressorcommand.CompressorCommand(self, True))
         )
 
-        # (Hold) (Sider) (POV-Right) Arm Forward
-        # (按住) (副操作手) (POV右) 爬升摇臂向前
-        (
-            POVButton(self.siderController,
-                      POVEnum.kRight)
-            .whileHeld(climbarmcommand.ClimbArmCommand(self, 0.1))
-        )
-
-        # (Hold) (Sider) (POV-Left) Arm Backward
-        # (按住) (副操作手) (POV左) 爬升摇臂向后
-        (
-            POVButton(self.siderController,
-                        POVEnum.kLeft)
-            .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.1))
-        )
-
-        # (Hold) (Sider) (Y) Conveyor Forward
-        # (按住) (副操作手) (Y) 传送带传球
+        # (Hold) (Sider) (X) Conveyor Forward
+        # (按住) (副操作手) (X) 传送带传球
         (
             JoystickButton(self.siderController,
-                      XboxController.Button.kY)
+                      XboxController.Button.kX)
             .whileHeld(conveyorcommand.ConveyorCommand(self, 0.3))
         )
 
@@ -193,20 +223,4 @@ class RobotContainer:
             JoystickButton(self.siderController,
                       XboxController.Button.kA)
             .whileHeld(conveyorcommand.ConveyorCommand(self, -0.3))
-        )
-
-        # (Hold) (Sider) (B) Climb Up
-        # (按住) (副操作手) (B) 爬升, <缩>伸缩杆
-        (
-            JoystickButton(self.siderController,
-                        XboxController.Button.kB)
-            .whileHeld(climbcommand.ClimbCommand(self, 0.6))
-        )
-
-        # (Hold) (Sider) (X) Climb Down
-        # (按住) (副操作手) (X) 爬升, <升>伸缩杆
-        (
-            JoystickButton(self.siderController,
-                        XboxController.Button.kX)
-            .whileHeld(climbcommand.ClimbCommand(self, -0.8))
         )

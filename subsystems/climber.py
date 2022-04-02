@@ -61,12 +61,19 @@ class Climber(SubsystemBase):
         self.RArm_motor.follow(self.LArm_motor)
 
         self.resetEncoder()
+    
+    def setSoftLimits(self, enable):
+        self.L_motor.configForwardSoftLimitEnable(enable, 0)
+        self.LArm_motor.configReverseSoftLimitEnable(enable, 0)
+        self.R_motor.configForwardSoftLimitEnable(enable, 0)
+        self.RArm_motor.configReverseSoftLimitEnable(enable, 0)
 
     def log(self):
         SmartDashboard.putData("Climber", self)
         SmartDashboard.putNumber("Climb left", self.getLeftEncoderDistance())
         SmartDashboard.putNumber("Climb right", self.getRightEncoderDistance())
         SmartDashboard.putNumber("Climb Arm Degree", self.getArmEncoderDegrees())
+    
     def periodic(self):
         self.log()
         pass

@@ -6,6 +6,10 @@ from trajectory.trajectory import Trajectory
 
 def pathingAndIntakeCommandGroup(robotContainer, trajectory):
     """
+    输入:
+    1. robotContainer: RobotContainer实例
+    2. trajectory: 路径
+
     寻路取球并行指令组:
     1. 吸球 + 传球
     2. 沿给定的路径 (trajectory) 运动
@@ -18,6 +22,9 @@ def pathingAndIntakeCommandGroup(robotContainer, trajectory):
 
 def Auto1CommandGroup(robotContainer):
     """
+    输入:
+    1. robotContainer: RobotContainer实例
+
     自动3球+取1球:
     1. 射出1球
     2. 执行<寻路取球并行指令组>, 取2球
@@ -37,12 +44,15 @@ def Auto1CommandGroup(robotContainer):
 
 def Auto2CommandGroup(robotContainer):
     """
+    输入:
+    1. robotContainer: RobotContainer实例
+
     自动2球:
     1. 射出1球
     2. 执行<寻路取球并行任务>, 取1球
     3. 射出1球
     """
-    trajectory = Trajectory.Auto21 + Trajectory.Auto22
+    trajectory = Trajectory.Auto2
 
     return SequentialCommandGroup(
         AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5),
@@ -52,6 +62,10 @@ def Auto2CommandGroup(robotContainer):
 
 def TestCommandGroup(robotContainer, trajectory):
     """
+    输入:
+    1. robotContainer: RobotContainer实例
+    2. trajectory: 路径
+    
     测试路径:
     1. 沿给定的路径 (trajectory) 运动
     """

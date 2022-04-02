@@ -7,13 +7,11 @@ from wpimath.controller import RamseteController, PIDController, SimpleMotorFeed
 import ctre
 
 import constants
-from lib.enums.pov import POVEnum
 from lib.sensors.wit_imu import WitIMU
-from lib.utils.math import clamp
+from lib.drivetrain.drive import DifferentialDrive
 class Drivetrain(SubsystemBase):
 
     def __init__(self):
-
         super().__init__()
         self.feedforwardController = SimpleMotorFeedforwardMeters(
             constants.ksVolts,
@@ -47,6 +45,8 @@ class Drivetrain(SubsystemBase):
         self.resetEncoder()
         self.setOpenloopRamp(constants.kOpenloopRampRateTeleop)
 
+        self.drive = DifferentialDrive(self.LF_motor, self.RF_motor)
+
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
 
@@ -56,6 +56,7 @@ class Drivetrain(SubsystemBase):
             constants.kP, constants.kI, constants.kD)
         self.rightPIDController = PIDController(
             constants.kP, constants.kI, constants.kD)
+
 
     def log(self):
         SmartDashboard.putData("Drivetrain", self)
@@ -98,52 +99,20 @@ class Drivetrain(SubsystemBase):
         self.resetEncoder()
         self.odometry.resetPosition(pose, self.gyro.getRotation2d())
 
-    def tankDrive(self, leftPercentage, rightPercentage):
-        self.LF_motor.set(
-            ctre.TalonFXControlMode.PercentOutput, leftPercentage)
-        self.RF_motor.set(
-            ctre.TalonFXControlMode.PercentOutput, rightPercentage)
-
-    def tankDriveVolts(self, leftVolts, rightVolts):
-        self.tankDrive(leftVolts / 12, rightVolts / 12)
-
-    def tankDriveVelocity(self, leftVel, rightVel):
-        leftVolts = self.feedforwardController.calculate(leftVel) + self.leftPIDController.calculate(self.getLeftEncoderSpeed(), leftVel)
-        rightVolts = self.feedforwardController.calculate(rightVel) + self.rightPIDController.calculate(self.getRightEncoderSpeed(), rightVel)
-        SmartDashboard.putNumber("Left Volts", leftVolts)
-        SmartDashboard.putNumber("Right Volts", rightVolts)
-        self.tankDriveVolts(leftVolts, rightVolts)
-
-    def arcadeDrive(self, throttle, turn, smoothInputs=True):
-        if smoothInputs:
-            if abs(throttle) < 0.07:
-                throttle = 0
-            
-            if abs(turn) < 0.07:
-                turn = 0
-
-            turn = turn ** 3 * constants.kDrivetrainTurnSensitive
-            throttle = throttle ** 3
-
-        leftSpeed = clamp(throttle + turn, -1.0, 1.0)
-        rightSpeed = clamp(throttle - turn, -1.0, 1.0)
-
-        self.tankDrive(leftSpeed, rightSpeed)
-
-    def povDrive(self, povButton):
-        # Using POV button to adjust the drivetrain
-
-        if povButton == POVEnum.kUp:
-            self.arcadeDrive(0.2, 0, smoothInputs=False)
-        elif povButton == POVEnum.kDown:
-            self.arcadeDrive(-0.2, 0, smoothInputs=False)
-        elif povButton == POVEnum.kRight:
-            self.arcadeDrive(0, 0.2, smoothInputs=False)
-        elif povButton == POVEnum.kLeft:
-            self.arcadeDrive(0, -0.2, smoothInputs=False)
-
     def zeroHeading(self):
         self.gyro.reset()
+
+    def arcadeDrive(self, throttle, turn, smoothInputs=True):
+        self.drive.arcadeDrive(throttle, turn, smoothInputs=smoothInputs)
+
+    def povDrive(self, povButton):
+        self.drive.povDrive(povButton)
+
+    def tankDrive(self, leftPercentage, rightPercentage):
+        self.drive.tankDrive(leftPercentage, rightPercentage)
+
+    def tankDriveVolts(self, leftVolts, rightVolts):
+        self.drive.tankDriveVolts(leftVolts, rightVolts)
 
     ############## Getter functions ##############
 

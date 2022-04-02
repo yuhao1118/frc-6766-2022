@@ -2,6 +2,23 @@ from commands2 import CommandBase
 
 import constants
 
+# Shooter distance-speed map for high power cells
+# 射球距离-速度查找表 (高球)
+shooterSpeedHigh = {
+    '0cm': 19.3,
+    '35cm': 20,
+    '75cm': 21.2,
+    '100cm': 23,
+    '150cm': 25.5
+}
+
+# Shooter distance-speed map for low power cells
+# 射球距离-速度查找表 (低球)
+shooterSpeedLow = {
+    '0cm': 11.3
+}
+
+
 class ShooterCommand(CommandBase):
     """
     射球指令
@@ -16,7 +33,7 @@ class ShooterCommand(CommandBase):
     """
     def __init__(self,
                  robotContainer,
-                 output=constants.shooterSpeedHigh['0cm'],
+                 output=shooterSpeedHigh['0cm'],
                  shouldAutoRanging=False
                  ):
 
@@ -33,9 +50,9 @@ class ShooterCommand(CommandBase):
             range = self.robotContainer.visionControl.getDistance()
             range = int(range * 100)        # Convert to cm
 
-            for key in constants.shooterSpeedHigh.keys():
+            for key in shooterSpeedHigh.keys():
                 if range <= int(key.replace("cm", "")):
-                    self.output = constants.shooterSpeedHigh[key]
+                    self.output = shooterSpeedHigh[key]
 
         self.robotContainer.shooterDrive.setVelocity(self.output)
 
