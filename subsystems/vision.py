@@ -1,11 +1,9 @@
 from commands2 import SubsystemBase
-from photonvision import PhotonCamera, PhotonUtils, LEDMode
+from photonvision import PhotonCamera, LEDMode
 from wpimath.geometry import Rotation2d
-from wpilib import SmartDashboard
+from wpilib import SmartDashboard, SerialPort
 
-import constants
-import math
-
+from lib.sensors.nl_tof import NpTOF
 
 class Vision(SubsystemBase):
     def __init__(self):
@@ -13,27 +11,27 @@ class Vision(SubsystemBase):
         self.camera = PhotonCamera("gloworm")
 
         self.camera.setLEDMode(LEDMode.kOn)
+        self.tof = NpTOF(SerialPort.Port.kUSB2)
 
     def log(self):
-        SmartDashboard.putBoolean("ShootInRange",  (0 < self.getDistance() < 0.35))
+        SmartDashboard.putNumber("Vision Distance",  self.getDistance())
         SmartDashboard.putBoolean("Vision Has Target", self.camera.hasTargets())
         SmartDashboard.putNumber("Vision Yaw", self.getRotation2d().degrees())
         SmartDashboard.putData("Vision", self)
 
     def periodic(self):
-        # self.log()
+        self.log()
         pass
 
     def getDistance(self):
-        res = self.camera.getLatestResult()
-        if res.hasTargets():
-            return PhotonUtils.calculateDistanceToTarget(
-                constants.kVisionCameraHeight,
-                constants.kVisionTargetHeight,
-                constants.kVisionCameraPitch,
-                math.radians(res.getBestTarget().getPitch()))
-        else:
-            return -1
+        res = self.tof.getDistance()
+
+        # Usually it is impossible to get a distance of exact 0.0.
+        
+        if res == 0.0:
+            return -1.0
+        
+        return res
 
     def getRotation2d(self):
         res = self.camera.getLatestResult()
