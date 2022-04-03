@@ -28,7 +28,7 @@ class ShooterCommand(CommandBase):
         output: 射球速度, 默认为在0cm处射球时所需电机速度
         shouldAutoRanging: 是否自动调整距离, 默认为False. 
         
-        注: 此处的自动调整距离是指通过调节电机转速, 使得在当前速度下完成射球. 
+        注: 此处的自动调整距离是指通过调节电机转速, 使得在当前位置完成射球. 
         并非<自瞄并自动测距指令>中，通过移动底盘至目标距离开始射球.
     """
     def __init__(self,

@@ -1,7 +1,12 @@
 """
 A place for the constant values in the code that may be used in more than one place. 
 This offers a convenient resources to teams who need to make both quick and universal
-changes.
+changes. All physical quantities are in SI units.
+PS: angle is in degrees, not radians.
+
+代码中在多个地方使用的常量值的存放文件. 在这个文件里可以快速, 全局的改变常量的值, 而无需深入理解代码算法, 
+达到快速调试的目的. 所有物理量的单位应默认使用国际标准单位制. 
+注: 角使用角度制, 而不是弧度制.
 """
 
 from wpimath.kinematics import DifferentialDriveKinematics
@@ -11,8 +16,12 @@ from ctre import TalonFXInvertType
 import math
 import os
 
-# Generated paths directory
-# Pathplanner生成轨迹的目录
+# Limelight address, recommend using static IP address
+# 在这里设置limelight的ip地址, 建议使用静态ip地址
+kLimelightIp = "10.67.66.30"
+
+# Directory of generated trajectories 
+# Pathplanner工具生成轨迹的目录
 kTrajectoryDirectory = "/home/lvuser/py/deploy/pathplanner/generatedJSON/" if (RobotBase.getRuntimeType(
 ) == RuntimeType.kRoboRIO or RobotBase.getRuntimeType() == RuntimeType.kRoboRIO2) else os.getcwd() + "/deploy/pathplanner/generatedJSON/"
 
@@ -51,20 +60,28 @@ kConveyorPort = 11
 kIntakePort = 12
 
 
-# Motor Rotation
+# Motor rotation direction
 # 电机旋转方向
+
+# 底盘(主)电机旋转方向
 kLeftMotorRotate = TalonFXInvertType.Clockwise
 kRightMotorRotate = TalonFXInvertType.CounterClockwise
 
+# 爬升电机旋转方向
 kLeftClimbMotorRotate = TalonFXInvertType.CounterClockwise
 kRightClimbMotorRotate = TalonFXInvertType.Clockwise
 
+# 爬升摇臂电机旋转方向
 kLeftCLimbArmMotorRotate = TalonFXInvertType.Clockwise
 kRightCLimbArmMotorRotate = TalonFXInvertType.OpposeMaster
 
+# 射球电机旋转方向
 kShooterRotate = TalonFXInvertType.Clockwise
 
+# 传送带电机旋转方向
 kConveyorRotate = TalonFXInvertType.CounterClockwise
+
+# Intake电机旋转方向
 kIntakeRotate = TalonFXInvertType.CounterClockwise
 
 

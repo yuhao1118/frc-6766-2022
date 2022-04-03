@@ -28,10 +28,11 @@ class MyRobot(commands2.TimedCommandRobot):
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
         self.container = RobotContainer()
+
+        # Forward the limelight/photonvision port so that it can be accessed via USB-B cable.
+        # 将limelight/photonvision的端口转发到Roborio网络服务器, 这样就可以通过USB-B线访问.
         try:
-            PortForwarder.getInstance().add(5800, "10.67.66.30", 5800)
-            # PortForwarder.add(5800, "limelight.local", 5800)
-            # PortForwarder.add(5800, "photonvision.local", 5800)
+            PortForwarder.getInstance().add(5800, constants.kLimelightIp, 5800)
         except Exception as e:
             print("Port Forwarder Not Connected!")
             print(repr(e))

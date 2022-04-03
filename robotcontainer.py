@@ -21,6 +21,12 @@ from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, TestCo
 
 
 class RobotContainer:
+    """
+    This file manages all the subsystems and the lifecycle of each command. 
+    Joystick - command bindings are also configurated here.
+
+    在这个文件中管理所有子系统和每个指令的生命周期. 手柄按键与对应指令的绑定也在这个文件中设置.
+    """
 
     def __init__(self):
 

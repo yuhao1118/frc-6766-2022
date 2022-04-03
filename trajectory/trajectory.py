@@ -9,6 +9,9 @@ from lib.utils.trajectory import getTrajectoryFromFile
 
 
 class Trajectories:
+    """
+    使用代码生成路径
+    """
     def __init__(self):
         super().__init__()
 
@@ -57,8 +60,14 @@ class Trajectories:
 
 
 class Trajectory:
-    ForwardTest = Trajectories().trajectoryForward
-    BackwardTest = Trajectories().trajectoryBackward
-    Auto11 = getTrajectoryFromFile("Auto1-1.wpilib.json", constants.kTrajectoryDirectory)
-    Auto12 = getTrajectoryFromFile("Auto1-2.wpilib.json", constants.kTrajectoryDirectory)
-    Auto2 = getTrajectoryFromFile("Auto2.wpilib.json", constants.kTrajectoryDirectory)
+    """
+    存放路径的常量类
+    """
+    # 测试用的路径
+    ForwardTest = Trajectories().trajectoryForward                                          # 前进z字形路径
+    BackwardTest = Trajectories().trajectoryBackward                                        # 后退z字形路径
+
+    # 自动阶段用的路径
+    Auto11 = getTrajectoryFromFile("Auto1-1.wpilib.json", constants.kTrajectoryDirectory)   # 自动路径1-1
+    Auto12 = getTrajectoryFromFile("Auto1-2.wpilib.json", constants.kTrajectoryDirectory)   # 自动路径1-2
+    Auto2 = getTrajectoryFromFile("Auto2.wpilib.json", constants.kTrajectoryDirectory)      # 自动路径2
