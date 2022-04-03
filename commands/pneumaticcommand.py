@@ -17,8 +17,11 @@ class PneumaticCommand(CommandBase):
         self.enable = enable
         self.addRequirements(self.robotContainer.pneumaticControl)
 
-    def execute(self):
+    def initialize(self):
         self.robotContainer.pneumaticControl.set(self.enable)
+
+    def execute(self):
+        pass
 
     def isFinished(self):
         return False

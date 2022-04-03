@@ -1,6 +1,7 @@
-from commands2 import SequentialCommandGroup, ParallelRaceGroup, WaitCommand
+from commands2 import SequentialCommandGroup, ParallelRaceGroup
 from wpimath.trajectory import Trajectory
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
+from commands.pneumaticcommand import PneumaticCommand
 
 from trajectory.trajectory import Trajectory
 
@@ -16,7 +17,8 @@ def pathingAndIntakeCommandGroup(robotContainer, trajectory):
     """
     return ParallelRaceGroup(
         robotContainer.robotDrive.getTrajectoryCommand(trajectory),
-        IntakeConveyCommandGroup(robotContainer)
+        IntakeConveyCommandGroup(robotContainer),
+        PneumaticCommand(robotContainer, True)
     )
 
 

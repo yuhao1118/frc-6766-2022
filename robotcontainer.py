@@ -151,20 +151,20 @@ class RobotContainer:
 
         ############ Manual Controls ############
 
-        # (Hold) (Driver) (B) Arm Forward
-        # (按住) (主操作手) (B) 爬升摇臂向前
+        # (Hold) (Sider) (POV-Up) Climb Up
+        # (按住) (副操作手) (POV上) 摇臂向车头
         (
-            JoystickButton(self.driverController,
-                      XboxController.Button.kB)
-            .whileHeld(climbarmcommand.ClimbArmCommand(self, 0.1))
+            POVButton(self.siderController,
+                      POVEnum.kUp)
+            .whileHeld(climbarmcommand.ClimbArmCommand(self, 0.15))
         )
 
-        # (Hold) (Driver) (X) Arm Backward
-        # (按住) (主操作手) (X) 爬升摇臂向后
+        # (Hold) (Sider) (POV-Down) Climb Up
+        # (按住) (副操作手) (POV下) 摇臂向车尾
         (
-            JoystickButton(self.driverController,
-                        XboxController.Button.kX)
-            .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.1))
+            POVButton(self.siderController,
+                       POVEnum.kDown)
+            .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.15))
         )
 
         # (Hold) (Driver) (LB) Climb Up
@@ -180,30 +180,38 @@ class RobotContainer:
         (
             JoystickButton(self.driverController,
                         XboxController.Button.kRightBumper)
-            .whileHeld(climbcommand.ClimbCommand(self, -0.8))
+            .whileHeld(climbcommand.ClimbCommand(self, -1.0))
         )
 
-        # (Toggle) (Driver) (Back) enable/disable soft limits
-        # (切换) (主操作手) (Back) 启用 / 禁用软限位, 第一次按下时为禁用(解除)软限位
+        # (Toggle) (Driver) (Back) disable soft limits
+        # (切换) (主操作手) (Back) 禁用软限位
         (
             JoystickButton(self.driverController,
                         XboxController.Button.kBack)
-            .toggleWhenPressed(softlimitscommand.SoftLimitsCommand(self))
+            .whenPressed(softlimitscommand.SoftLimitsCommand(self, False))
         )
 
-        # (Hold) (Sider) (POV-Up) Intake Motor Forward
-        # (按住) (副操作手) (POV上) Intake吸球
+        # (Toggle) (Driver) (Back) enable soft limits
+        # (切换) (主操作手) (Back) 启用软限位
+        (
+            JoystickButton(self.driverController,
+                        XboxController.Button.kStart)
+            .whenPressed(softlimitscommand.SoftLimitsCommand(self, True))
+        )
+
+        # (Hold) (Sider) (POV-Left) Intake Motor Forward
+        # (按住) (副操作手) (POV左) Intake吸球
         (
             POVButton(self.siderController,
-                      POVEnum.kUp)
+                      POVEnum.kLeft)
             .whileHeld(intakecommand.IntakeCommand(self, 0.4))
         )
 
-        # (Hold) (Sider) (POV-Down) Intake Motor Backward
-        # (按住) (副操作手) (POV下) Intake吐球
+        # (Hold) (Sider) (POV-Right) Intake Motor Backward
+        # (按住) (副操作手) (POV右) Intake吐球
         (
             POVButton(self.siderController,
-                      POVEnum.kDown)
+                      POVEnum.kRight)
             .whileHeld(intakecommand.IntakeCommand(self, -0.4))
         )
 

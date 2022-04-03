@@ -116,8 +116,8 @@ kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRatio)      
 # 当爬升电机的电流达到<kClimbMotorThresholdCurrent>，并持续<kClimbMotorThresholdDuration>秒时，
 # 将电机电流维持在<kClimbMotorCurrentLimit>
 kClimbMotorCurrentLimit = 40
-kClimbMotorThresholdCurrent = 50
-kClimbMotorThresholdDuration = 0.5
+kClimbMotorThresholdCurrent = 60
+kClimbMotorThresholdDuration = 0.8
 
 # Climber motor soft limits
 # 爬升电机软限位 (以伸缩杆完全收紧时为基准)

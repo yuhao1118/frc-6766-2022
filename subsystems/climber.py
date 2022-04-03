@@ -64,9 +64,19 @@ class Climber(SubsystemBase):
     
     def setSoftLimits(self, enable):
         self.L_motor.configForwardSoftLimitEnable(enable, 0)
+        self.L_motor.configReverseSoftLimitEnable(enable, 0)
+
+        self.LArm_motor.configForwardSoftLimitEnable(enable, 0)
         self.LArm_motor.configReverseSoftLimitEnable(enable, 0)
+        
         self.R_motor.configForwardSoftLimitEnable(enable, 0)
+        self.R_motor.configReverseSoftLimitEnable(enable, 0)
+        
+        self.RArm_motor.configForwardSoftLimitEnable(enable, 0)
         self.RArm_motor.configReverseSoftLimitEnable(enable, 0)
+
+        if enable:
+            self.resetEncoder()
 
     def log(self):
         SmartDashboard.putData("Climber", self)

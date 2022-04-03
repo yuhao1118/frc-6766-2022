@@ -84,16 +84,16 @@ class Drivetrain(SubsystemBase):
         # self.log()
 
     def setOpenloopRamp(self, seconds):
-        self.LF_motor.configOpenloopRamp(seconds, 20)
-        self.LR_motor.configOpenloopRamp(seconds, 20)
-        self.RF_motor.configOpenloopRamp(seconds, 20)
-        self.RR_motor.configOpenloopRamp(seconds, 20)
+        self.LF_motor.configOpenloopRamp(seconds, 0)
+        self.LR_motor.configOpenloopRamp(seconds, 0)
+        self.RF_motor.configOpenloopRamp(seconds, 0)
+        self.RR_motor.configOpenloopRamp(seconds, 0)
 
     def resetEncoder(self):
-        self.LF_motor.setSelectedSensorPosition(0, 0, 20)
-        self.LR_motor.setSelectedSensorPosition(0, 0, 20)
-        self.RF_motor.setSelectedSensorPosition(0, 0, 20)
-        self.RR_motor.setSelectedSensorPosition(0, 0, 20)
+        self.LF_motor.setSelectedSensorPosition(0, 0, 0)
+        self.LR_motor.setSelectedSensorPosition(0, 0, 0)
+        self.RF_motor.setSelectedSensorPosition(0, 0, 0)
+        self.RR_motor.setSelectedSensorPosition(0, 0, 0)
 
     def resetOdometry(self, pose):
         self.resetEncoder()
