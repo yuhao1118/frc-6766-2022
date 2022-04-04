@@ -13,12 +13,12 @@ from subsystems.vision import Vision
 
 import constants
 from lib.enums.pov import POVEnum
+from lib.enums.drivemode import DriveModeEnum
 from trajectory.trajectory import Trajectory
 from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand, climbcommand, softlimitscommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.autos.getrangeandaim import GetRangeAndAimCommand
 from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, TestCommandGroup
-
 
 class RobotContainer:
     """
@@ -57,7 +57,7 @@ class RobotContainer:
         # the robot to drive with the controller.
         # 设置底盘默认指令, 允许机器人使用手柄控制.
         self.robotDrive.setDefaultCommand(
-            drivecommand.DriveCommand(self, self.driverController)
+            drivecommand.DriveCommand(self, self.driverController, driveMode=DriveModeEnum.CurvatureDrive)
         )
 
         # Display the autonomous chooser on the SmartDashboard.

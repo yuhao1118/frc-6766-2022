@@ -144,7 +144,6 @@ kOpenloopRampRateTeleop = 0.5
 kCurvatureThreshold = 0.15                              # 曲率阈值，超过此值则认为是曲率运动
 kCurvatureArcadeTurnScale = 0.5                         # 曲率运动时的手柄转换系数
 kDrivetrainMaxOutput = 0.8                              # 底盘最大输出
-kDrivetrainTurnSensitive = 0.65                         # 底盘转向灵敏度
 
 # Drivetrain Forward-backward constants
 # 底盘前向控制常量, 由Sysid工具计算得到

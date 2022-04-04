@@ -1,6 +1,6 @@
 import threading
 import time
-from wpilib import SerialPort
+from wpilib import SerialPort, reportWarning
 import struct
 import logging
 
@@ -99,6 +99,7 @@ class NpTOF():
             self.ioThread.start()
         except:
             log.warning("TOF not found!")
+            reportWarning("TOF not found!")
 
     def __del__(self):
         if self.ioThread is not None:

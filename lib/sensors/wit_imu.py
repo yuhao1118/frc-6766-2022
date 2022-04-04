@@ -1,8 +1,8 @@
-from wpilib.interfaces import Gyro, Accelerometer
+from wpilib.interfaces import Gyro
 from wpimath.geometry import Rotation2d
 import threading
 import time
-from wpilib import SerialPort
+from wpilib import SerialPort, reportWarning
 import struct
 import logging
 import queue
@@ -253,6 +253,7 @@ class WitIMU(Gyro):
             self.ioThread.start()
         except:
             log.warning("IMU not found!")
+            reportWarning("IMU not found!")
 
 
     def __del__(self):

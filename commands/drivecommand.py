@@ -2,11 +2,14 @@
 # Ref: https://github.com/Mechanical-Advantage/RobotCode2022
 
 from commands2 import CommandBase
+from wpilib import SmartDashboard
+
 import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
 from lib.utils.math import clamp, axisProfile
 from lib.enums.drivemode import DriveModeEnum
 from lib.enums.pov import POVEnum
+
 class DriveCommand(CommandBase):
     """
     底盘遥控指令
@@ -25,17 +28,14 @@ class DriveCommand(CommandBase):
         self.addRequirements(self.robotContainer.robotDrive)
 
     def execute(self):
-        linearX = self.controller.getRawAxis(3) - self.controller.getRawAxis(2)
-        angularZ = self.controller.getRawAxis(0)
+        linearX =  axisProfile(self.controller.getRawAxis(3) - self.controller.getRawAxis(2))
+        angularZ =  axisProfile(self.controller.getRawAxis(0))
         povValue = self.controller.getPOV()
 
         speeds = WheelSpeedsPercentage(0, 0)
 
         if self.driveMode == DriveModeEnum.ArcadeDrive:
-            speeds = WheelSpeedsPercentage.fromArcade(
-                    axisProfile(linearX, scaleFunction=lambda x: x ** 3), 
-                    axisProfile(angularZ, scaleFunction=lambda x: x ** 3 * constants.kDrivetrainTurnSensitive)
-                )
+            speeds = WheelSpeedsPercentage.fromArcade(linearX, angularZ)
 
         elif self.driveMode == DriveModeEnum.CurvatureDrive:
             arcadeSpeeds = WheelSpeedsPercentage.fromArcade(linearX, angularZ * constants.kCurvatureArcadeTurnScale)
@@ -56,6 +56,9 @@ class DriveCommand(CommandBase):
             speeds = WheelSpeedsPercentage.fromArcade(0.0, 0.2)
         elif povValue == POVEnum.kLeft:
             speeds = WheelSpeedsPercentage.fromArcade(0.0, -0.2)
+
+        SmartDashboard.putNumber("Left Speed", speeds.left)
+        SmartDashboard.putNumber("Right Speed", speeds.right)
 
         self.robotContainer.robotDrive.tankDrive(speeds.left, speeds.right)
 

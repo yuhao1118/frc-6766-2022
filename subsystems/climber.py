@@ -85,7 +85,7 @@ class Climber(SubsystemBase):
         SmartDashboard.putNumber("Climb Arm Degree", self.getArmEncoderDegrees())
     
     def periodic(self):
-        self.log()
+        # self.log()
         pass
 
     def set(self, output, rightOutput=None):

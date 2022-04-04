@@ -20,7 +20,7 @@ class Vision(SubsystemBase):
         SmartDashboard.putData("Vision", self)
 
     def periodic(self):
-        self.log()
+        # self.log()
         pass
 
     def getDistance(self):
