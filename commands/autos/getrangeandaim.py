@@ -2,7 +2,7 @@ from commands2 import CommandBase
 from wpimath.controller import PIDController
 
 import constants
-
+from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
 
 class GetRangeAndAimCommand(CommandBase):
     """
@@ -50,11 +50,11 @@ class GetRangeAndAimCommand(CommandBase):
         angle = self.robotContainer.visionControl.getRotation2d().degrees()
         turnSpeed = -self.turnPidController.calculate(angle, self.goalAngle)
 
-        self.robotContainer.robotDrive.arcadeDrive(
-            forwardSpeed, turnSpeed, smoothInputs=False)
+        speeds = WheelSpeedsPercentage.fromArcade(forwardSpeed, turnSpeed)
+        self.robotContainer.robotDrive.tankDrive(speeds.left, speeds.right)
 
     def isFinished(self):
         return False
 
     def end(self, interrputed):
-        self.robotContainer.robotDrive.arcadeDrive(0, 0, smoothInputs=False)
+        self.robotContainer.robotDrive.tankDrive(0, 0)

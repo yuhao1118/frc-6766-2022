@@ -8,7 +8,6 @@ import ctre
 
 import constants
 from lib.sensors.wit_imu import WitIMU
-from lib.drivetrain.drive import DifferentialDrive
 class Drivetrain(SubsystemBase):
 
     def __init__(self):
@@ -44,8 +43,6 @@ class Drivetrain(SubsystemBase):
 
         self.resetEncoder()
         self.setOpenloopRamp(constants.kOpenloopRampRateTeleop)
-
-        self.drive = DifferentialDrive(self.LF_motor, self.RF_motor)
 
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
@@ -102,17 +99,14 @@ class Drivetrain(SubsystemBase):
     def zeroHeading(self):
         self.gyro.reset()
 
-    def arcadeDrive(self, throttle, turn, smoothInputs=True):
-        self.drive.arcadeDrive(throttle, turn, smoothInputs=smoothInputs)
-
-    def povDrive(self, povButton):
-        self.drive.povDrive(povButton)
-
     def tankDrive(self, leftPercentage, rightPercentage):
-        self.drive.tankDrive(leftPercentage, rightPercentage)
+        self.LF_motor.set(
+            ctre.TalonFXControlMode.PercentOutput, leftPercentage)
+        self.RF_motor.set(
+            ctre.TalonFXControlMode.PercentOutput, rightPercentage)
 
     def tankDriveVolts(self, leftVolts, rightVolts):
-        self.drive.tankDriveVolts(leftVolts, rightVolts)
+        self.tankDrive(leftVolts / 12, rightVolts / 12)
 
     ############## Getter functions ##############
 

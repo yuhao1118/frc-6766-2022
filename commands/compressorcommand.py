@@ -4,7 +4,6 @@ from commands2 import CommandBase
 class CompressorCommand(CommandBase):
     """
     压缩机控制指令
-    TODO: 切换至2020 API规范
 
     输入:
         robotContainer: RobotContainer实例

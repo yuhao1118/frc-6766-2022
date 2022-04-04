@@ -141,8 +141,8 @@ kOpenloopRampRateAuto = 0.0
 # 手动阶段加速时间为0.5s
 kOpenloopRampRateTeleop = 0.5
 
-kDeadband = 0.07                                        # 手柄死区，在此正负区间内的手柄输入值会被忽略
-
+kCurvatureThreshold = 0.15                              # 曲率阈值，超过此值则认为是曲率运动
+kCurvatureArcadeTurnScale = 0.5                         # 曲率运动时的手柄转换系数
 kDrivetrainMaxOutput = 0.8                              # 底盘最大输出
 kDrivetrainTurnSensitive = 0.65                         # 底盘转向灵敏度
 

@@ -7,15 +7,10 @@ class Pneumatic(SubsystemBase):
 
     def __init__(self):
         super().__init__()
-        try:
-            self.compressor = Compressor(0, PneumaticsModuleType.CTREPCM)
-            self.solenoidRight = Solenoid(
-                0, PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
-            self.solenoidLeft = Solenoid(
-                0, PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
-            self.compressor.stop()
-        except:
-            print("Pneumatic connect error!")
+        self.compressor = Compressor(PneumaticsModuleType.CTREPCM)
+        self.solenoidRight = Solenoid(PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
+        self.solenoidLeft = Solenoid(PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
+        self.compressor.disable()
             
         self.prevSolenoidState = False
 
@@ -28,9 +23,9 @@ class Pneumatic(SubsystemBase):
 
     def setCompressor(self, enable):
         if enable:
-            self.compressor.start()
+            self.compressor.enableDigital()
         else:
-            self.compressor.stop()
+            self.compressor.disable()
 
     def set(self, enable):
         if enable != self.prevSolenoidState:
