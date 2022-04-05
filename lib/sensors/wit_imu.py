@@ -3,6 +3,8 @@ from wpimath.geometry import Rotation2d
 import threading
 import time
 from wpilib import SerialPort, reportWarning
+from wpilib.simulation import SimDeviceSim
+from hal import SimDevice
 import struct
 import logging
 import queue
@@ -247,13 +249,28 @@ class WitIMU(Gyro):
 
     def __init__(self, serialPort):
         super().__init__()
+        self.port = serialPort
+        self.m_simDevice = SimDevice("Gyro:WT901C", serialPort.value)
+
         try:
             self.io = WIT_IO(serialPort)
             self.ioThread = WIT_THREAD(self, self.io)
             self.ioThread.start()
         except:
-            log.warning("IMU not found!")
-            reportWarning("IMU not found!")
+            if self.m_simDevice is None:
+                log.warning("IMU not found!")
+                reportWarning("IMU not found!")
+
+        if self.m_simDevice is not None:
+            self.m_simGyroAngleX = self.m_simDevice.createDouble("gyro_angle_x", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroAngleY = self.m_simDevice.createDouble("gyro_angle_y", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroAngleZ = self.m_simDevice.createDouble("gyro_angle_z", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroRateX = self.m_simDevice.createDouble("gyro_rate_x", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroRateY = self.m_simDevice.createDouble("gyro_rate_y", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroRateZ = self.m_simDevice.createDouble("gyro_rate_z", SimDevice.Direction.kInput, 0.0)
+            self.m_simAccelX = self.m_simDevice.createDouble("accel_x", SimDevice.Direction.kInput, 0.0)
+            self.m_simAccelY = self.m_simDevice.createDouble("accel_y", SimDevice.Direction.kInput, 0.0)
+            self.m_simAccelZ = self.m_simDevice.createDouble("accel_z", SimDevice.Direction.kInput, 0.0)
 
 
     def __del__(self):
@@ -269,25 +286,44 @@ class WitIMU(Gyro):
         """
         Returns the z angle in degrees.
         """
-        return self.gyroAngles[2]
+
+        if self.m_simDevice is not None:
+            return self.m_simGyroAngleZ.get()
+
+        if self.io is not None:
+            return self.gyroAngles[2]
 
     def getRate(self):
         """
         Returns the z rate in degrees per second.
         """
-        return self.gyroRates[2]
+        if self.m_simDevice is not None:
+            return self.m_simGyroRateZ.get()
+
+        if self.io is not None:
+            return self.gyroRates[2]
 
     def getX(self):
-        return self.accels[0]
+        if self.m_simDevice is not None:
+            return self.m_simAccelX.get()
+
+        if self.io is not None:
+            return self.accels[0]
+
 
     def getY(self):
-        return self.accels[1]
+        if self.m_simDevice is not None:
+            return self.m_simAccelY.get()
+
+        if self.io is not None:
+            return self.accels[1]
 
     def getZ(self):
-        return self.accels[2]
+        if self.m_simDevice is not None:
+            return self.m_simAccelZ.get()
 
-    def setRange(self, range):
-        log.warning("This function is intended not implemented!")
+        if self.io is not None:
+            return self.accels[2]
 
     def getRotation2d(self):
         return Rotation2d.fromDegrees(self.getAngle())
@@ -300,3 +336,45 @@ class WitIMU(Gyro):
         if self.io is not None:
             self.ioThread.onThread(self.ioThread.imuIO.zeroAngles)
             self.ioThread.onThread(self.ioThread.imuIO.zeroAccels)
+
+        if self.m_simDevice is not None:
+            self.m_simAccelX.reset()
+            self.m_simAccelY.reset()
+            self.m_simAccelZ.reset()
+            self.m_simGyroAngleX.reset()
+            self.m_simGyroAngleY.reset()
+            self.m_simGyroAngleZ.reset()
+            self.m_simGyroRateX.reset()
+            self.m_simGyroRateY.reset()
+            self.m_simGyroRateZ.reset()
+
+    def getPort(self):
+        return self.port.value
+
+class WitIMUSim:
+    def __init__(self, witIMU):
+        self.wrappedSimDevice = SimDeviceSim(f"Gyro:WT901C[{witIMU.getPort()}]")
+        self.m_simGyroAngleX = self.wrappedSimDevice.getDouble("gyro_angle_x")
+        self.m_simGyroAngleY = self.wrappedSimDevice.getDouble("gyro_angle_y")
+        self.m_simGyroAngleZ = self.wrappedSimDevice.getDouble("gyro_angle_z")
+        self.m_simGyroRateX = self.wrappedSimDevice.getDouble("gyro_rate_x")
+        self.m_simGyroRateY = self.wrappedSimDevice.getDouble("gyro_rate_y")
+        self.m_simGyroRateZ = self.wrappedSimDevice.getDouble("gyro_rate_z")
+        self.m_simAccelX = self.wrappedSimDevice.getDouble("accel_x")
+        self.m_simAccelY = self.wrappedSimDevice.getDouble("accel_y")
+        self.m_simAccelZ = self.wrappedSimDevice.getDouble("accel_z")
+
+    def setAngle(self, angleDegrees):
+        self.m_simGyroAngleZ.set(angleDegrees)
+
+    def setRate(self, rateDegreesPerSecond):
+        self.m_simGyroRateZ.set(rateDegreesPerSecond)
+
+    def setAccelX(self, accelX):
+        self.m_simAccelX.set(accelX)
+
+    def setAccelY(self, accelY):
+        self.m_simAccelY.set(accelY)
+
+    def setAccelZ(self, accelZ):
+        self.m_simAccelZ.set(accelZ)

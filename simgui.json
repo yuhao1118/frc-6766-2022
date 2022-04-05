@@ -1,0 +1,65 @@
+{
+  "HALProvider": {
+    "Other Devices": {
+      "Talon FX[6]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX[8]": {
+        "header": {
+          "open": true
+        }
+      },
+      "WT901C[2]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/LiveWindow/Ungrouped/Scheduler": "Scheduler",
+      "/LiveWindow/Ungrouped/frc2::SubsystemBase": "Subsystem",
+      "/SmartDashboard/Auto Chooser": "String Chooser",
+      "/SmartDashboard/Auto-assisted Aim": "Command",
+      "/SmartDashboard/Auto-assisted Ranging and Aim": "Command",
+      "/SmartDashboard/Auto-assisted Shoot (Dynamic)": "Command",
+      "/SmartDashboard/Auto-assisted Shoot (Fixed)": "Command",
+      "/SmartDashboard/Climber": "Subsystem",
+      "/SmartDashboard/Close Intake": "Command",
+      "/SmartDashboard/Conveyor motor backward": "Command",
+      "/SmartDashboard/Conveyor motor forward": "Command",
+      "/SmartDashboard/Drivetrain": "Subsystem",
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/Field2d": "Field2d",
+      "/SmartDashboard/Intake and Convey": "Command",
+      "/SmartDashboard/Intake motor backward": "Command",
+      "/SmartDashboard/Intake motor forward": "Command",
+      "/SmartDashboard/LeftPIDController": "PIDController",
+      "/SmartDashboard/Open Intake": "Command",
+      "/SmartDashboard/RightPIDController": "PIDController",
+      "/SmartDashboard/Shooter Backward": "Command",
+      "/SmartDashboard/Shooter Forward High": "Command",
+      "/SmartDashboard/Shooter Forward Low": "Command",
+      "/SmartDashboard/Vision": "Subsystem"
+    },
+    "windows": {
+      "/SmartDashboard/Field2d": {
+        "window": {
+          "visible": true
+        }
+      }
+    }
+  },
+  "NetworkTables": {
+    "SmartDashboard": {
+      "open": true
+    }
+  },
+  "NetworkTables View": {
+    "visible": false
+  }
+}
