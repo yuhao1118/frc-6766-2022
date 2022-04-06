@@ -104,6 +104,9 @@ class Drivetrain(SubsystemBase):
             ctre.TalonFXControlMode.PercentOutput, leftPercentage)
         self.RF_motor.set(
             ctre.TalonFXControlMode.PercentOutput, rightPercentage)
+        
+        SmartDashboard.putNumber("Left Speed", leftPercentage * 4.06)
+        SmartDashboard.putNumber("Right Speed", rightPercentage * 4.06)
 
     def tankDriveVolts(self, leftVolts, rightVolts):
         self.tankDrive(leftVolts / 12, rightVolts / 12)
@@ -111,8 +114,8 @@ class Drivetrain(SubsystemBase):
     ############## Getter functions ##############
 
     def getTrajectoryCommand(self, trajectory, shouldInitPose=True):
-        # Close loop RaseteCommand
 
+        # Close loop RaseteCommand
         ramseteCommand = RamseteCommand(
             trajectory,
             self.getPose,
@@ -126,10 +129,14 @@ class Drivetrain(SubsystemBase):
             [self],
         )
 
+        def beforeStart():
+            self.field2d.getObject("traj").setTrajectory(trajectory)
+            if shouldInitPose:
+                self.resetOdometry(trajectory.initialPose())
+
         if shouldInitPose:
             return SequentialCommandGroup(
-                InstantCommand(lambda: self.resetOdometry(
-                    trajectory.initialPose())),
+                InstantCommand(beforeStart),
                 ramseteCommand,
                 InstantCommand(lambda: self.tankDriveVolts(0, 0))
             )

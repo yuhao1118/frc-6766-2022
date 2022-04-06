@@ -2,6 +2,7 @@ from commands2 import SequentialCommandGroup, ParallelRaceGroup
 from wpimath.trajectory import Trajectory
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.pneumaticcommand import PneumaticCommand
+from commands.autos.getrangeandaim import GetRangeAndAimCommand
 
 from trajectory.trajectory import Trajectory
 
@@ -39,8 +40,9 @@ def Auto1CommandGroup(robotContainer):
     return SequentialCommandGroup(
         AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5),
         pathingAndIntakeCommandGroup(robotContainer, trajectory11),
+        GetRangeAndAimCommand(robotContainer).withTimeout(0.8),
         AutoShootCommandGroup(robotContainer),
-        # robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
+        robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
     )
 
 

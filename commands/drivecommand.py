@@ -28,17 +28,19 @@ class DriveCommand(CommandBase):
         self.addRequirements(self.robotContainer.robotDrive)
 
     def execute(self):
-        linearX =  axisProfile(self.controller.getRawAxis(3) - self.controller.getRawAxis(2))
-        angularZ =  axisProfile(self.controller.getRawAxis(0))
+        # linearX =  axisProfile(self.controller.getRawAxis(3) - self.controller.getRawAxis(2))
+        linearX =  axisProfile(-self.controller.getRawAxis(1))
+        # angularZ =  self.controller.getRawAxis(0)
+        angularZ =  axisProfile(self.controller.getRawAxis(4))
         povValue = self.controller.getPOV()
 
         speeds = WheelSpeedsPercentage(0, 0)
 
         if self.driveMode == DriveModeEnum.ArcadeDrive:
-            speeds = WheelSpeedsPercentage.fromArcade(linearX, angularZ)
+            speeds = WheelSpeedsPercentage.fromArcade(linearX, angularZ * constants.kDrivetrainTurnSensitive)
 
         elif self.driveMode == DriveModeEnum.CurvatureDrive:
-            arcadeSpeeds = WheelSpeedsPercentage.fromArcade(linearX, angularZ * constants.kCurvatureArcadeTurnScale)
+            arcadeSpeeds = WheelSpeedsPercentage.fromArcade(linearX, angularZ * constants.kDrivetrainTurnSensitive)
             curvatureSpeeds = WheelSpeedsPercentage.fromCurvature(linearX, angularZ)
 
             hybridScale = clamp(abs(linearX) / constants.kCurvatureThreshold, 0, 1)
@@ -56,9 +58,6 @@ class DriveCommand(CommandBase):
             speeds = WheelSpeedsPercentage.fromArcade(0.0, 0.2)
         elif povValue == POVEnum.kLeft:
             speeds = WheelSpeedsPercentage.fromArcade(0.0, -0.2)
-
-        SmartDashboard.putNumber("Left Speed", speeds.left)
-        SmartDashboard.putNumber("Right Speed", speeds.right)
 
         self.robotContainer.robotDrive.tankDrive(speeds.left, speeds.right)
 

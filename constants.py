@@ -138,11 +138,11 @@ kDriveKinematics = DifferentialDriveKinematics(kTrackWidthMeters)               
 # 自动阶段底盘加速时间为0s, 因为生成的路径已经做过加速度限制了
 kOpenloopRampRateAuto = 0.0
 
-# 手动阶段加速时间为0.5s
-kOpenloopRampRateTeleop = 0.5
+# 手动阶段加速时间
+kOpenloopRampRateTeleop = 0.35
 
 kCurvatureThreshold = 0.15                              # 曲率阈值，超过此值则认为是曲率运动
-kCurvatureArcadeTurnScale = 0.5                         # 曲率运动时的手柄转换系数
+kDrivetrainTurnSensitive = 0.5                         # 转向灵敏度
 kDrivetrainMaxOutput = 0.8                              # 底盘最大输出
 kDrivetrainMotorCount = 4                               # 底盘电机数量
 
@@ -150,11 +150,11 @@ kDrivetrainMotorCount = 4                               # 底盘电机数量
 # 底盘前向控制常量, 由Sysid工具计算得到
 ksVolts = 0.56729                                       
 kvVoltSecondsPerMeter = 2.3548
-kaVoltSecondsSquaredPerMeter = 0
+kaVoltSecondsSquaredPerMeter = 0.2
 
 # Drivetrain PID
 # 底盘PID
-kP = 1.0
+kP = 1.24
 kI = 0.0
 kD = 0.0
 

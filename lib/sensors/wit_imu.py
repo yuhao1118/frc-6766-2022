@@ -329,6 +329,8 @@ class WitIMU(Gyro):
         return Rotation2d.fromDegrees(self.getAngle())
 
     def calibrate(self):
+        if self.m_simDevice is not None:
+            return
         if self.io is not None:
             self.io.calibrate()
 
@@ -364,8 +366,9 @@ class WitIMUSim:
         self.m_simAccelY = self.wrappedSimDevice.getDouble("accel_y")
         self.m_simAccelZ = self.wrappedSimDevice.getDouble("accel_z")
 
-    def setAngle(self, angleDegrees):
-        self.m_simGyroAngleZ.set(angleDegrees)
+    def setAngle(self, rotation):
+        rotation = rotation - Rotation2d(0)     # -180 to 180
+        self.m_simGyroAngleZ.set(rotation.degrees())
 
     def setRate(self, rateDegreesPerSecond):
         self.m_simGyroRateZ.set(rateDegreesPerSecond)

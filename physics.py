@@ -13,6 +13,7 @@ from wpilib import RobotController, ADXRS450_Gyro
 from wpilib.simulation import DifferentialDrivetrainSim
 from wpimath.system import LinearSystemId
 from wpimath.system.plant import DCMotor
+from wpimath.geometry import Rotation2d
 
 import constants
 from lib.sensors.wit_imu import WitIMUSim
@@ -42,12 +43,11 @@ class TalonFXMotorSim:
         )
 
     def getVoltage(self):
-        return float(self.simCollection.getMotorOutputLeadVoltage())
-
+        return self.simCollection.getMotorOutputLeadVoltage()
 
 
 class PhysicsEngine:
-    def __init__(self, physics_controller: PhysicsInterface, robot: "MyRobot"):
+    def __init__(self, physics_controller, robot):
 
         self.physics_controller = physics_controller
 
@@ -70,7 +70,7 @@ class PhysicsEngine:
 
         self.system = LinearSystemId.identifyDrivetrainSystem(
             constants.kvVoltSecondsPerMeter,
-            0.2,
+            constants.kaVoltSecondsSquaredPerMeter,
             2.5,  # The angular velocity gain, in volt seconds per angle.
             0.3,  # The angular acceleration gain, in volt seconds^2 per angle.
         )
@@ -85,8 +85,8 @@ class PhysicsEngine:
 
         self.gyro = WitIMUSim(robot.container.robotDrive.gyro)
 
-    def update_sim(self, now: float, tm_diff: float) -> None:
-        self.gyro.setAngle(self.drivesim.getHeading().degrees())
+    def update_sim(self, now, tm_diff) -> None:
+        self.gyro.setAngle(self.drivesim.getHeading())
 
         self.LF_motor.update(tm_diff)
         self.LR_motor.update(tm_diff)
