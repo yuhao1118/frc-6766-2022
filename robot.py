@@ -33,6 +33,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # 将limelight/photonvision的端口转发到Roborio网络服务器, 这样就可以通过USB-B线访问.
         try:
             PortForwarder.getInstance().add(5800, constants.kLimelightIp, 5800)
+            PortForwarder.getInstance().add(5801, constants.kLimelightIp, 5801)
         except Exception as e:
             print("Port Forwarder Not Connected!")
             print(repr(e))

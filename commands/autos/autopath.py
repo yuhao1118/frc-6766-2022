@@ -42,7 +42,7 @@ def Auto1CommandGroup(robotContainer):
         pathingAndIntakeCommandGroup(robotContainer, trajectory11),
         GetRangeAndAimCommand(robotContainer).withTimeout(0.8),
         AutoShootCommandGroup(robotContainer),
-        robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
+        # robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
     )
 
 

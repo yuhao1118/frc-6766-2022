@@ -4,20 +4,20 @@ class LimelightPipelineResult:
         target,
         hasTargets
     ):
-        self.latency = latency
-        self.bestTarget = target
-        self.hasTargets = hasTargets
+        self._latency = latency
+        self._bestTarget = target
+        self._hasTargets = hasTargets
 
     def getBestTarget(self):
-        return self.bestTarget
+        return self._bestTarget
 
     def getLatency(self):
-        return self.latency
+        return self._latency
 
     def getTargets(self):
         raise NotImplementedError
 
     def hasTargets(self):
-        return self.hasTargets
+        return self._hasTargets
 
     

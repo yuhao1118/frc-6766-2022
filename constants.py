@@ -91,7 +91,7 @@ kIntakeRotate = TalonFXInvertType.CounterClockwise
 kEncoderCPR = 2048                  # 编码器脉冲数(一圈)
 
 kDrivetrainGearRatio = 7            # 底盘点击减速比
-kClimbGearRatio = 15                # 爬升电机减速比
+kClimbGearRatio = 21                # 爬升电机减速比
 kClimbArmGearRatio = 130.5          # 爬升摇臂电机减速比
 kShooterGearRatio = 1               # 射球电机减速比
 
@@ -122,7 +122,7 @@ kClimbMotorThresholdDuration = 0.8
 # Climber motor soft limits
 # 爬升电机软限位 (以伸缩杆完全收紧时为基准)
 kClimbMotorSoftLimitForward = 0.0 / kClimbEncoderDistancePerPulse           # 前向限位: 0m
-kClimbMotorSoftLimitReverse = -0.31 / kClimbEncoderDistancePerPulse         # 后向限位: -0.31m
+kClimbMotorSoftLimitReverse = -0.32 / kClimbEncoderDistancePerPulse         # 后向限位: -0.31m
 
 # Climb arm motor soft limits
 # 爬升摇臂电机软限位 (以摇臂竖直时为基准)
@@ -148,9 +148,9 @@ kDrivetrainMotorCount = 4                               # 底盘电机数量
 
 # Drivetrain Forward-backward constants
 # 底盘前向控制常量, 由Sysid工具计算得到
-ksVolts = 0.56729                                       
-kvVoltSecondsPerMeter = 2.3548
-kaVoltSecondsSquaredPerMeter = 0.2
+ksVolts = 0.67058                                       
+kvVoltSecondsPerMeter = 2.2941
+kaVoltSecondsSquaredPerMeter = 0.31198
 
 # Drivetrain PID
 # 底盘PID
@@ -191,7 +191,7 @@ kVisionCameraPitch = math.radians(60)       # (radians) Pitch of the camera
 
 # Vision turn PID constants
 # 视觉自瞄PID
-kPVisionTurn = 0.01
+kPVisionTurn = 0.0075
 kIVisionTurn = 0.0
 kDVisionTurn = 0.0
 

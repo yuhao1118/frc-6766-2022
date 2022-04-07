@@ -172,7 +172,7 @@ class RobotContainer:
         (
             JoystickButton(self.driverController,
                         XboxController.Button.kLeftBumper)
-            .whileHeld(climbcommand.ClimbCommand(self, 0.6))
+            .whileHeld(climbcommand.ClimbCommand(self, 1.0))
         )
 
         # (Hold) (Driver) (RB) Climb Down

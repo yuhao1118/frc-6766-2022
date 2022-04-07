@@ -246,11 +246,15 @@ class WitIMU(Gyro):
 
     io = None
     ioThread = None
+    m_simDevice = None
 
     def __init__(self, serialPort):
         super().__init__()
         self.port = serialPort
-        self.m_simDevice = SimDevice("Gyro:WT901C", serialPort.value)
+        self.isSimulation = False
+
+        if self.isSimulation:
+            self.m_simDevice = SimDevice("Gyro:WT901C", serialPort.value)
 
         try:
             self.io = WIT_IO(serialPort)

@@ -15,9 +15,6 @@
         "header": {
           "open": true
         }
-      },
-      "window": {
-        "visible": false
       }
     },
     "RoboRIO": {
@@ -32,6 +29,9 @@
       },
       "RoboRIO Input": {
         "open": true
+      },
+      "window": {
+        "visible": true
       }
     }
   },
@@ -39,6 +39,7 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/LiveWindow/Ungrouped/Scheduler": "Scheduler",
+      "/LiveWindow/Ungrouped/class frc2::SubsystemBase": "Subsystem",
       "/LiveWindow/Ungrouped/frc2::SubsystemBase": "Subsystem",
       "/SmartDashboard/Auto Chooser": "String Chooser",
       "/SmartDashboard/Auto-assisted Aim": "Command",
@@ -75,7 +76,6 @@
           "width": 0.8999999761581421
         },
         "height": 8.229999542236328,
-        "image": "/Users/liyuhao/FRC2022/frc-6766-2022/2022-field-light.png",
         "traj": {
           "arrows": false,
           "style": "Track"
