@@ -2,7 +2,7 @@ from wpilib.interfaces import Gyro
 from wpimath.geometry import Rotation2d
 import threading
 import time
-from wpilib import SerialPort, reportWarning
+from wpilib import SerialPort, reportWarning, RobotBase
 from wpilib.simulation import SimDeviceSim
 from hal import SimDevice
 import struct
@@ -251,7 +251,7 @@ class WitIMU(Gyro):
     def __init__(self, serialPort):
         super().__init__()
         self.port = serialPort
-        self.isSimulation = False
+        self.isSimulation = RobotBase.isSimulation()
 
         if self.isSimulation:
             self.m_simDevice = SimDevice("Gyro:WT901C", serialPort.value)

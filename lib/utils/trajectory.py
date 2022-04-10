@@ -1,5 +1,35 @@
 from wpimath.trajectory import Trajectory, TrajectoryConfig, TrajectoryUtil
+from commands2 import CommandBase
 import os
+
+class DebugCommand(CommandBase):
+    def __init__(self, kinematics, trajectory):
+        super().__init__()
+        self.m_kinematics = kinematics
+        self.m_trajectory = trajectory
+        self.m_timer = Timer()
+
+    def initialize(self):
+        self.m_timer.reset()
+        self.m_timer.start()
+
+    def execute(self):
+        state = self.m_trajectory.sample(self.m_timer.get())
+        targetWheelSpeeds = self.m_kinematics.toWheelSpeeds(
+            ChassisSpeeds(
+                state.velocity,
+                state.velocity * state.curvature,
+            )
+        )
+
+        leftSpeedSetpoint = targetWheelSpeeds.left
+        rightSpeedSetpoint = targetWheelSpeeds.right
+
+        SmartDashboard.putNumber("Left Speed Setpoint", leftSpeedSetpoint)
+        SmartDashboard.putNumber("Right Speed Setpoint", rightSpeedSetpoint)
+    
+    def isFinished(self):
+        return False
 
 
 def getInvertedTrajectory(trajectory: Trajectory) -> Trajectory:
@@ -14,10 +44,10 @@ def getInvertedTrajectory(trajectory: Trajectory) -> Trajectory:
 
         _state = Trajectory.State(
             trajectory.states()[i].timeSeconds,
-            state.velocityMetersPerSecond * -1.0,
-            state.accelerationMetersPerSecondSq,
-            state.poseMeters,
-            state.curvatureRadPerMeter,
+            state.velocity * -1.0,
+            state.acceleration,
+            state.pose,
+            state.curvature,
         )
 
         states[i] = _state

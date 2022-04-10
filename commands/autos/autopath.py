@@ -64,6 +64,27 @@ def Auto2CommandGroup(robotContainer):
         AutoShootCommandGroup(robotContainer),
     )
 
+def Auto3CommandGroup(robotContainer):
+    """
+    输入:
+    1. robotContainer: RobotContainer实例
+
+    自动2球:
+    1. 执行<寻路取球并行任务>, 取1球
+    2. 射出2球
+    3. 执行<寻路取球并行任务>, 取对方1球
+    4. 放对方球至我方爬升区
+    """
+    trajectory1 = Trajectory.Auto31
+    trajectory2 = Trajectory.Auto32
+
+    return SequentialCommandGroup(
+        pathingAndIntakeCommandGroup(robotContainer, trajectory1),
+        AutoShootCommandGroup(robotContainer),
+        pathingAndIntakeCommandGroup(robotContainer, trajectory2),
+        IntakeConveyCommandGroup(robotContainer, reverse=True),
+    )
+
 def TestCommandGroup(robotContainer, trajectory):
     """
     输入:

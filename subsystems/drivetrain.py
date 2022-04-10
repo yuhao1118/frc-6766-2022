@@ -1,7 +1,7 @@
 import math
 from commands2 import SubsystemBase, RamseteCommand, InstantCommand, SequentialCommandGroup
 
-from wpilib import SerialPort, SmartDashboard, Field2d
+from wpilib import SerialPort, SmartDashboard, Field2d, RobotBase
 from wpimath.kinematics import DifferentialDriveOdometry, DifferentialDriveWheelSpeeds
 from wpimath.controller import RamseteController, PIDController, SimpleMotorFeedforwardMeters
 import ctre
@@ -78,7 +78,8 @@ class Drivetrain(SubsystemBase):
             self.getRightEncoderDistance()
         )
         self.field2d.setRobotPose(self.getPose())
-        # self.log()
+        if RobotBase.isSimulation():
+            self.log()
 
     def setOpenloopRamp(self, seconds):
         self.LF_motor.configOpenloopRamp(seconds, 0)
@@ -104,9 +105,6 @@ class Drivetrain(SubsystemBase):
             ctre.TalonFXControlMode.PercentOutput, leftPercentage)
         self.RF_motor.set(
             ctre.TalonFXControlMode.PercentOutput, rightPercentage)
-        
-        SmartDashboard.putNumber("Left Speed", leftPercentage * 4.06)
-        SmartDashboard.putNumber("Right Speed", rightPercentage * 4.06)
 
     def tankDriveVolts(self, leftVolts, rightVolts):
         self.tankDrive(leftVolts / 12, rightVolts / 12)

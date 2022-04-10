@@ -154,7 +154,7 @@ kaVoltSecondsSquaredPerMeter = 0.31198
 
 # Drivetrain PID
 # 底盘PID
-kP = 1.24
+kP = 1.0
 kI = 0.0
 kD = 0.0
 
@@ -167,7 +167,7 @@ kMaxAccelerationMetersPerSecondSquared = 1.5
 # Ramsete constants for trajectory following, usually not changed
 # Ramsete轨迹跟踪常量, 通常无需更改
 kRamseteB = 2
-kRamseteZeta = 0.5
+kRamseteZeta = 0.7
 
 
 # Shooter forward constants

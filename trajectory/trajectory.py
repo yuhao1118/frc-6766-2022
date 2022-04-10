@@ -71,3 +71,5 @@ class Trajectory:
     Auto11 = getTrajectoryFromFile("Auto1-1.wpilib.json", constants.kTrajectoryDirectory)   # 自动路径1-1
     Auto12 = getTrajectoryFromFile("Auto1-2.wpilib.json", constants.kTrajectoryDirectory)   # 自动路径1-2
     Auto2 = getTrajectoryFromFile("Auto2.wpilib.json", constants.kTrajectoryDirectory)      # 自动路径2
+    Auto31 = getTrajectoryFromFile("Auto3-1.wpilib.json", constants.kTrajectoryDirectory)   # 自动路径3-1
+    Auto32 = getTrajectoryFromFile("Auto3-2.wpilib.json", constants.kTrajectoryDirectory)   # 自动路径3-2

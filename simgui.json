@@ -11,10 +11,33 @@
           "open": true
         }
       },
+      "Talon FX[9]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX[9]/Fwd Limit": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX[9]/Integrated Sensor": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX[9]/Rev Limit": {
+        "header": {
+          "open": true
+        }
+      },
       "WT901C[2]": {
         "header": {
           "open": true
         }
+      },
+      "window": {
+        "visible": false
       }
     },
     "RoboRIO": {
@@ -29,9 +52,6 @@
       },
       "RoboRIO Input": {
         "open": true
-      },
-      "window": {
-        "visible": true
       }
     }
   },
@@ -48,6 +68,7 @@
       "/SmartDashboard/Auto-assisted Shoot (Fixed)": "Command",
       "/SmartDashboard/Climber": "Subsystem",
       "/SmartDashboard/Close Intake": "Command",
+      "/SmartDashboard/Conveyor": "Subsystem",
       "/SmartDashboard/Conveyor motor backward": "Command",
       "/SmartDashboard/Conveyor motor forward": "Command",
       "/SmartDashboard/Drivetrain": "Subsystem",
@@ -56,12 +77,16 @@
       "/SmartDashboard/Intake and Convey": "Command",
       "/SmartDashboard/Intake motor backward": "Command",
       "/SmartDashboard/Intake motor forward": "Command",
+      "/SmartDashboard/Intaker": "Subsystem",
       "/SmartDashboard/LeftPIDController": "PIDController",
       "/SmartDashboard/Open Intake": "Command",
+      "/SmartDashboard/Pneumatic": "Subsystem",
       "/SmartDashboard/RightPIDController": "PIDController",
+      "/SmartDashboard/Shooter": "Subsystem",
       "/SmartDashboard/Shooter Backward": "Command",
       "/SmartDashboard/Shooter Forward High": "Command",
       "/SmartDashboard/Shooter Forward Low": "Command",
+      "/SmartDashboard/Shooter PID": "PIDController",
       "/SmartDashboard/Vision": "Subsystem"
     },
     "windows": {
@@ -76,6 +101,7 @@
           "width": 0.8999999761581421
         },
         "height": 8.229999542236328,
+        "image": "/Users/liyuhao/FRC2022/frc-6766-2022/2022-field-light.png",
         "traj": {
           "arrows": false,
           "style": "Track"
@@ -104,17 +130,8 @@
               "autoFit": true
             }
           ],
-          "height": 326,
+          "height": 487,
           "series": [
-            {
-              "color": [
-                0.2980392277240753,
-                0.44705885648727417,
-                0.6901960968971252,
-                1.0
-              ],
-              "id": "NT:/SmartDashboard/Right Speed"
-            },
             {
               "color": [
                 0.8666667342185974,
@@ -123,13 +140,19 @@
                 1.0
               ],
               "id": "NT:/SmartDashboard/Right Encoder Speed"
+            },
+            {
+              "color": [
+                0.32156869769096375,
+                0.5759477615356445,
+                0.8666667342185974,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Right Speed Setpoint"
             }
           ]
         }
-      ],
-      "window": {
-        "visible": false
-      }
+      ]
     }
   }
 }

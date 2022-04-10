@@ -18,7 +18,7 @@ from trajectory.trajectory import Trajectory
 from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand, climbcommand, softlimitscommand
 from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
 from commands.autos.getrangeandaim import GetRangeAndAimCommand
-from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, TestCommandGroup
+from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, Auto3CommandGroup, TestCommandGroup
 
 class RobotContainer:
     """
@@ -68,6 +68,8 @@ class RobotContainer:
             "Auto1", Auto1CommandGroup(self))                               # 3 ball auto. 3球自动
         self.autoChooser.addOption(
             "Auto2", Auto2CommandGroup(self))                               # 2 ball auto. 2球自动
+        self.autoChooser.addOption(
+            "Auto3", Auto3CommandGroup(self))                               # 2 ball auto + 1 defense ball. 2球自动 + 干扰敌方一球
 
         # The rest are test trajectories.
         # 剩下的是测试轨迹.
@@ -80,7 +82,11 @@ class RobotContainer:
         self.autoChooser.addOption(
             "Test Auto12", TestCommandGroup(self, Trajectory.Auto12))
         self.autoChooser.addOption(
-            "Test Auto21",  TestCommandGroup(self, Trajectory.Auto2))
+            "Test Auto2",  TestCommandGroup(self, Trajectory.Auto2))
+        self.autoChooser.addOption(
+            "Test Auto31", TestCommandGroup(self, Trajectory.Auto31))
+        self.autoChooser.addOption(
+            "Test Auto32", TestCommandGroup(self, Trajectory.Auto32))
 
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
 

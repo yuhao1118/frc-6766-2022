@@ -6,15 +6,20 @@
       "style": "1",
       "userScale": "4",
       "width": "1440",
-      "xpos": "-1",
-      "ypos": "-1"
+      "xpos": "648",
+      "ypos": "181"
     }
   },
   "Window": {
     "###/SmartDashboard/Auto Chooser": {
       "Collapsed": "0",
-      "Pos": "1,329",
-      "Size": "415,72"
+      "Pos": "1071,615",
+      "Size": "361,66"
+    },
+    "###/SmartDashboard/Conveyor": {
+      "Collapsed": "0",
+      "Pos": "12,696",
+      "Size": "172,87"
     },
     "###/SmartDashboard/Field": {
       "Collapsed": "0",
@@ -23,22 +28,37 @@
     },
     "###/SmartDashboard/Field2d": {
       "Collapsed": "0",
-      "Pos": "300,64",
+      "Pos": "349,25",
       "Size": "1089,589"
+    },
+    "###/SmartDashboard/Intaker": {
+      "Collapsed": "0",
+      "Pos": "460,696",
+      "Size": "172,87"
     },
     "###/SmartDashboard/LeftPIDController": {
       "Collapsed": "0",
       "Pos": "292,56",
       "Size": "172,180"
     },
+    "###/SmartDashboard/Pneumatic": {
+      "Collapsed": "0",
+      "Pos": "678,696",
+      "Size": "172,87"
+    },
     "###/SmartDashboard/RightPIDController": {
       "Collapsed": "0",
       "Pos": "499,52",
       "Size": "181,180"
     },
+    "###/SmartDashboard/Shooter": {
+      "Collapsed": "0",
+      "Pos": "234,693",
+      "Size": "172,87"
+    },
     "###FMS": {
       "Collapsed": "0",
-      "Pos": "5,540",
+      "Pos": "681,614",
       "Size": "388,182"
     },
     "###Joysticks": {
@@ -58,18 +78,18 @@
     },
     "###Other Devices": {
       "Collapsed": "0",
-      "Pos": "1025,20",
+      "Pos": "1025,19",
       "Size": "250,695"
     },
     "###Plot <0>": {
       "Collapsed": "0",
-      "Pos": "153,552",
-      "Size": "700,400"
+      "Pos": "-3,49",
+      "Size": "610,561"
     },
     "###RoboRIO": {
       "Collapsed": "0",
       "Pos": "5,125",
-      "Size": "313,648"
+      "Size": "273,588"
     },
     "###System Joysticks": {
       "Collapsed": "0",
@@ -78,8 +98,8 @@
     },
     "###Timing": {
       "Collapsed": "0",
-      "Pos": "6,429",
-      "Size": "215,172"
+      "Pos": "494,616",
+      "Size": "188,157"
     },
     "Debug##Default": {
       "Collapsed": "0",
@@ -88,8 +108,8 @@
     },
     "Robot State": {
       "Collapsed": "0",
-      "Pos": "5,20",
-      "Size": "144,144"
+      "Pos": "351,625",
+      "Size": "126,129"
     }
   }
 }
