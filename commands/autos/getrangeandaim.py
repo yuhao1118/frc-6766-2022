@@ -31,6 +31,7 @@ class GetRangeAndAimCommand(CommandBase):
             constants.kIVisionTurn,
             constants.kDVisionTurn
         )
+        self.turnPidController.setTolerance(positionTolerance=2.0)
 
         self.goalRange = goalRange
         self.goalAngle = goalAngle
@@ -49,6 +50,8 @@ class GetRangeAndAimCommand(CommandBase):
         
         angle = self.robotContainer.visionControl.getRotation2d().degrees()
         turnSpeed = -self.turnPidController.calculate(angle, self.goalAngle)
+        if self.turnPidController.atSetpoint():
+            turnSpeed = 0.0
 
         speeds = WheelSpeedsPercentage.fromArcade(forwardSpeed, turnSpeed)
         self.robotContainer.robotDrive.tankDrive(speeds.left, speeds.right)

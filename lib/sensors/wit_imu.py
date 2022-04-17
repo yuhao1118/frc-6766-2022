@@ -370,7 +370,7 @@ class WitIMUSim:
         self.m_simAccelY = self.wrappedSimDevice.getDouble("accel_y")
         self.m_simAccelZ = self.wrappedSimDevice.getDouble("accel_z")
 
-    def setAngle(self, rotation):
+    def setRotation(self, rotation):
         rotation = rotation - Rotation2d(0)     # -180 to 180
         self.m_simGyroAngleZ.set(rotation.degrees())
 

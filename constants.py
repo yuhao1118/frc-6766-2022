@@ -191,9 +191,9 @@ kVisionCameraPitch = math.radians(60)       # (radians) Pitch of the camera
 
 # Vision turn PID constants
 # 视觉自瞄PID
-kPVisionTurn = 0.0075
-kIVisionTurn = 0.0
-kDVisionTurn = 0.0
+kPVisionTurn = 0.0055
+kIVisionTurn = 0.002
+kDVisionTurn = 0.1
 
 # Vision forward PID constants, ignore them at the moment
 # 视觉距离调整PID (暂时不用)

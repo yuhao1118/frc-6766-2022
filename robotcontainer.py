@@ -173,19 +173,19 @@ class RobotContainer:
             .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.15))
         )
 
-        # (Hold) (Driver) (LB) Climb Up
-        # (按住) (主操作手) (LB) 爬升, <缩>伸缩杆
+        # (Hold) (Driver) (Y) Climb Up
+        # (按住) (主操作手) (Y) 爬升, <缩>伸缩杆
         (
             JoystickButton(self.driverController,
-                        XboxController.Button.kLeftBumper)
+                        XboxController.Button.kY)
             .whileHeld(climbcommand.ClimbCommand(self, 1.0))
         )
 
-        # (Hold) (Driver) (RB) Climb Down
-        # (按住) (主操作手) (RB) 爬升, <升>伸缩杆
+        # (Hold) (Driver) (A) Climb Down
+        # (按住) (主操作手) (A) 爬升, <升>伸缩杆
         (
             JoystickButton(self.driverController,
-                        XboxController.Button.kRightBumper)
+                        XboxController.Button.kA)
             .whileHeld(climbcommand.ClimbCommand(self, -1.0))
         )
 
@@ -197,8 +197,8 @@ class RobotContainer:
             .whenPressed(softlimitscommand.SoftLimitsCommand(self, False))
         )
 
-        # (Toggle) (Driver) (Back) enable soft limits
-        # (切换) (主操作手) (Back) 启用软限位
+        # (Toggle) (Driver) (Start) enable soft limits
+        # (切换) (主操作手) (Start) 启用软限位
         (
             JoystickButton(self.driverController,
                         XboxController.Button.kStart)

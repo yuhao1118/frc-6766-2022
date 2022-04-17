@@ -17,7 +17,9 @@ from wpimath.geometry import Rotation2d
 
 import constants
 from lib.sensors.wit_imu import WitIMUSim
+from lib.limelight.LimelightSim import LimelightSim
 from pyfrc.physics.core import PhysicsInterface
+from pyfrc.physics.visionsim import VisionSimTarget
 import typing
 
 if typing.TYPE_CHECKING:
@@ -29,7 +31,6 @@ class TalonFXMotorSim:
         self.simCollection = motor.getSimCollection()
         self.kvVoltSecondsPerMeter = kvVoltSecondsPerMeter
         self.kDistancePerPulse = kDistancePerPulse
-
 
     def update(self, dt) -> None:
         voltage = self.simCollection.getMotorOutputLeadVoltage()
@@ -52,20 +53,20 @@ class PhysicsEngine:
         self.physics_controller = physics_controller
 
         self.LF_motor = TalonFXMotorSim(
-            robot.container.robotDrive.LF_motor, 
-            constants.kvVoltSecondsPerMeter, 
+            robot.container.robotDrive.LF_motor,
+            constants.kvVoltSecondsPerMeter,
             constants.kDrivetrainEncoderDistancePerPulse)
         self.LR_motor = TalonFXMotorSim(
-            robot.container.robotDrive.LR_motor, 
-            constants.kvVoltSecondsPerMeter, 
+            robot.container.robotDrive.LR_motor,
+            constants.kvVoltSecondsPerMeter,
             constants.kDrivetrainEncoderDistancePerPulse)
         self.RF_motor = TalonFXMotorSim(
-            robot.container.robotDrive.RF_motor, 
-            constants.kvVoltSecondsPerMeter, 
+            robot.container.robotDrive.RF_motor,
+            constants.kvVoltSecondsPerMeter,
             constants.kDrivetrainEncoderDistancePerPulse)
         self.RR_motor = TalonFXMotorSim(
-            robot.container.robotDrive.RR_motor, 
-            constants.kvVoltSecondsPerMeter, 
+            robot.container.robotDrive.RR_motor,
+            constants.kvVoltSecondsPerMeter,
             constants.kDrivetrainEncoderDistancePerPulse)
 
         self.system = LinearSystemId.identifyDrivetrainSystem(
@@ -83,17 +84,31 @@ class PhysicsEngine:
             (constants.kDrivetrainWheelDiameterMeters / 2),
         )
 
-        self.gyro = WitIMUSim(robot.container.robotDrive.gyro)
+        self.gyrosim = WitIMUSim(robot.container.robotDrive.gyro)
 
-    def update_sim(self, now, tm_diff) -> None:
-        self.gyro.setAngle(self.drivesim.getHeading())
+        targets = [
+            # Hub, (x, y, visible_angle_start, visible_angle_end) in meters and degrees
+            VisionSimTarget(8.23, 4.16, 0, 359),
+        ]
+
+        # Assume the camera is mounted 0.65m off the ground and 41 degree back to the vertical
+        # Also, the limelight 2+ has vertical fov of 49.7 degrees and the target height is 2.64m
+        # Therefore, the visible (horizontal) distance to the target starts from 0.892 to 6.872 (meters)
+        self.llsim = LimelightSim(
+            targets, 59.6, 0.892, 6.872, data_frequency=25, physics_controller=physics_controller
+        )
+
+    def update_sim(self, now, tm_diff):
+        self.gyrosim.setRotation(self.drivesim.getHeading())
+        self.llsim.update(now, self.drivesim.getPose())
 
         self.LF_motor.update(tm_diff)
         self.LR_motor.update(tm_diff)
         self.RF_motor.update(tm_diff)
         self.RR_motor.update(tm_diff)
-        
-        self.drivesim.setInputs(-self.LF_motor.getVoltage(), self.RF_motor.getVoltage())
+
+        self.drivesim.setInputs(-self.LF_motor.getVoltage(),
+                                self.RF_motor.getVoltage())
         self.drivesim.update(tm_diff)
 
         self.physics_controller.field.setRobotPose(self.drivesim.getPose())

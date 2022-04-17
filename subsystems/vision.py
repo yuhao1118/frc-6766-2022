@@ -22,6 +22,9 @@ class Vision(SubsystemBase):
     def periodic(self):
         # self.log()
         pass
+    
+    def hasTargets(self):
+        return self.camera.hasTargets()
 
     def getDistance(self):
         res = self.camera.getLatestResult()

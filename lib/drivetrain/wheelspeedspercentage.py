@@ -19,3 +19,12 @@ class WheelSpeedsPercentage:
     def fromCurvature(cls, throttle, turn):
         turn = abs(throttle) * turn
         return WheelSpeedsPercentage(throttle + turn, throttle - turn)
+
+    def __add__(self, otherWheelV):
+        return WheelSpeedsPercentage(self.left + otherWheelV.left, self.right + otherWheelV.right)
+
+    def __eq__(self, otherWheelV):
+        return self.left == otherWheelV.left and self.right == otherWheelV.right
+
+    def __mul__(self, scalar):
+        return WheelSpeedsPercentage(self.left * scalar, self.right * scalar)
