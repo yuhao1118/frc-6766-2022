@@ -84,16 +84,20 @@ kConveyorRotate = TalonFXInvertType.CounterClockwise
 # Intake电机旋转方向
 kIntakeRotate = TalonFXInvertType.CounterClockwise
 
+# 射球罩电机旋转方向
+kHoodRotate = TalonFXInvertType.CounterClockwise
+
 
 # Motor to wheel ratio
 # 电机-输出轮比例
 
 kEncoderCPR = 2048                  # 编码器脉冲数(一圈)
 
-kDrivetrainGearRatio = 7            # 底盘点击减速比
-kClimbGearRatio = 21                # 爬升电机减速比
-kClimbArmGearRatio = 130.5          # 爬升摇臂电机减速比
-kShooterGearRatio = 1               # 射球电机减速比
+kDrivetrainGearRatio = 7                # 底盘点击减速比
+kClimbGearRatio = 21                    # 爬升电机减速比
+kClimbArmGearRatio = 130.5              # 爬升摇臂电机减速比
+kShooterGearRatio = 1                   # 射球电机减速比
+kHoodGearRatio = 480 / 18 * 48 / 24     # 射球罩电机减速比
 
 kDrivetrainWheelDiameterMeters = 4 * 0.0254         # 底盘轮周长(m)
 kShooterWheelDiameterMeters = 4 * 0.0254            # 射球轮周长(m)
@@ -106,7 +110,7 @@ kClimbEncoderDistancePerPulse = (
 kShooterEncoderDistancePerPulse = (
     kShooterWheelDiameterMeters * math.pi) / (kEncoderCPR * kShooterGearRatio)              # 射球轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
 kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRatio)                  # 爬升摇臂脉冲角度(°): 一个脉冲相当于摇臂转多少角度
-
+kHoodEncoderDegreesPerPulse = 360 / (kEncoderCPR * kHoodGearRatio)                          # 射球罩脉冲角度(°): 一个脉冲相当于罩转多少角度
 
 # Climber motor-safety constants
 # 爬升电机安全限制
@@ -181,6 +185,12 @@ kaVoltSecondsSquaredPerMeterShooter = 0
 kPShooter = 0.1
 kIShooter = 0.0
 kDShooter = 0.0
+
+# Hood PID
+# 射球罩PID
+kPHood = 0.1
+kIHood = 0.0
+kDHood = 0.0
 
 
 # Vision distance measurement constants, ignore them at the moment

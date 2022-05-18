@@ -1,7 +1,7 @@
 from commands2 import CommandBase
 
 
-class ClimbArmCommand(CommandBase):
+class ArmCommand(CommandBase):
     """
     爬升摇臂指令
 
@@ -12,7 +12,7 @@ class ClimbArmCommand(CommandBase):
 
     def __init__(self, robotContainer, output):
         super().__init__()
-        super().setName("ClimbArmCommand")
+        super().setName("ArmCommand")
         self.robotContainer = robotContainer
         self.output = output
         self.addRequirements(self.robotContainer.climberDrive)

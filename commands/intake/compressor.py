@@ -9,7 +9,7 @@ class CompressorCommand(CommandBase):
         robotContainer: RobotContainer实例
         enable: 是否启用压缩机, True为启用, False为关闭
     """
-    def __init__(self, robotContainer, enable):
+    def __init__(self, robotContainer, enable=True):
         super().__init__()
         super().setName("CompressorCommand")
         self.robotContainer = robotContainer

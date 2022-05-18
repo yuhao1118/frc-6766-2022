@@ -1,12 +1,13 @@
 from commands2 import SequentialCommandGroup, ParallelRaceGroup
 from wpimath.trajectory import Trajectory
-from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
-from commands.pneumaticcommand import PneumaticCommand
-from commands.autos.getrangeandaim import GetRangeAndAimCommand
+from commands.conveyor.autoconvey import AutoConveyCommandGroup
+from commands.shoot.autoshoot import AutoShootCommandGroup
+from commands.intake.pneumatic import PneumaticCommand
+from commands.drivetrain.aim import AimCommand
 
 from trajectory.trajectory import Trajectory
 
-def pathingAndIntakeCommandGroup(robotContainer, trajectory):
+def PathingAndIntakeCommandGroup(robotContainer, trajectory):
     """
     输入:
     1. robotContainer: RobotContainer实例
@@ -18,7 +19,7 @@ def pathingAndIntakeCommandGroup(robotContainer, trajectory):
     """
     return ParallelRaceGroup(
         robotContainer.robotDrive.getTrajectoryCommand(trajectory),
-        IntakeConveyCommandGroup(robotContainer),
+        AutoConveyCommandGroup(robotContainer),
         PneumaticCommand(robotContainer, True)
     )
 
@@ -39,8 +40,8 @@ def Auto1CommandGroup(robotContainer):
 
     return SequentialCommandGroup(
         AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5),
-        pathingAndIntakeCommandGroup(robotContainer, trajectory11),
-        GetRangeAndAimCommand(robotContainer).withTimeout(0.8),
+        PathingAndIntakeCommandGroup(robotContainer, trajectory11),
+        AimCommand(robotContainer).withTimeout(0.8),
         AutoShootCommandGroup(robotContainer),
         # robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
     )
@@ -60,7 +61,7 @@ def Auto2CommandGroup(robotContainer):
 
     return SequentialCommandGroup(
         AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5),
-        pathingAndIntakeCommandGroup(robotContainer, trajectory),
+        PathingAndIntakeCommandGroup(robotContainer, trajectory),
         AutoShootCommandGroup(robotContainer),
     )
 
@@ -79,10 +80,10 @@ def Auto3CommandGroup(robotContainer):
     trajectory2 = Trajectory.Auto32
 
     return SequentialCommandGroup(
-        pathingAndIntakeCommandGroup(robotContainer, trajectory1),
+        PathingAndIntakeCommandGroup(robotContainer, trajectory1),
         AutoShootCommandGroup(robotContainer),
-        pathingAndIntakeCommandGroup(robotContainer, trajectory2),
-        IntakeConveyCommandGroup(robotContainer, reverse=True),
+        PathingAndIntakeCommandGroup(robotContainer, trajectory2),
+        AutoConveyCommandGroup(robotContainer, reverse=True),
     )
 
 def TestCommandGroup(robotContainer, trajectory):

@@ -15,9 +15,24 @@ import constants
 from lib.enums.pov import POVEnum
 from lib.enums.drivemode import DriveModeEnum
 from trajectory.trajectory import Trajectory
-from commands import pneumaticcommand, compressorcommand, intakecommand, conveyorcommand, drivecommand, shootercommand, climbarmcommand, climbcommand, softlimitscommand
-from commands.autos.getcellsandshoot import IntakeConveyCommandGroup, AutoShootCommandGroup
-from commands.autos.getrangeandaim import GetRangeAndAimCommand
+
+from commands.drivetrain.aim import AimCommand
+from commands.drivetrain.drive import DriveCommand
+
+from commands.shoot.flywheel import FlywheelCommand
+from commands.shoot.autoshoot import AutoShootCommandGroup
+
+from commands.intake.intake import IntakeCommand
+from commands.intake.compressor import CompressorCommand
+from commands.intake.pneumatic import PneumaticCommand
+
+from commands.conveyor.conveyor import ConveyorCommand
+from commands.conveyor.autoconvey import AutoConveyCommandGroup
+
+from commands.climb.elevator import ElevatorCommand
+from commands.climb.arm import ArmCommand
+from commands.climb.softlimits import SoftLimitsCommand
+
 from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, Auto3CommandGroup, TestCommandGroup
 
 class RobotContainer:
@@ -57,7 +72,7 @@ class RobotContainer:
         # the robot to drive with the controller.
         # 设置底盘默认指令, 允许机器人使用手柄控制.
         self.robotDrive.setDefaultCommand(
-            drivecommand.DriveCommand(self, self.driverController, driveMode=DriveModeEnum.CurvatureDrive)
+            DriveCommand(self, self.driverController, driveMode=DriveModeEnum.CurvatureDrive)
         )
 
         # Display the autonomous chooser on the SmartDashboard.
@@ -92,22 +107,18 @@ class RobotContainer:
 
     def putCommandsToSmartDashboard(self):
         """Put commands to the SmartDashboard (Test Only)"""
-        SmartDashboard.putData("Open Intake", pneumaticcommand.PneumaticCommand(self, True))
-        SmartDashboard.putData("Close Intake", pneumaticcommand.PneumaticCommand(self, False))
-        SmartDashboard.putData("Intake and Convey", IntakeConveyCommandGroup(self))
-        SmartDashboard.putData("Auto-assisted Shoot (Fixed)", AutoShootCommandGroup(self))
-        SmartDashboard.putData("Auto-assisted Shoot (Dynamic)", AutoShootCommandGroup(self, shouldAutoRanging=True))
-        SmartDashboard.putData("Auto-assisted Aim", GetRangeAndAimCommand(self))
-        SmartDashboard.putData("Auto-assisted Ranging and Aim", GetRangeAndAimCommand(self, shouldAutoRanging=True))
-        SmartDashboard.putData("Intake motor forward", intakecommand.IntakeCommand(self, 0.3))
-        SmartDashboard.putData("Intake motor backward", intakecommand.IntakeCommand(self, -0.3))
-        SmartDashboard.putData("Conveyor motor forward", conveyorcommand.ConveyorCommand(self, 0.3))
-        SmartDashboard.putData("Conveyor motor backward", conveyorcommand.ConveyorCommand(self, -0.3))
-        SmartDashboard.putData("Shooter Forward High", shootercommand.ShooterCommand(self, output=shootercommand.shooterSpeedHigh['0cm']))
-        SmartDashboard.putData("Shooter Forward Low", shootercommand.ShooterCommand(self, output=shootercommand.shooterSpeedLow['0cm']))
-        SmartDashboard.putData("Shooter Backward", shootercommand.ShooterCommand(self, output=-5.0))
-
-
+        SmartDashboard.putData("Open Intake", PneumaticCommand(self, True))
+        SmartDashboard.putData("Close Intake", PneumaticCommand(self, False))
+        SmartDashboard.putData("Intake and Convey", AutoConveyCommandGroup(self))
+        SmartDashboard.putData("Auto-assisted Shoot", AutoShootCommandGroup(self))
+        SmartDashboard.putData("Auto-assisted Aim", AimCommand(self))
+        SmartDashboard.putData("Intake motor forward", IntakeCommand(self, 0.3))
+        SmartDashboard.putData("Intake motor backward", IntakeCommand(self, -0.3))
+        SmartDashboard.putData("Conveyor motor forward", ConveyorCommand(self, 0.3))
+        SmartDashboard.putData("Conveyor motor backward", ConveyorCommand(self, -0.3))
+        SmartDashboard.putData("Flywheel Forward High", FlywheelCommand(self, output=19.3))
+        SmartDashboard.putData("Flywheel Forward Low", FlywheelCommand(self, output=11.3))
+        SmartDashboard.putData("Flywheel Backward", FlywheelCommand(self, output=-5.0))
 
     def getAutonomousCommand(self):
         return self.autoChooser.getSelected()
@@ -122,7 +133,7 @@ class RobotContainer:
         (
             JoystickButton(self.siderController,
                            XboxController.Button.kLeftBumper)
-            .whileHeld(pneumaticcommand.PneumaticCommand(self, True))
+            .whileHeld(PneumaticCommand(self, True))
         )
 
         # (Hold) (Sider) (RB) Intake and convey
@@ -130,7 +141,7 @@ class RobotContainer:
         (
             JoystickButton(self.siderController,
                            XboxController.Button.kRightBumper)
-            .whileHeld(IntakeConveyCommandGroup(self))
+            .whileHeld(AutoConveyCommandGroup(self))
         )
 
         # (Hold) (Sider) (Start) Backball and drop
@@ -138,14 +149,14 @@ class RobotContainer:
         (
             JoystickButton(self.siderController,
                             XboxController.Button.kStart)
-            .whileHeld(IntakeConveyCommandGroup(self, reverse=True))
+            .whileHeld(AutoConveyCommandGroup(self, reverse=True))
         )
 
         # (Press) (Sider) (Y) Aiming
         # (按一下) (副操作手) (Y) 自瞄
         (
             JoystickButton(self.siderController, XboxController.Button.kY)
-            .whenPressed(GetRangeAndAimCommand(self).withTimeout(0.8))
+            .whenPressed(AimCommand(self).withTimeout(0.8))
         )
 
         # (Press) (Sider) (B) Shooting - fixed distance at 0cm
@@ -162,7 +173,7 @@ class RobotContainer:
         (
             POVButton(self.siderController,
                       POVEnum.kUp)
-            .whileHeld(climbarmcommand.ClimbArmCommand(self, 0.15))
+            .whileHeld(ArmCommand(self, 0.15))
         )
 
         # (Hold) (Sider) (POV-Down) Climb Up
@@ -170,7 +181,7 @@ class RobotContainer:
         (
             POVButton(self.siderController,
                        POVEnum.kDown)
-            .whileHeld(climbarmcommand.ClimbArmCommand(self, -0.15))
+            .whileHeld(ArmCommand(self, -0.15))
         )
 
         # (Hold) (Driver) (Y) Climb Up
@@ -178,7 +189,7 @@ class RobotContainer:
         (
             JoystickButton(self.driverController,
                         XboxController.Button.kY)
-            .whileHeld(climbcommand.ClimbCommand(self, 1.0))
+            .whileHeld(ElevatorCommand(self, 1.0))
         )
 
         # (Hold) (Driver) (A) Climb Down
@@ -186,7 +197,7 @@ class RobotContainer:
         (
             JoystickButton(self.driverController,
                         XboxController.Button.kA)
-            .whileHeld(climbcommand.ClimbCommand(self, -1.0))
+            .whileHeld(ElevatorCommand(self, -1.0))
         )
 
         # (Toggle) (Driver) (Back) disable soft limits
@@ -194,7 +205,7 @@ class RobotContainer:
         (
             JoystickButton(self.driverController,
                         XboxController.Button.kBack)
-            .whenPressed(softlimitscommand.SoftLimitsCommand(self, False))
+            .whenPressed(SoftLimitsCommand(self, False))
         )
 
         # (Toggle) (Driver) (Start) enable soft limits
@@ -202,7 +213,7 @@ class RobotContainer:
         (
             JoystickButton(self.driverController,
                         XboxController.Button.kStart)
-            .whenPressed(softlimitscommand.SoftLimitsCommand(self, True))
+            .whenPressed(SoftLimitsCommand(self, True))
         )
 
         # (Hold) (Sider) (POV-Left) Intake Motor Forward
@@ -210,7 +221,7 @@ class RobotContainer:
         (
             POVButton(self.siderController,
                       POVEnum.kLeft)
-            .whileHeld(intakecommand.IntakeCommand(self, 0.4))
+            .whileHeld(IntakeCommand(self, 0.4))
         )
 
         # (Hold) (Sider) (POV-Right) Intake Motor Backward
@@ -218,7 +229,7 @@ class RobotContainer:
         (
             POVButton(self.siderController,
                       POVEnum.kRight)
-            .whileHeld(intakecommand.IntakeCommand(self, -0.4))
+            .whileHeld(IntakeCommand(self, -0.4))
         )
 
         # (Toggle) (Sider) (Back) Open/Close Compressor
@@ -226,7 +237,7 @@ class RobotContainer:
         (
             JoystickButton(self.siderController,
                            XboxController.Button.kBack)
-            .toggleWhenPressed(compressorcommand.CompressorCommand(self, True))
+            .toggleWhenPressed(CompressorCommand(self))
         )
 
         # (Hold) (Sider) (X) Conveyor Forward
@@ -234,7 +245,7 @@ class RobotContainer:
         (
             JoystickButton(self.siderController,
                       XboxController.Button.kX)
-            .whileHeld(conveyorcommand.ConveyorCommand(self, 0.3))
+            .whileHeld(ConveyorCommand(self, 0.3))
         )
 
         # (Hold) (Sider) (A) Conveyor Backward
@@ -242,5 +253,5 @@ class RobotContainer:
         (
             JoystickButton(self.siderController,
                       XboxController.Button.kA)
-            .whileHeld(conveyorcommand.ConveyorCommand(self, -0.3))
+            .whileHeld(ConveyorCommand(self, -0.3))
         )

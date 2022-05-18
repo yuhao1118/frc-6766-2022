@@ -32,7 +32,7 @@ class DriveCommand(CommandBase):
             constants.kDVisionTurn
         )
         self.turnPidController.setTolerance(positionTolerance=2.0)
-        self.addRequirements(self.robotContainer.robotDrive, self.robotContainer.visionControl)
+        self.addRequirements(self.robotContainer.robotDrive)
 
     def execute(self):
         linearX =  axisProfile(-self.controller.getRawAxis(1))
