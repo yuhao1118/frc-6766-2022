@@ -2,7 +2,6 @@ from commands2 import ParallelCommandGroup
 
 from commands.intake.intake import IntakeCommand
 from commands.conveyor.conveyor import ConveyorCommand
-from commands.shoot.flywheel import FlywheelCommand
 
 def AutoConveyCommandGroup(robotContainer, reverse=False):
     """

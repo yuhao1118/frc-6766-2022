@@ -8,6 +8,7 @@ import ctre
 
 import constants
 from lib.sensors.wit_imu import WitIMU
+from lib.utils.tunablenumber import TunableNumber
 class Drivetrain(SubsystemBase):
 
     def __init__(self):
@@ -49,10 +50,14 @@ class Drivetrain(SubsystemBase):
 
         self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
 
+        self.kP = TunableNumber("Drivetrain/kP", 1.0)
+        self.kI = TunableNumber("Drivetrain/kI", 0.0)
+        self.kD = TunableNumber("Drivetrain/kD", 0.0)
+
         self.leftPIDController = PIDController(
-            constants.kP, constants.kI, constants.kD)
+            self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
         self.rightPIDController = PIDController(
-            constants.kP, constants.kI, constants.kD)
+            self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
 
 
     def log(self):
@@ -72,6 +77,18 @@ class Drivetrain(SubsystemBase):
         SmartDashboard.putNumber("Gyro Rate", self.gyro.getRate())
 
     def periodic(self):
+        if self.kP.hasChanged():
+            self.leftPIDController.setP(self.kP.get())
+            self.rightPIDController.setP(self.kP.get())
+
+        if self.kI.hasChanged():
+            self.leftPIDController.setI(self.kI.get())
+            self.rightPIDController.setI(self.kI.get())
+
+        if self.kD.hasChanged():
+            self.leftPIDController.setD(self.kD.get())
+            self.rightPIDController.setD(self.kD.get())
+
         self.odometry.update(
             self.gyro.getRotation2d(),
             self.getLeftEncoderDistance(),

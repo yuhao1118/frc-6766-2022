@@ -73,11 +73,14 @@
       "/SmartDashboard/Conveyor motor backward": "Command",
       "/SmartDashboard/Conveyor motor forward": "Command",
       "/SmartDashboard/Drivetrain": "Subsystem",
+      "/SmartDashboard/Elevator": "Subsystem",
       "/SmartDashboard/Field": "Field2d",
       "/SmartDashboard/Field2d": "Field2d",
       "/SmartDashboard/Flywheel Backward": "Command",
       "/SmartDashboard/Flywheel Forward High": "Command",
       "/SmartDashboard/Flywheel Forward Low": "Command",
+      "/SmartDashboard/Hood": "Subsystem",
+      "/SmartDashboard/Hood2d": "Mechanism2d",
       "/SmartDashboard/Intake and Convey": "Command",
       "/SmartDashboard/Intake motor backward": "Command",
       "/SmartDashboard/Intake motor forward": "Command",
@@ -114,11 +117,22 @@
         "window": {
           "visible": true
         }
+      },
+      "/SmartDashboard/Hood2d": {
+        "window": {
+          "visible": true
+        }
       }
     }
   },
   "NetworkTables": {
     "SmartDashboard": {
+      "TunableNumbers": {
+        "Drivetrain": {
+          "open": true
+        },
+        "open": true
+      },
       "open": true
     },
     "limelight": {
@@ -182,7 +196,31 @@
             }
           ]
         }
-      ]
+      ],
+      "window": {
+        "visible": false
+      }
+    },
+    "Plot <2>": {
+      "plots": [
+        {
+          "height": 326,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Hood Position"
+            }
+          ]
+        }
+      ],
+      "window": {
+        "name": "Hood"
+      }
     }
   }
 }

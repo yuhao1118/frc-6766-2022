@@ -15,13 +15,13 @@ class ArmCommand(CommandBase):
         super().setName("ArmCommand")
         self.robotContainer = robotContainer
         self.output = output
-        self.addRequirements(self.robotContainer.climberDrive)
+        self.addRequirements(self.robotContainer.armDrive)
 
     def execute(self):
-        self.robotContainer.climberDrive.setArm(self.output)
+        self.robotContainer.armDrive.set(self.output)
 
     def isFinished(self):
         return False
 
     def end(self, interrupted):
-        self.robotContainer.climberDrive.setArm(0)
+        self.robotContainer.armDrive.set(0)

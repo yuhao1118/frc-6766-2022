@@ -16,6 +16,8 @@ from ctre import TalonFXInvertType
 import math
 import os
 
+tuningMode = True
+
 # Limelight address, recommend using static IP address
 # 在这里设置limelight的ip地址, 建议使用静态ip地址
 kLimelightIp = "10.67.66.30"
@@ -54,7 +56,8 @@ kRightClimbMotorPort = 14
 kLeftClimbArmMotorPort = 15
 kRightClimbArmMotorPort = 16
 
-kShooter = 10
+kShooterPort = 10
+kHoodPort = 17
 
 kConveyorPort = 11
 kIntakePort = 12
@@ -85,7 +88,7 @@ kConveyorRotate = TalonFXInvertType.CounterClockwise
 kIntakeRotate = TalonFXInvertType.CounterClockwise
 
 # 射球罩电机旋转方向
-kHoodRotate = TalonFXInvertType.CounterClockwise
+kHoodRotate = TalonFXInvertType.Clockwise
 
 
 # Motor to wheel ratio
@@ -94,21 +97,15 @@ kHoodRotate = TalonFXInvertType.CounterClockwise
 kEncoderCPR = 2048                  # 编码器脉冲数(一圈)
 
 kDrivetrainGearRatio = 7                # 底盘点击减速比
-kClimbGearRatio = 21                    # 爬升电机减速比
 kClimbArmGearRatio = 130.5              # 爬升摇臂电机减速比
 kShooterGearRatio = 1                   # 射球电机减速比
 kHoodGearRatio = 480 / 18 * 48 / 24     # 射球罩电机减速比
 
 kDrivetrainWheelDiameterMeters = 4 * 0.0254         # 底盘轮周长(m)
-kShooterWheelDiameterMeters = 4 * 0.0254            # 射球轮周长(m)
-kClimbWheelDiameterMeters = 0.5 * 0.0254            # 爬升轮周长(m)
 
 kDrivetrainEncoderDistancePerPulse = (
     kDrivetrainWheelDiameterMeters * math.pi) / (kEncoderCPR * kDrivetrainGearRatio)        # 底盘轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
-kClimbEncoderDistancePerPulse = (
-    kClimbWheelDiameterMeters * math.pi) / (kEncoderCPR * kClimbGearRatio)                  # 爬升轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
-kShooterEncoderDistancePerPulse = (
-    kShooterWheelDiameterMeters * math.pi) / (kEncoderCPR * kShooterGearRatio)              # 射球轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
+kShooterEncoderRotatePerPulse = 1 / (kEncoderCPR * kShooterGearRatio)              # 射球轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
 kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRatio)                  # 爬升摇臂脉冲角度(°): 一个脉冲相当于摇臂转多少角度
 kHoodEncoderDegreesPerPulse = 360 / (kEncoderCPR * kHoodGearRatio)                          # 射球罩脉冲角度(°): 一个脉冲相当于罩转多少角度
 
@@ -125,25 +122,25 @@ kClimbMotorThresholdDuration = 0.8
 
 # Climber motor soft limits
 # 爬升电机软限位 (以伸缩杆完全收紧时为基准)
-kClimbMotorSoftLimitForward = 0.0 / kClimbEncoderDistancePerPulse           # 前向限位: 0m
-kClimbMotorSoftLimitReverse = -0.32 / kClimbEncoderDistancePerPulse         # 后向限位: -0.31m
+kClimbMotorSoftLimitForward = 0               # 前向限位: 0m
+kClimbMotorSoftLimitReverse = -345000         # 后向限位: -0.31m
 
 # Climb arm motor soft limits
 # 爬升摇臂电机软限位 (以摇臂竖直时为基准)
 kClimbArmMotorSoftLimitForward = 30 / kClimbArmEncoderDegreesPerPulse       # 前向限位: 30°
 kClimbArmMotorSoftLimitReverse = -30 / kClimbArmEncoderDegreesPerPulse      # 后向限位: -30°
 
+# Hood motor soft limits
+# 射球罩电机软限位 (以射球罩完全收起时为基准)
+kHoodMotorSoftLimitForward = 20 / kHoodEncoderDegreesPerPulse               # 前向限位: 20°
+
 # Drivetrain kinematics
 # 底盘运动学
 kTrackWidthMeters = 0.585                                                               # 水平轮距(m)
 kDriveKinematics = DifferentialDriveKinematics(kTrackWidthMeters)                       # 底盘运动学常量
 
-# Let the RamseteController handle the acceleration
-# 自动阶段底盘加速时间为0s, 因为生成的路径已经做过加速度限制了
-kOpenloopRampRateAuto = 0.0
-
-# 手动阶段加速时间
-kOpenloopRampRateTeleop = 0.35
+kOpenloopRampRateAuto = 0.0             # 自动阶段底盘加速时间为0s, 因为生成的路径已经做过加速度限制了
+kOpenloopRampRateTeleop = 0.35          # 手动阶段加速时间
 
 kCurvatureThreshold = 0.15                              # 曲率阈值，超过此值则认为是曲率运动
 kDrivetrainTurnSensitive = 0.5                         # 转向灵敏度
@@ -156,57 +153,19 @@ ksVolts = 0.67058
 kvVoltSecondsPerMeter = 2.2941
 kaVoltSecondsSquaredPerMeter = 0.31198
 
-# Drivetrain PID
-# 底盘PID
-kP = 1.0
-kI = 0.0
-kD = 0.0
 
 # Max v,a when performing auto-path planning
 # 自动路径规划时的最大速度和加速度
 kMaxSpeedMetersPerSecond = 3.0
 kMaxAccelerationMetersPerSecondSquared = 1.5
 
-
 # Ramsete constants for trajectory following, usually not changed
 # Ramsete轨迹跟踪常量, 通常无需更改
 kRamseteB = 2
 kRamseteZeta = 0.7
-
-
-# Shooter forward constants
-# 射球前向控制常量, 由Sysid工具计算得到
-ksVoltsShooter = 0.56601
-kvVoltSecondsPerMeterShooter = 0.33631
-kaVoltSecondsSquaredPerMeterShooter = 0
-
-# Shooter PID
-# 射球PID
-kPShooter = 0.1
-kIShooter = 0.0
-kDShooter = 0.0
-
-# Hood PID
-# 射球罩PID
-kPHood = 0.1
-kIHood = 0.0
-kDHood = 0.0
-
 
 # Vision distance measurement constants, ignore them at the moment
 # 视觉测距测量 (暂时不用)
 kVisionTargetHeight = 2.58                  # (meters) Height of the target off the ground
 kVisionCameraHeight = 0.63                  # (meters) Height of the camera off the ground
 kVisionCameraPitch = math.radians(60)       # (radians) Pitch of the camera
-
-# Vision turn PID constants
-# 视觉自瞄PID
-kPVisionTurn = 0.0055
-kIVisionTurn = 0.002
-kDVisionTurn = 0.1
-
-# Vision forward PID constants, ignore them at the moment
-# 视觉距离调整PID (暂时不用)
-kPVisionForward = 0.01
-kIVisionForward = 0.0
-kDVisionForward = 0.0

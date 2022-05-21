@@ -3,7 +3,7 @@ from commands2 import ParallelCommandGroup, WaitCommand, SequentialCommandGroup
 from commands.conveyor.conveyor import ConveyorCommand
 
 
-def AutoShootCommandGroup(robotContainer, timeout=2.2, backBallTime=0.3, output=19.3):
+def AutoShootCommandGroup(robotContainer, timeout=2.2, backBallTime=0.3, output=None):
     """
     自动射球并行指令组:
 
@@ -22,7 +22,6 @@ def AutoShootCommandGroup(robotContainer, timeout=2.2, backBallTime=0.3, output=
     """
     return ParallelCommandGroup(
         WaitCommand(0.1).andThen(FlywheelCommand(robotContainer, output=output)),
-
         SequentialCommandGroup(
             ConveyorCommand(
                 robotContainer, -0.2).withTimeout(backBallTime),

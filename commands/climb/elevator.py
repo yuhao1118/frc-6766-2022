@@ -15,13 +15,13 @@ class ElevatorCommand(CommandBase):
         super().setName("ElevatorCommand")
         self.robotContainer = robotContainer
         self.output = output
-        self.addRequirements(self.robotContainer.climberDrive)
+        self.addRequirements(self.robotContainer.elevatorDrive)
 
     def execute(self):
-        self.robotContainer.climberDrive.set(self.output)
+        self.robotContainer.elevatorDrive.set(self.output)
 
     def isFinished(self):
         return False
 
     def end(self, interrupted):
-        self.robotContainer.climberDrive.set(0)
+        self.robotContainer.elevatorDrive.set(0)

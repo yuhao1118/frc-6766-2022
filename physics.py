@@ -9,8 +9,8 @@
 # of your robot code without too much extra effort.
 #
 
-from wpilib import RobotController, ADXRS450_Gyro
-from wpilib.simulation import DifferentialDrivetrainSim
+from wpilib import RobotController, ADXRS450_Gyro, Mechanism2d, Color8Bit, Color, SmartDashboard
+from wpilib.simulation import DifferentialDrivetrainSim, SingleJointedArmSim
 from wpimath.system import LinearSystemId
 from wpimath.system.plant import DCMotor
 from wpimath.geometry import Rotation2d
@@ -21,6 +21,8 @@ from lib.limelight.LimelightSim import LimelightSim
 from pyfrc.physics.core import PhysicsInterface
 from pyfrc.physics.visionsim import VisionSimTarget
 import typing
+
+import math
 
 if typing.TYPE_CHECKING:
     from robot import MyRobot
@@ -41,6 +43,23 @@ class TalonFXMotorSim:
         )
         self.simCollection.addIntegratedSensorPosition(
             int(velocity * dt / self.kDistancePerPulse)
+        )
+
+    def getVoltage(self):
+        return self.simCollection.getMotorOutputLeadVoltage()
+
+class TalonFXMotorJointSim:
+    def __init__(self, motor, kDistancePerPulse) -> None:
+        self.simCollection = motor.getSimCollection()
+        self.kDistancePerPulse = kDistancePerPulse
+
+    def update(self, dt, degPerSec) -> None:
+
+        self.simCollection.setIntegratedSensorVelocity(
+            int(degPerSec / self.kDistancePerPulse / 10)
+        )
+        self.simCollection.addIntegratedSensorPosition(
+            int(degPerSec * dt / self.kDistancePerPulse)
         )
 
     def getVoltage(self):
@@ -84,6 +103,30 @@ class PhysicsEngine:
             (constants.kDrivetrainWheelDiameterMeters / 2),
         )
 
+        self.hoodMotor = TalonFXMotorJointSim(robot.container.hoodDrive.hood, constants.kHoodEncoderDegreesPerPulse)
+
+        self.hoodsim = SingleJointedArmSim(
+            DCMotor.falcon500(),
+            480 / 18 * 48 / 24,
+            SingleJointedArmSim.estimateMOI(0.01, 0.1),
+            0.3,
+            math.radians(30),
+            math.radians(90),
+            0.1,
+            True,
+        )
+
+        self.mech2d = Mechanism2d(60, 60)
+        self.hoodBase = self.mech2d.getRoot("HoodBase", 30, 30)
+        self.hoodTower = self.hoodBase.appendLigament(
+            "Hood Tower", 30, -90, 6, Color8Bit(Color.kBlue)
+        )
+        self.hood2d = self.hoodBase.appendLigament(
+            "Arm", 30, math.radians(90), 6, Color8Bit(Color.kYellow)
+        )
+
+        SmartDashboard.putData("Hood2d", self.mech2d)
+
         self.gyrosim = WitIMUSim(robot.container.robotDrive.gyro)
 
         targets = [
@@ -111,4 +154,8 @@ class PhysicsEngine:
                                 self.RF_motor.getVoltage())
         self.drivesim.update(tm_diff)
 
-        self.physics_controller.field.setRobotPose(self.drivesim.getPose())
+
+        self.hoodsim.setInput(0, self.hoodMotor.getVoltage())
+        self.hoodsim.update(tm_diff)
+        self.hood2d.setAngle(math.degrees(self.hoodsim.getAngle()))
+        self.hoodMotor.update(tm_diff, self.hoodsim.getVelocityDps())

@@ -4,6 +4,7 @@ from wpimath.controller import SimpleMotorFeedforwardMeters, PIDController
 
 import ctre
 import constants
+from lib.utils.tunablenumber import TunableNumber
 
 
 class Shooter(SubsystemBase):
@@ -11,25 +12,22 @@ class Shooter(SubsystemBase):
     def __init__(self):
         super().__init__()
 
-        self.shooter = ctre.TalonFX(constants.kShooter)
+        self.shooter = ctre.TalonFX(constants.kShooterPort)
         self.shooter.configFactoryDefault()
         self.shooter.setNeutralMode(ctre.NeutralMode.Brake)
         self.shooter.setInverted(constants.kShooterRotate)
         self.shooter.configVoltageCompSaturation(constants.kNominalVoltage)
         self.shooter.enableVoltageCompensation(True)
 
-        self.feedforwardController = SimpleMotorFeedforwardMeters(
-            constants.ksVoltsShooter,
-            constants.kvVoltSecondsPerMeterShooter,
-            constants.kaVoltSecondsSquaredPerMeterShooter
-        )
-        self.pidController = PIDController(
-            constants.kPShooter,
-            constants.kIShooter,
-            constants.kDShooter,
-        )
+        self.kP = TunableNumber("Shooter/kP", 0.04)
+        self.kI = TunableNumber("Shooter/kI", 0.00)
+        self.kD = TunableNumber("Shooter/kD", 2.00)
+        self.kF = TunableNumber("Shooter/kF", 0.046)
 
-        self.resetEncoder()
+        self.shooter.config_kP(0, self.kP.getDefault(), 0)
+        self.shooter.config_kI(0, self.kI.getDefault(), 0)
+        self.shooter.config_kD(0, self.kD.getDefault(), 0)
+        self.shooter.config_kF(0, self.kF.getDefault(), 0)
 
 
     def log(self):
@@ -39,18 +37,17 @@ class Shooter(SubsystemBase):
 
     def periodic(self):
         # self.log()
-        pass
+        if self.kP.hasChanged(): self.shooter.config_kP(0, float(self.kP), 0)
+        if self.kI.hasChanged(): self.shooter.config_kI(0, float(self.kI), 0)
+        if self.kD.hasChanged(): self.shooter.config_kD(0, float(self.kD), 0)
+        if self.kF.hasChanged(): self.shooter.config_kF(0, float(self.kF), 0)
 
     def setVolts(self, outputVolts):
         self.shooter.set(ctre.ControlMode.PercentOutput, outputVolts / 12)
 
-    def setVelocity(self, outputVelocity):
-        ff = self.feedforwardController.calculate(outputVelocity)
-        bf = self.pidController.calculate(self.getShooterEncoderSpeed(), outputVelocity)
-        self.setVolts(ff + bf)
+    def setRPS(self, rps):
+        self.shooter.set(ctre.ControlMode.Velocity, rps / constants.kShooterEncoderRotatePerPulse / 10)
 
-    def resetEncoder(self):
-        self.shooter.setSelectedSensorPosition(0, 0, 20)
 
     def getShooterEncoderSpeed(self):
         return self.shooter.getSelectedSensorVelocity() * constants.kShooterEncoderDistancePerPulse * 10

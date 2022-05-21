@@ -8,6 +8,7 @@ from wpiutil import PortForwarder
 from robotcontainer import RobotContainer
 import constants
 
+from lib.utils.tunablenumber import TunableNumber
 
 class MyRobot(commands2.TimedCommandRobot):
     """
@@ -69,6 +70,8 @@ class MyRobot(commands2.TimedCommandRobot):
 
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
+
+        self.container.getResetCommand().schedule()
 
     def teleopPeriodic(self) -> None:
         """This function is called periodically during operator control"""

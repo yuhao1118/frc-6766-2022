@@ -39,7 +39,7 @@ def Auto1CommandGroup(robotContainer):
     trajectory12 = Trajectory.Auto12        # 人类玩家站位路径
 
     return SequentialCommandGroup(
-        AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5),
+        AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5, output=19.3),
         PathingAndIntakeCommandGroup(robotContainer, trajectory11),
         AimCommand(robotContainer).withTimeout(0.8),
         AutoShootCommandGroup(robotContainer),
@@ -60,8 +60,9 @@ def Auto2CommandGroup(robotContainer):
     trajectory = Trajectory.Auto2
 
     return SequentialCommandGroup(
-        AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5),
+        AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5, output=19.3),
         PathingAndIntakeCommandGroup(robotContainer, trajectory),
+        AimCommand(robotContainer).withTimeout(0.8),
         AutoShootCommandGroup(robotContainer),
     )
 

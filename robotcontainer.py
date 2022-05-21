@@ -2,14 +2,17 @@
 # https://github.com/SteelRidgeRobotics/2021-2022_FRC_Season/tree/main/Captain%20Hook
 
 from commands2.button import JoystickButton, POVButton
+from commands2 import ParallelCommandGroup
 from wpilib import XboxController, SendableChooser, SmartDashboard
 from subsystems.drivetrain import Drivetrain
-from subsystems.climber import Climber
+from subsystems.elevator import Elevator
+from subsystems.arm import Arm
 from subsystems.shooter import Shooter
 from subsystems.conveyor import Conveyor
 from subsystems.intaker import Intaker
 from subsystems.pneumatic import Pneumatic
 from subsystems.vision import Vision
+from subsystems.hood import Hood
 
 import constants
 from lib.enums.pov import POVEnum
@@ -21,6 +24,7 @@ from commands.drivetrain.drive import DriveCommand
 
 from commands.shoot.flywheel import FlywheelCommand
 from commands.shoot.autoshoot import AutoShootCommandGroup
+from commands.shoot.resethood import ResetHoodCommandGroup
 
 from commands.intake.intake import IntakeCommand
 from commands.intake.compressor import CompressorCommand
@@ -31,7 +35,7 @@ from commands.conveyor.autoconvey import AutoConveyCommandGroup
 
 from commands.climb.elevator import ElevatorCommand
 from commands.climb.arm import ArmCommand
-from commands.climb.softlimits import SoftLimitsCommand
+from commands.climb.resetelevator import ResetElevatorCommand
 
 from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, Auto3CommandGroup, TestCommandGroup
 
@@ -53,8 +57,10 @@ class RobotContainer:
         # Create instances of the subsystems. 
         # 创建各子系统实例.
         self.robotDrive = Drivetrain()
-        self.climberDrive = Climber()
+        self.elevatorDrive = Elevator()
+        self.armDrive = Arm()
         self.shooterDrive = Shooter()
+        self.hoodDrive = Hood()
         self.conveyorDrive = Conveyor()
         self.intakerDrive = Intaker()
         self.pneumaticControl = Pneumatic()
@@ -123,6 +129,9 @@ class RobotContainer:
     def getAutonomousCommand(self):
         return self.autoChooser.getSelected()
 
+    def getResetCommand(self):
+        return ParallelCommandGroup(ResetHoodCommandGroup(self), ResetElevatorCommand(self))
+
     def configureButtons(self):
         """Configure the buttons for the driver's controller"""
 
@@ -159,11 +168,19 @@ class RobotContainer:
             .whenPressed(AimCommand(self).withTimeout(0.8))
         )
 
+        # (Hold) (Drive) (LB) Aiming
+        # (按住) (主操作手) (LB) 自瞄 (同时可以前后移动)
+        (
+            JoystickButton(self.driverController, XboxController.Button.kLeftBumper)
+            .whileHeld(AimCommand(self, linearXSuppiler=lambda: self.driverController.getLeftY()))
+        )
+
         # (Press) (Sider) (B) Shooting - fixed distance at 0cm
-        # (按一下) (副操作手) (B) 射球 - 0cm固定距离
+        # (按一下) (副操作手) (B) 射球
         (
             JoystickButton(self.siderController, XboxController.Button.kB)
-            .whenPressed(AutoShootCommandGroup(self))
+            .whenPressed(AutoShootCommandGroup(self, output=25.3))
+            # .whenReleased(ResetHoodCommandGroup(self))
         )
 
         ############ Manual Controls ############
@@ -198,22 +215,6 @@ class RobotContainer:
             JoystickButton(self.driverController,
                         XboxController.Button.kA)
             .whileHeld(ElevatorCommand(self, -1.0))
-        )
-
-        # (Toggle) (Driver) (Back) disable soft limits
-        # (切换) (主操作手) (Back) 禁用软限位
-        (
-            JoystickButton(self.driverController,
-                        XboxController.Button.kBack)
-            .whenPressed(SoftLimitsCommand(self, False))
-        )
-
-        # (Toggle) (Driver) (Start) enable soft limits
-        # (切换) (主操作手) (Start) 启用软限位
-        (
-            JoystickButton(self.driverController,
-                        XboxController.Button.kStart)
-            .whenPressed(SoftLimitsCommand(self, True))
         )
 
         # (Hold) (Sider) (POV-Left) Intake Motor Forward

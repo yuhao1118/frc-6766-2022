@@ -1,4 +1,4 @@
-from lib.utils.math import clamp
+from lib.utils.maths import clamp
 
 class WheelSpeedsPercentage:
     def __init__(self, left, right):

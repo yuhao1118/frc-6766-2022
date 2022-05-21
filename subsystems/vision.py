@@ -34,7 +34,6 @@ class Vision(SubsystemBase):
             distance = (2.64 - 0.65) / math.tan(angleToGoalRadians)
             return distance
 
-        return -1
     def getRotation2d(self):
         res = self.camera.getLatestResult()
         if res.hasTargets():

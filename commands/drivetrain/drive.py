@@ -7,7 +7,7 @@ from wpimath.controller import PIDController
 
 import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
-from lib.utils.math import clamp, axisProfile
+from lib.utils.maths import clamp, axisProfile
 from lib.enums.drivemode import DriveModeEnum
 from lib.enums.pov import POVEnum
 
@@ -26,12 +26,6 @@ class DriveCommand(CommandBase):
         self.robotContainer = robotContainer
         self.controller = controller
         self.driveMode = driveMode
-        self.turnPidController = PIDController(
-            constants.kPVisionTurn,
-            constants.kIVisionTurn,
-            constants.kDVisionTurn
-        )
-        self.turnPidController.setTolerance(positionTolerance=2.0)
         self.addRequirements(self.robotContainer.robotDrive)
 
     def execute(self):
@@ -63,19 +57,6 @@ class DriveCommand(CommandBase):
             speeds = WheelSpeedsPercentage.fromArcade(0.0, 0.2)
         elif povValue == POVEnum.kLeft:
             speeds = WheelSpeedsPercentage.fromArcade(0.0, -0.2)
-
-        # Hold RB to slow down
-        if self.controller.getRawButton(XboxController.Button.kRightBumper):
-            speeds *= 0.5
-
-        # Hold LB to drive to the target
-        if self.controller.getRawButton(XboxController.Button.kLeftBumper):
-            angle = self.robotContainer.visionControl.getRotation2d().degrees()
-            turnSpeed = -self.turnPidController.calculate(angle, 0.0)
-            if self.turnPidController.atSetpoint():
-                turnSpeed = 0.0
-
-            speeds = speeds + WheelSpeedsPercentage.fromArcade(0.0, turnSpeed)
 
         self.robotContainer.robotDrive.tankDrive(speeds.left, speeds.right)
 
