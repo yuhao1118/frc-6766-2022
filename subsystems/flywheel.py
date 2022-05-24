@@ -7,7 +7,7 @@ import constants
 from lib.utils.tunablenumber import TunableNumber
 
 
-class Shooter(SubsystemBase):
+class Flywheel(SubsystemBase):
 
     def __init__(self):
         super().__init__()
@@ -19,21 +19,22 @@ class Shooter(SubsystemBase):
         self.shooter.configVoltageCompSaturation(constants.kNominalVoltage)
         self.shooter.enableVoltageCompensation(True)
 
-        self.kP = TunableNumber("Shooter/kP", 0.04)
-        self.kI = TunableNumber("Shooter/kI", 0.00)
-        self.kD = TunableNumber("Shooter/kD", 2.00)
-        self.kF = TunableNumber("Shooter/kF", 0.046)
+        self.kP = TunableNumber("Flywheel/kP", 0.04)
+        self.kI = TunableNumber("Flywheel/kI", 0.00)
+        self.kD = TunableNumber("Flywheel/kD", 2.00)
+        self.kF = TunableNumber("Flywheel/kF", 0.046)
 
         self.shooter.config_kP(0, self.kP.getDefault(), 0)
         self.shooter.config_kI(0, self.kI.getDefault(), 0)
         self.shooter.config_kD(0, self.kD.getDefault(), 0)
         self.shooter.config_kF(0, self.kF.getDefault(), 0)
 
+        self.flywheelReady = False
 
     def log(self):
-        SmartDashboard.putData("Shooter", self)
-        SmartDashboard.putData("Shooter PID", self.pidController)
-        SmartDashboard.putNumber("Shooter Speed", self.getShooterEncoderSpeed())
+        SmartDashboard.putData("Flywheel", self)
+        SmartDashboard.putData("Flywheel PID", self.pidController)
+        SmartDashboard.putNumber("Flywheel Speed", self.getShooterEncoderSpeed())
 
     def periodic(self):
         # self.log()
@@ -42,12 +43,19 @@ class Shooter(SubsystemBase):
         if self.kD.hasChanged(): self.shooter.config_kD(0, float(self.kD), 0)
         if self.kF.hasChanged(): self.shooter.config_kF(0, float(self.kF), 0)
 
-    def setVolts(self, outputVolts):
-        self.shooter.set(ctre.ControlMode.PercentOutput, outputVolts / 12)
+    def set(self, output):
+        self.shooter.set(ctre.ControlMode.PercentOutput, output)
 
     def setRPS(self, rps):
         self.shooter.set(ctre.ControlMode.Velocity, rps / constants.kShooterEncoderRotatePerPulse / 10)
+        self.flywheelReady = True
 
+    def reset(self):
+        self.set(0.0)
+        self.flywheelReady = False
+
+    def isFlywheelReady(self):
+        return self.flywheelReady
 
     def getShooterEncoderSpeed(self):
         return self.shooter.getSelectedSensorVelocity() * constants.kShooterEncoderDistancePerPulse * 10

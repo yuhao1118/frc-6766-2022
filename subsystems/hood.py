@@ -36,10 +36,10 @@ class Hood(SubsystemBase):
         self.resetComplete = False
         self.closedLoop = False
         self.resetGraceTimer = Timer()
-        
         self.resetGraceTimer.start()
 
         self.goalPosition = 0.0
+        self.hoodReady = False
 
 
     def log(self):
@@ -79,13 +79,11 @@ class Hood(SubsystemBase):
             self.hood.set(ctre.ControlMode.Position, self.goalPosition)
     
     def set(self, output):
-        self.setVolts(output * 12)
-
-    def setVolts(self, outputVolts):
-        self.hood.set(ctre.ControlMode.PercentOutput, outputVolts / 12)
+        self.hood.set(ctre.ControlMode.PercentOutput, output)
 
     def setAngle(self, angle):
         self.goalPosition = angle / constants.kHoodEncoderDegreesPerPulse
+        self.hoodReady = True
 
     def moveToBottom(self):
         self.setAngle(0.0)
@@ -98,6 +96,10 @@ class Hood(SubsystemBase):
         self.hood.configForwardSoftLimitEnable(False, 20)
         self.resetComplete = False
         self.closedLoop = False
+        self.hoodReady = False
+
+    def isHoodReady(self):
+        return self.hoodReady
         
     def getHoodEncoderSpeed(self):
         # deg / s

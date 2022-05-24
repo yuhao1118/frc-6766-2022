@@ -7,7 +7,7 @@ from wpilib import XboxController, SendableChooser, SmartDashboard
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator
 from subsystems.arm import Arm
-from subsystems.shooter import Shooter
+from subsystems.flywheel import Flywheel
 from subsystems.conveyor import Conveyor
 from subsystems.intaker import Intaker
 from subsystems.pneumatic import Pneumatic
@@ -16,14 +16,12 @@ from subsystems.hood import Hood
 
 import constants
 from lib.enums.pov import POVEnum
-from lib.enums.drivemode import DriveModeEnum
 from trajectory.trajectory import Trajectory
 
-from commands.drivetrain.aim import AimCommand
+# from commands.drivetrain.driveandaim import DriveAimCommand
 from commands.drivetrain.drive import DriveCommand
 
 from commands.shoot.flywheel import FlywheelCommand
-from commands.shoot.autoshoot import AutoShootCommandGroup
 from commands.shoot.resethood import ResetHoodCommandGroup
 
 from commands.intake.intake import IntakeCommand
@@ -31,13 +29,15 @@ from commands.intake.compressor import CompressorCommand
 from commands.intake.pneumatic import PneumaticCommand
 
 from commands.conveyor.conveyor import ConveyorCommand
-from commands.conveyor.autoconvey import AutoConveyCommandGroup
 
 from commands.climb.elevator import ElevatorCommand
 from commands.climb.arm import ArmCommand
 from commands.climb.resetelevator import ResetElevatorCommand
 
 from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, Auto3CommandGroup, TestCommandGroup
+from commands.autos.autoshoot import PrepareShootCommandGroup
+from commands.autos.autoconvey import AutoConveyCommandGroup
+
 
 class RobotContainer:
     """
@@ -49,28 +49,28 @@ class RobotContainer:
 
     def __init__(self):
 
-        # Create the driver's controller. 
+        # Create the driver's controller.
         # 创建手柄实例.
         self.driverController = XboxController(constants.kDriverControllerPort)
         self.siderController = XboxController(constants.kSiderControllerPort)
 
-        # Create instances of the subsystems. 
+        # Create instances of the subsystems.
         # 创建各子系统实例.
         self.robotDrive = Drivetrain()
         self.elevatorDrive = Elevator()
         self.armDrive = Arm()
-        self.shooterDrive = Shooter()
+        self.flywheelDrive = Flywheel()
         self.hoodDrive = Hood()
         self.conveyorDrive = Conveyor()
         self.intakerDrive = Intaker()
         self.pneumaticControl = Pneumatic()
         self.visionControl = Vision()
 
-        # Create instances of the commands in SmartDashboard. 
+        # Create instances of the commands in SmartDashboard.
         # 在仪表盘显示各个指令(组), 用于调试.
         self.putCommandsToSmartDashboard()
 
-        # Configure and set the button bindings for the driver's controller. 
+        # Configure and set the button bindings for the driver's controller.
         # 设置手柄按键与对应指令的绑定.
         self.configureButtons()
 
@@ -78,13 +78,13 @@ class RobotContainer:
         # the robot to drive with the controller.
         # 设置底盘默认指令, 允许机器人使用手柄控制.
         self.robotDrive.setDefaultCommand(
-            DriveCommand(self, self.driverController, driveMode=DriveModeEnum.CurvatureDrive)
+            DriveCommand(self, self.driverController)
         )
 
         # Display the autonomous chooser on the SmartDashboard.
         # 在仪表盘显示自动阶段任务下拉选择器.
         self.autoChooser = SendableChooser()
-        
+
         self.autoChooser.setDefaultOption(
             "Auto1", Auto1CommandGroup(self))                               # 3 ball auto. 3球自动
         self.autoChooser.addOption(
@@ -115,16 +115,24 @@ class RobotContainer:
         """Put commands to the SmartDashboard (Test Only)"""
         SmartDashboard.putData("Open Intake", PneumaticCommand(self, True))
         SmartDashboard.putData("Close Intake", PneumaticCommand(self, False))
-        SmartDashboard.putData("Intake and Convey", AutoConveyCommandGroup(self))
-        SmartDashboard.putData("Auto-assisted Shoot", AutoShootCommandGroup(self))
-        SmartDashboard.putData("Auto-assisted Aim", AimCommand(self))
-        SmartDashboard.putData("Intake motor forward", IntakeCommand(self, 0.3))
-        SmartDashboard.putData("Intake motor backward", IntakeCommand(self, -0.3))
-        SmartDashboard.putData("Conveyor motor forward", ConveyorCommand(self, 0.3))
-        SmartDashboard.putData("Conveyor motor backward", ConveyorCommand(self, -0.3))
-        SmartDashboard.putData("Flywheel Forward High", FlywheelCommand(self, output=19.3))
-        SmartDashboard.putData("Flywheel Forward Low", FlywheelCommand(self, output=11.3))
-        SmartDashboard.putData("Flywheel Backward", FlywheelCommand(self, output=-5.0))
+        SmartDashboard.putData("Intake and Convey",
+                               AutoConveyCommandGroup(self))
+        SmartDashboard.putData("Auto-assisted Aim",
+                               PrepareShootCommandGroup(self))
+        SmartDashboard.putData("Intake motor forward",
+                               IntakeCommand(self, 0.3))
+        SmartDashboard.putData("Intake motor backward",
+                               IntakeCommand(self, -0.3))
+        SmartDashboard.putData("Conveyor motor forward",
+                               ConveyorCommand(self, 0.3))
+        SmartDashboard.putData("Conveyor motor backward",
+                               ConveyorCommand(self, -0.3))
+        SmartDashboard.putData("Flywheel Forward High",
+                               FlywheelCommand(self, output=19.3))
+        SmartDashboard.putData("Flywheel Forward Low",
+                               FlywheelCommand(self, output=11.3))
+        SmartDashboard.putData("Flywheel Backward",
+                               FlywheelCommand(self, output=-5.0))
 
     def getAutonomousCommand(self):
         return self.autoChooser.getSelected()
@@ -151,53 +159,54 @@ class RobotContainer:
             JoystickButton(self.siderController,
                            XboxController.Button.kRightBumper)
             .whileHeld(AutoConveyCommandGroup(self))
+            .whenReleased(ConveyorCommand(self, -0.2).withTimeout(0.20))
         )
 
         # (Hold) (Sider) (Start) Backball and drop
         # (按住) (副操作手) (Start) 退球并吐球
         (
             JoystickButton(self.siderController,
-                            XboxController.Button.kStart)
+                           XboxController.Button.kStart)
             .whileHeld(AutoConveyCommandGroup(self, reverse=True))
         )
 
         # (Press) (Sider) (Y) Aiming
-        # (按一下) (副操作手) (Y) 自瞄
+        # (切换) (副操作手) (Y) 自瞄
         (
             JoystickButton(self.siderController, XboxController.Button.kY)
-            .whenPressed(AimCommand(self).withTimeout(0.8))
+            .toggleWhenPressed(PrepareShootCommandGroup(self))
         )
 
         # (Hold) (Drive) (LB) Aiming
         # (按住) (主操作手) (LB) 自瞄 (同时可以前后移动)
         (
-            JoystickButton(self.driverController, XboxController.Button.kLeftBumper)
-            .whileHeld(AimCommand(self, linearXSuppiler=lambda: self.driverController.getLeftY()))
+            JoystickButton(self.driverController,
+                           XboxController.Button.kLeftBumper)
+            .whileHeld(PrepareShootCommandGroup(self))
         )
 
         # (Press) (Sider) (B) Shooting - fixed distance at 0cm
         # (按一下) (副操作手) (B) 射球
         (
             JoystickButton(self.siderController, XboxController.Button.kB)
-            .whenPressed(AutoShootCommandGroup(self, output=25.3))
-            # .whenReleased(ResetHoodCommandGroup(self))
+            .whenPressed(ConveyorCommand(self, 0.3).withTimeout(2.0))
         )
 
         ############ Manual Controls ############
 
-        # (Hold) (Sider) (POV-Up) Climb Up
-        # (按住) (副操作手) (POV上) 摇臂向车头
+        # (Hold) (Driver) (B) Climb Up
+        # (按住) (主操作手) (B) 摇臂向车头
         (
-            POVButton(self.siderController,
-                      POVEnum.kUp)
+            JoystickButton(self.driverController,
+                           XboxController.Button.kB)
             .whileHeld(ArmCommand(self, 0.15))
         )
 
-        # (Hold) (Sider) (POV-Down) Climb Up
-        # (按住) (副操作手) (POV下) 摇臂向车尾
+        # (Hold) (Driver) (X) Climb Up
+        # (按住) (主操作手) (X) 摇臂向车尾
         (
-            POVButton(self.siderController,
-                       POVEnum.kDown)
+            JoystickButton(self.driverController,
+                           XboxController.Button.kX)
             .whileHeld(ArmCommand(self, -0.15))
         )
 
@@ -205,7 +214,7 @@ class RobotContainer:
         # (按住) (主操作手) (Y) 爬升, <缩>伸缩杆
         (
             JoystickButton(self.driverController,
-                        XboxController.Button.kY)
+                           XboxController.Button.kY)
             .whileHeld(ElevatorCommand(self, 1.0))
         )
 
@@ -213,7 +222,7 @@ class RobotContainer:
         # (按住) (主操作手) (A) 爬升, <升>伸缩杆
         (
             JoystickButton(self.driverController,
-                        XboxController.Button.kA)
+                           XboxController.Button.kA)
             .whileHeld(ElevatorCommand(self, -1.0))
         )
 
@@ -245,7 +254,7 @@ class RobotContainer:
         # (按住) (副操作手) (X) 传送带传球
         (
             JoystickButton(self.siderController,
-                      XboxController.Button.kX)
+                           XboxController.Button.kX)
             .whileHeld(ConveyorCommand(self, 0.3))
         )
 
@@ -253,6 +262,6 @@ class RobotContainer:
         # (按住) (副操作手) (A) 传送带退球
         (
             JoystickButton(self.siderController,
-                      XboxController.Button.kA)
+                           XboxController.Button.kA)
             .whileHeld(ConveyorCommand(self, -0.3))
         )

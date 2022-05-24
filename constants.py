@@ -164,8 +164,12 @@ kMaxAccelerationMetersPerSecondSquared = 1.5
 kRamseteB = 2
 kRamseteZeta = 0.7
 
-# Vision distance measurement constants, ignore them at the moment
-# 视觉测距测量 (暂时不用)
-kVisionTargetHeight = 2.58                  # (meters) Height of the target off the ground
-kVisionCameraHeight = 0.63                  # (meters) Height of the camera off the ground
-kVisionCameraPitch = math.radians(60)       # (radians) Pitch of the camera
+# Vision distance measurement constants
+# 视觉测距测量
+kVisionTargetHeight = 2.64                  # (meters) Height of the target off the ground
+kVisionCameraHeight = 0.65                  # (meters) Height of the camera off the ground
+kVisionCameraPitch = 40                     # (degrees) Pitch of the camera
+kHubRadiusMeter = 0.61                      # (meters) Radius of the HUB
+
+kVisionFilterTime = 0.1
+kVisionFilterPeriod = 0.02

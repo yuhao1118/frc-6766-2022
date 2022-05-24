@@ -1,18 +1,14 @@
 from commands2 import CommandBase
 from lib.utils.interpolatedict import InterpolateDict
-from wpilib import SmartDashboard
-from lib.utils.tunablenumber import TunableNumber
-
-import constants
 
 # Shooter distance-speed map
 # 射球距离-速度查找表
 FlywheelDistanceAngle = InterpolateDict({
-    0.0: 19.3,
-    0.35: 20,
-    0.75: 21.2,
-    1.00: 23,
-    1.50: 25.5
+    0.0: 60.46,
+    0.35: 62.66,
+    0.75: 66.42,
+    1.00: 72.06,
+    1.50: 79.89
 })
 
 
@@ -24,6 +20,7 @@ class FlywheelCommand(CommandBase):
         robotContainer: RobotContainer实例
         output=None: 射球速度,如提供则使用提供的速度,否则使用距离-速度查找表
     """
+
     def __init__(self,
                  robotContainer,
                  output=None
@@ -34,19 +31,16 @@ class FlywheelCommand(CommandBase):
         self.robotContainer = robotContainer
         self.output = output
 
-        self.flywheelSpeed = TunableNumber("Flywheel/Speed", 70)
-        self.addRequirements(self.robotContainer.shooterDrive)
-
-    def initialize(self):
-        distance = self.robotContainer.visionControl.getDistance()
-        if self.output is None:
-            self.output = FlywheelDistanceAngle.getInterpolated(distance) if distance is not None else 19.3
+        self.addRequirements(self.robotContainer.flywheelDrive)
 
     def execute(self):
-        self.robotContainer.shooterDrive.setRPS(float(self.flywheelSpeed))
+        distance = self.robotContainer.visionControl.getDistanceMeters()
+        rps = FlywheelDistanceAngle.getInterpolated(distance) if self.output is None else float(self.output)
+
+        self.robotContainer.flywheelDrive.setRPS(rps)
 
     def isFinished(self):
         return False
 
     def end(self, interrupted):
-        self.robotContainer.shooterDrive.setVolts(0.0)
+        self.robotContainer.flywheelDrive.reset()

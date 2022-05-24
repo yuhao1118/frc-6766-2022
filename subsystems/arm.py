@@ -28,14 +28,14 @@ class Arm(SubsystemBase):
             ))
 
         # Set climb arm motor soft limits
-        for motor in [self.LArm_motor, self.RArm_motor]:
-            motor.configForwardSoftLimitThreshold(
-                constants.kClimbArmMotorSoftLimitForward, 0)
-            motor.configForwardSoftLimitEnable(True, 0)
+        # for motor in [self.LArm_motor, self.RArm_motor]:
+        #     motor.configForwardSoftLimitThreshold(
+        #         constants.kClimbArmMotorSoftLimitForward, 0)
+        #     motor.configForwardSoftLimitEnable(True, 0)
 
-            motor.configReverseSoftLimitThreshold(
-                constants.kClimbArmMotorSoftLimitReverse, 0)
-            motor.configReverseSoftLimitEnable(True, 0)
+        #     motor.configReverseSoftLimitThreshold(
+        #         constants.kClimbArmMotorSoftLimitReverse, 0)
+        #     motor.configReverseSoftLimitEnable(True, 0)
 
         self.LArm_motor.setInverted(constants.kLeftCLimbArmMotorRotate)
         self.RArm_motor.setInverted(constants.kRightCLimbArmMotorRotate)

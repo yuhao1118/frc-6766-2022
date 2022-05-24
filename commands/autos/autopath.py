@@ -1,11 +1,11 @@
 from commands2 import SequentialCommandGroup, ParallelRaceGroup
 from wpimath.trajectory import Trajectory
-from commands.conveyor.autoconvey import AutoConveyCommandGroup
-from commands.shoot.autoshoot import AutoShootCommandGroup
+from commands.autos.autoconvey import AutoConveyCommandGroup
 from commands.intake.pneumatic import PneumaticCommand
-from commands.drivetrain.aim import AimCommand
+from commands.autos.autoshoot import AutoShootCommandGroup, ManualShootCommandGroup
 
 from trajectory.trajectory import Trajectory
+
 
 def PathingAndIntakeCommandGroup(robotContainer, trajectory):
     """
@@ -39,9 +39,9 @@ def Auto1CommandGroup(robotContainer):
     trajectory12 = Trajectory.Auto12        # 人类玩家站位路径
 
     return SequentialCommandGroup(
-        AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5, output=19.3),
+        ManualShootCommandGroup(
+            robotContainer, timeout=1.5, output=60.64, angle=0.0),
         PathingAndIntakeCommandGroup(robotContainer, trajectory11),
-        AimCommand(robotContainer).withTimeout(0.8),
         AutoShootCommandGroup(robotContainer),
         # robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
     )
@@ -60,11 +60,12 @@ def Auto2CommandGroup(robotContainer):
     trajectory = Trajectory.Auto2
 
     return SequentialCommandGroup(
-        AutoShootCommandGroup(robotContainer, backBallTime=0.2, timeout=1.5, output=19.3),
+        ManualShootCommandGroup(
+            robotContainer, timeout=1.5, output=19.3, angle=0.0),
         PathingAndIntakeCommandGroup(robotContainer, trajectory),
-        AimCommand(robotContainer).withTimeout(0.8),
         AutoShootCommandGroup(robotContainer),
     )
+
 
 def Auto3CommandGroup(robotContainer):
     """
@@ -87,12 +88,13 @@ def Auto3CommandGroup(robotContainer):
         AutoConveyCommandGroup(robotContainer, reverse=True),
     )
 
+
 def TestCommandGroup(robotContainer, trajectory):
     """
     输入:
     1. robotContainer: RobotContainer实例
     2. trajectory: 路径
-    
+
     测试路径:
     1. 沿给定的路径 (trajectory) 运动
     """
