@@ -13,7 +13,7 @@
   "Window": {
     "###/SmartDashboard/Auto Chooser": {
       "Collapsed": "0",
-      "Pos": "896,615",
+      "Pos": "896,616",
       "Size": "361,66"
     },
     "###/SmartDashboard/Conveyor": {
@@ -28,8 +28,13 @@
     },
     "###/SmartDashboard/Field2d": {
       "Collapsed": "0",
-      "Pos": "447,102",
-      "Size": "1089,589"
+      "Pos": "803,89",
+      "Size": "458,266"
+    },
+    "###/SmartDashboard/Field2dVision": {
+      "Collapsed": "0",
+      "Pos": "327,58",
+      "Size": "467,289"
     },
     "###/SmartDashboard/Hood2d": {
       "Collapsed": "0",
@@ -123,7 +128,7 @@
     },
     "Robot State": {
       "Collapsed": "0",
-      "Pos": "155,472",
+      "Pos": "42,472",
       "Size": "126,129"
     }
   }

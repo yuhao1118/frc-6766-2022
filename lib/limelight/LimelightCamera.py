@@ -1,10 +1,11 @@
 # Ref: https://github.com/FRC703/Robotpy-Limelight/blob/master/limelight/limelight.py
 
 from networktables import NetworkTables
-from .LEDMode import LEDMode 
+from .LEDMode import LEDMode
 from .LimelightPipelineResult import LimelightPipelineResult
 from .LimelightTrackedTarget import LimelightTrackedTarget
 from wpimath.geometry import Transform2d
+
 
 class LimelightCamera:
     _enabled = 1
@@ -26,7 +27,6 @@ class LimelightCamera:
             self.__nt = nt
         else:
             self.__nt = NetworkTables.getTable("limelight")
-
 
     def getDriverMode(self):
         """
@@ -50,9 +50,10 @@ class LimelightCamera:
         camtran = self.__nt.getNumberArray("camtran", [0, 0, 0, 0, 0, 0])
         pose = Transform2d(camtran[0], camtran[1], camtran[4])
 
-        rawcorners =  self.__nt.getNumberArray("tcornxy", [0, 0, 0, 0, 0, 0, 0, 0])
-        rawcorners = rawcorners[:8]
-        
+        rawcorners = self.__nt.getNumberArray(
+            "tcornxy", [0, 0, 0, 0, 0, 0, 0, 0])
+        # rawcorners = rawcorners[:8]
+
         corners = []
 
         for i in range(0, len(rawcorners), 2):
@@ -63,7 +64,7 @@ class LimelightCamera:
             self.__nt.getNumber("ty", 0),
             self.__nt.getNumber("ta", 0),
             self.__nt.getNumber("ts", 0),
-            pose, 
+            pose,
             corners)
 
         return LimelightPipelineResult(
@@ -125,4 +126,3 @@ class LimelightCamera:
         """
         self._active_pipeline = index
         self.__nt.putNumber("pipeline", index)
-

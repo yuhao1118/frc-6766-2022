@@ -32,7 +32,7 @@ class LimelightSim(VisionSim):
                          data_frequency=data_frequency, data_lag=data_log, physics_controller=physics_controller)
 
         self.visionTable = NetworkTables.getTable('limelight')
-        self.visionTable.putNumber('tv', 1)
+        self.visionTable.putNumber('tv', 0)
         self.visionTable.putNumber('tx', 0)
         self.visionTable.putNumber('ty', 0)
         self.visionTable.putNumber('ts', 0)

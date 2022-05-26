@@ -210,7 +210,7 @@ class WIT_IO:
 
 
 class WIT_THREAD(threading.Thread):
-    def __init__(self, proxiIMU, imuIO, updateRate=25, q=queue.Queue()):
+    def __init__(self, proxiIMU, imuIO, updateRate=50, q=queue.Queue()):
         super().__init__(self)
         self.proxiIMU = proxiIMU
         self.imuIO = imuIO
@@ -220,7 +220,8 @@ class WIT_THREAD(threading.Thread):
     def run(self):
         while True:
             try:
-                function, args, kwargs = self.q.get(timeout=1 / self.updateRate)
+                function, args, kwargs = self.q.get(
+                    timeout=1 / self.updateRate)
                 function(*args, **kwargs)
             except queue.Empty:
                 self.idle()
@@ -266,16 +267,24 @@ class WitIMU(Gyro):
                 reportWarning("IMU not found!")
 
         if self.m_simDevice is not None:
-            self.m_simGyroAngleX = self.m_simDevice.createDouble("gyro_angle_x", SimDevice.Direction.kInput, 0.0)
-            self.m_simGyroAngleY = self.m_simDevice.createDouble("gyro_angle_y", SimDevice.Direction.kInput, 0.0)
-            self.m_simGyroAngleZ = self.m_simDevice.createDouble("gyro_angle_z", SimDevice.Direction.kInput, 0.0)
-            self.m_simGyroRateX = self.m_simDevice.createDouble("gyro_rate_x", SimDevice.Direction.kInput, 0.0)
-            self.m_simGyroRateY = self.m_simDevice.createDouble("gyro_rate_y", SimDevice.Direction.kInput, 0.0)
-            self.m_simGyroRateZ = self.m_simDevice.createDouble("gyro_rate_z", SimDevice.Direction.kInput, 0.0)
-            self.m_simAccelX = self.m_simDevice.createDouble("accel_x", SimDevice.Direction.kInput, 0.0)
-            self.m_simAccelY = self.m_simDevice.createDouble("accel_y", SimDevice.Direction.kInput, 0.0)
-            self.m_simAccelZ = self.m_simDevice.createDouble("accel_z", SimDevice.Direction.kInput, 0.0)
-
+            self.m_simGyroAngleX = self.m_simDevice.createDouble(
+                "gyro_angle_x", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroAngleY = self.m_simDevice.createDouble(
+                "gyro_angle_y", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroAngleZ = self.m_simDevice.createDouble(
+                "gyro_angle_z", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroRateX = self.m_simDevice.createDouble(
+                "gyro_rate_x", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroRateY = self.m_simDevice.createDouble(
+                "gyro_rate_y", SimDevice.Direction.kInput, 0.0)
+            self.m_simGyroRateZ = self.m_simDevice.createDouble(
+                "gyro_rate_z", SimDevice.Direction.kInput, 0.0)
+            self.m_simAccelX = self.m_simDevice.createDouble(
+                "accel_x", SimDevice.Direction.kInput, 0.0)
+            self.m_simAccelY = self.m_simDevice.createDouble(
+                "accel_y", SimDevice.Direction.kInput, 0.0)
+            self.m_simAccelZ = self.m_simDevice.createDouble(
+                "accel_z", SimDevice.Direction.kInput, 0.0)
 
     def __del__(self):
         if self.ioThread is not None:
@@ -313,7 +322,6 @@ class WitIMU(Gyro):
 
         if self.io is not None:
             return self.accels[0]
-
 
     def getY(self):
         if self.m_simDevice is not None:
@@ -357,9 +365,11 @@ class WitIMU(Gyro):
     def getPort(self):
         return self.port.value
 
+
 class WitIMUSim:
     def __init__(self, witIMU):
-        self.wrappedSimDevice = SimDeviceSim(f"Gyro:WT901C[{witIMU.getPort()}]")
+        self.wrappedSimDevice = SimDeviceSim(
+            f"Gyro:WT901C[{witIMU.getPort()}]")
         self.m_simGyroAngleX = self.wrappedSimDevice.getDouble("gyro_angle_x")
         self.m_simGyroAngleY = self.wrappedSimDevice.getDouble("gyro_angle_y")
         self.m_simGyroAngleZ = self.wrappedSimDevice.getDouble("gyro_angle_z")

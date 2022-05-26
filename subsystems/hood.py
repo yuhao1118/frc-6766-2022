@@ -17,7 +17,8 @@ class Hood(SubsystemBase):
         self.hood.setNeutralMode(ctre.NeutralMode.Coast)
         self.hood.setInverted(constants.kHoodRotate)
 
-        self.hood.configForwardSoftLimitThreshold(constants.kHoodMotorSoftLimitForward, 0)
+        self.hood.configForwardSoftLimitThreshold(
+            constants.kHoodMotorSoftLimitForward, 0)
 
         self.kP = TunableNumber("Hood/kP", 0.60)
         self.kI = TunableNumber("Hood/kI", 0.00)
@@ -28,7 +29,8 @@ class Hood(SubsystemBase):
         self.hood.config_kI(0, self.kI.getDefault(), 0)
         self.hood.config_kD(0, self.kD.getDefault(), 0)
         self.hood.config_kF(0, self.kF.getDefault(), 0)
-        self.hood.configAllowableClosedloopError(0, int(0.33 / constants.kHoodEncoderDegreesPerPulse), 20)
+        self.hood.configAllowableClosedloopError(
+            0, int(0.33 / constants.kHoodEncoderDegreesPerPulse), 20)
         self.hood.configClosedLoopPeakOutput(0, 0.14, 0)
         self.hood.configClosedloopRamp(0.4)
 
@@ -39,23 +41,31 @@ class Hood(SubsystemBase):
         self.resetGraceTimer.start()
 
         self.goalPosition = 0.0
-        self.hoodReady = False
 
+        self.setActive = False
+        self.hoodReady = False
 
     def log(self):
         SmartDashboard.putData("Hood", self)
-        SmartDashboard.putNumber("Hood Output", self.hood.getMotorOutputPercent())
+        SmartDashboard.putNumber(
+            "Hood Output", self.hood.getMotorOutputPercent())
         SmartDashboard.putNumber("Hood Speed", self.getHoodEncoderSpeed())
-        SmartDashboard.putNumber("Hood Position", self.getHoodEncoderPosition())
+        SmartDashboard.putNumber(
+            "Hood Position", self.getHoodEncoderPosition())
 
     def periodic(self):
         # self.log()
-        if self.kP.hasChanged(): self.hood.config_kP(0, float(self.kP), 0)
-        if self.kI.hasChanged(): self.hood.config_kI(0, float(self.kI), 0)
-        if self.kD.hasChanged(): self.hood.config_kD(0, float(self.kD), 0)
-        if self.kF.hasChanged(): self.hood.config_kF(0, float(self.kF), 0)
+        if self.kP.hasChanged():
+            self.hood.config_kP(0, float(self.kP), 0)
+        if self.kI.hasChanged():
+            self.hood.config_kI(0, float(self.kI), 0)
+        if self.kD.hasChanged():
+            self.hood.config_kD(0, float(self.kD), 0)
+        if self.kF.hasChanged():
+            self.hood.config_kF(0, float(self.kF), 0)
 
-        self.hood.setNeutralMode(ctre.NeutralMode.Brake if DriverStation.getInstance().isEnabled() else ctre.NeutralMode.Coast)
+        self.hood.setNeutralMode(ctre.NeutralMode.Brake if DriverStation.getInstance(
+        ).isEnabled() else ctre.NeutralMode.Coast)
         self.closedLoop = DriverStation.getInstance().isEnabled()
 
         if not self.resetComplete:
@@ -77,13 +87,16 @@ class Hood(SubsystemBase):
 
         if self.closedLoop and self.resetComplete:
             self.hood.set(ctre.ControlMode.Position, self.goalPosition)
-    
+
+            if self.setActive and abs(self.hood.getClosedLoopError()) < int(0.33 / constants.kHoodEncoderDegreesPerPulse):
+                self.hoodReady = True
+
     def set(self, output):
         self.hood.set(ctre.ControlMode.PercentOutput, output)
 
     def setAngle(self, angle):
         self.goalPosition = angle / constants.kHoodEncoderDegreesPerPulse
-        self.hoodReady = True
+        self.setActive = True
 
     def moveToBottom(self):
         self.setAngle(0.0)
@@ -96,15 +109,15 @@ class Hood(SubsystemBase):
         self.hood.configForwardSoftLimitEnable(False, 20)
         self.resetComplete = False
         self.closedLoop = False
-        self.hoodReady = False
+        self.setActive = False
 
     def isHoodReady(self):
         return self.hoodReady
-        
+
     def getHoodEncoderSpeed(self):
         # deg / s
         return self.hood.getSelectedSensorVelocity() * constants.kHoodEncoderDegreesPerPulse * 10
-    
+
     def getHoodEncoderPosition(self):
         # deg
         return self.hood.getSelectedSensorPosition() * constants.kHoodEncoderDegreesPerPulse

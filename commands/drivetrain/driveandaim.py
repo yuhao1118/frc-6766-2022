@@ -1,4 +1,5 @@
 from commands2 import CommandBase
+from wpilib.geometry import Pose2d
 from wpimath.controller import PIDController
 
 import constants
@@ -7,16 +8,20 @@ from lib.utils.interpolatedict import InterpolateDict
 from lib.utils.tunablenumber import TunableNumber
 from lib.utils.maths import clamp, axisProfile
 
+import math
+
+
 class DriveAimCommand(CommandBase):
     """
     自瞄并自动测距指令
-    
+
     输入:
         robotContainer: RobotContainer实例
         goalAngle: 目标角度, 默认0度
         controller=None: 手柄控制器, 默认None
     """
-    def __init__(self, robotContainer, goalAngle=0, controller=None):
+
+    def __init__(self, robotContainer, controller=None):
         super().__init__()
         super().setName("DriveAimCommand")
         self.robotContainer = robotContainer
@@ -30,9 +35,12 @@ class DriveAimCommand(CommandBase):
             self.kD.getDefault()
         )
         self.turnPidController.setTolerance(positionTolerance=0.035)
-        self.goalAngle = goalAngle
+        self.turnPidController.enableContinuousInput(-math.pi, math.pi)
+        self.goalAngle = 0.0
         self.controller = controller
-        
+
+        self.correctedPose = Pose2d()
+
         self.addRequirements(self.robotContainer.robotDrive)
 
     def execute(self):
@@ -46,22 +54,27 @@ class DriveAimCommand(CommandBase):
             self.turnPidController.setD(self.kD.get())
 
         if self.controller is not None:
-            linearX =  axisProfile(-self.controller.getRawAxis(1))
-            angularZ =  axisProfile(self.controller.getRawAxis(4))
+            linearX = axisProfile(-self.controller.getRawAxis(1))
+            angularZ = axisProfile(self.controller.getRawAxis(4))
 
-            arcadeSpeeds = WheelSpeedsPercentage.fromArcade(linearX, angularZ * constants.kDrivetrainTurnSensitive)
-            curvatureSpeeds = WheelSpeedsPercentage.fromCurvature(linearX, angularZ)
+            arcadeSpeeds = WheelSpeedsPercentage.fromArcade(
+                linearX, angularZ * constants.kDrivetrainTurnSensitive)
+            curvatureSpeeds = WheelSpeedsPercentage.fromCurvature(
+                linearX, angularZ)
 
-            hybridScale = clamp(abs(linearX) / constants.kCurvatureThreshold, 0, 1)
+            hybridScale = clamp(
+                abs(linearX) / constants.kCurvatureThreshold, 0, 1)
             speeds = WheelSpeedsPercentage(
                 curvatureSpeeds.left * hybridScale
-                    + arcadeSpeeds.left * (1 - hybridScale),
+                + arcadeSpeeds.left * (1 - hybridScale),
                 curvatureSpeeds.right * hybridScale
-                    + arcadeSpeeds.right * (1 - hybridScale))
+                + arcadeSpeeds.right * (1 - hybridScale))
 
         # Adjust drivetrain to face the hub
-        turnAngle = self.robotContainer.visionControl.getXOffsetRadians()
-        turnSpeed = -self.turnPidController.calculate(turnAngle, self.goalAngle)
+        xOffset = self.robotContainer.visionControl.getXOffset().radians()
+        distance = self.robotContainer.visionControl.getDistanceMeters()
+
+        turnSpeed = self.turnPidController.calculate(xOffset, self.goalAngle)
         if self.turnPidController.atSetpoint():
             turnSpeed = 0.0
 

@@ -10,6 +10,7 @@ PS: angle is in degrees, not radians.
 """
 
 from wpimath.kinematics import DifferentialDriveKinematics
+from wpimath.geometry import Transform2d
 from wpilib import RobotBase, RuntimeType
 from ctre import TalonFXInvertType
 
@@ -22,7 +23,7 @@ tuningMode = True
 # 在这里设置limelight的ip地址, 建议使用静态ip地址
 kLimelightIp = "10.67.66.30"
 
-# Directory of generated trajectories 
+# Directory of generated trajectories
 # Pathplanner工具生成轨迹的目录
 kTrajectoryDirectory = "/home/lvuser/py/deploy/pathplanner/generatedJSON/" if (RobotBase.getRuntimeType(
 ) == RuntimeType.kRoboRIO or RobotBase.getRuntimeType() == RuntimeType.kRoboRIO2) else os.getcwd() + "/deploy/pathplanner/generatedJSON/"
@@ -105,9 +106,12 @@ kDrivetrainWheelDiameterMeters = 4 * 0.0254         # 底盘轮周长(m)
 
 kDrivetrainEncoderDistancePerPulse = (
     kDrivetrainWheelDiameterMeters * math.pi) / (kEncoderCPR * kDrivetrainGearRatio)        # 底盘轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
-kShooterEncoderRotatePerPulse = 1 / (kEncoderCPR * kShooterGearRatio)              # 射球轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
-kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRatio)                  # 爬升摇臂脉冲角度(°): 一个脉冲相当于摇臂转多少角度
-kHoodEncoderDegreesPerPulse = 360 / (kEncoderCPR * kHoodGearRatio)                          # 射球罩脉冲角度(°): 一个脉冲相当于罩转多少角度
+# 射球轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
+kShooterEncoderRotatePerPulse = 1 / (kEncoderCPR * kShooterGearRatio)
+# 爬升摇臂脉冲角度(°): 一个脉冲相当于摇臂转多少角度
+kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRatio)
+# 射球罩脉冲角度(°): 一个脉冲相当于罩转多少角度
+kHoodEncoderDegreesPerPulse = 360 / (kEncoderCPR * kHoodGearRatio)
 
 # Climber motor-safety constants
 # 爬升电机安全限制
@@ -127,17 +131,22 @@ kClimbMotorSoftLimitReverse = -345000         # 后向限位: -0.31m
 
 # Climb arm motor soft limits
 # 爬升摇臂电机软限位 (以摇臂竖直时为基准)
-kClimbArmMotorSoftLimitForward = 30 / kClimbArmEncoderDegreesPerPulse       # 前向限位: 30°
-kClimbArmMotorSoftLimitReverse = -30 / kClimbArmEncoderDegreesPerPulse      # 后向限位: -30°
+kClimbArmMotorSoftLimitForward = 30 / \
+    kClimbArmEncoderDegreesPerPulse       # 前向限位: 30°
+kClimbArmMotorSoftLimitReverse = -30 / \
+    kClimbArmEncoderDegreesPerPulse      # 后向限位: -30°
 
 # Hood motor soft limits
 # 射球罩电机软限位 (以射球罩完全收起时为基准)
-kHoodMotorSoftLimitForward = 20 / kHoodEncoderDegreesPerPulse               # 前向限位: 20°
+kHoodMotorSoftLimitForward = 20 / \
+    kHoodEncoderDegreesPerPulse               # 前向限位: 20°
 
 # Drivetrain kinematics
 # 底盘运动学
-kTrackWidthMeters = 0.585                                                               # 水平轮距(m)
-kDriveKinematics = DifferentialDriveKinematics(kTrackWidthMeters)                       # 底盘运动学常量
+# 水平轮距(m)
+kTrackWidthMeters = 0.585
+kDriveKinematics = DifferentialDriveKinematics(
+    kTrackWidthMeters)                       # 底盘运动学常量
 
 kOpenloopRampRateAuto = 0.0             # 自动阶段底盘加速时间为0s, 因为生成的路径已经做过加速度限制了
 kOpenloopRampRateTeleop = 0.35          # 手动阶段加速时间
@@ -149,7 +158,7 @@ kDrivetrainMotorCount = 4                               # 底盘电机数量
 
 # Drivetrain Forward-backward constants
 # 底盘前向控制常量, 由Sysid工具计算得到
-ksVolts = 0.67058                                       
+ksVolts = 0.67058
 kvVoltSecondsPerMeter = 2.2941
 kaVoltSecondsSquaredPerMeter = 0.31198
 
@@ -166,10 +175,14 @@ kRamseteZeta = 0.7
 
 # Vision distance measurement constants
 # 视觉测距测量
-kVisionTargetHeight = 2.64                  # (meters) Height of the target off the ground
-kVisionCameraHeight = 0.65                  # (meters) Height of the camera off the ground
+# (meters) Height of the target off the ground
+kVisionTargetHeight = 2.64
+# (meters) Height of the camera off the ground
+kVisionCameraHeight = 0.65
 kVisionCameraPitch = 40                     # (degrees) Pitch of the camera
+kVisionCameraOffset = Transform2d(0, 0, 0)
 kHubRadiusMeter = 0.61                      # (meters) Radius of the HUB
 
 kVisionFilterTime = 0.1
 kVisionFilterPeriod = 0.02
+kVisionLatencyMs = 20

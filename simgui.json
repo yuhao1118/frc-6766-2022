@@ -76,10 +76,13 @@
       "/SmartDashboard/Elevator": "Subsystem",
       "/SmartDashboard/Field": "Field2d",
       "/SmartDashboard/Field2d": "Field2d",
+      "/SmartDashboard/Field2dVision": "Field2d",
       "/SmartDashboard/Flywheel Backward": "Command",
       "/SmartDashboard/Flywheel Forward High": "Command",
       "/SmartDashboard/Flywheel Forward Low": "Command",
+      "/SmartDashboard/Flywheel tuning": "Command",
       "/SmartDashboard/Hood": "Subsystem",
+      "/SmartDashboard/Hood tuning": "Command",
       "/SmartDashboard/Hood2d": "Mechanism2d",
       "/SmartDashboard/Intake and Convey": "Command",
       "/SmartDashboard/Intake motor backward": "Command",
@@ -118,6 +121,14 @@
           "visible": true
         }
       },
+      "/SmartDashboard/Field2dVision": {
+        "height": 8.229999542236328,
+        "image": "/Users/liyuhao/FRC2022/frc-6766-2022/2022-field-light.png",
+        "width": 16.459999084472656,
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/Hood2d": {
         "window": {
           "visible": true
@@ -138,6 +149,9 @@
     "limelight": {
       "open": true
     }
+  },
+  "NetworkTables View": {
+    "visible": false
   },
   "Plot": {
     "Plot <0>": {
@@ -219,7 +233,8 @@
         }
       ],
       "window": {
-        "name": "Hood"
+        "name": "Hood",
+        "visible": false
       }
     }
   }

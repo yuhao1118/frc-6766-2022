@@ -1,5 +1,5 @@
 from commands2 import SubsystemBase
-from wpimath.geometry import Rotation2d
+from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from wpimath.filter import LinearFilter
 from wpilib import SmartDashboard
 
@@ -7,8 +7,12 @@ import math
 
 from lib.limelight.LEDMode import LEDMode
 from lib.limelight.LimelightCamera import LimelightCamera
-from lib.limelight.LimelightUtils import estimateDistance
+from photonvision import PhotonUtils
+
+from trajectory.trajectory import Trajectory
 import constants
+
+VisionHub = Pose2d(8.23, 4.115, Rotation2d())
 
 
 class Vision(SubsystemBase):
@@ -26,33 +30,36 @@ class Vision(SubsystemBase):
         self.filteredXOffsetRadians = 0.0
 
         self.lastValidDistance = 0.0
+        self.latency = constants.kVisionLatencyMs
+        self.isValid = False
 
     def log(self):
         SmartDashboard.putBoolean(
             "Vision Has Target", self.camera.hasTargets())
-        SmartDashboard.putNumber("Vision Distance", self.getDistance())
-        SmartDashboard.putNumber("Vision Yaw", self.getXOffset())
+        SmartDashboard.putNumber("Vision Distance (m)", self.getDistance())
+        SmartDashboard.putNumber(
+            "Vision Yaw (deg)", self.getXOffset().degrees())
         SmartDashboard.putData("Vision", self)
 
     def periodic(self):
         # self.log()
-        if self.camera.getLatestResult().hasTargets():
-            target = self.camera.getLatestResult().getBestTarget()
-
+        res = self.camera.getLatestResult()
+        if res.hasTargets():
+            target = res.getBestTarget()
+            self.isValid = True
             if target is not None:
-                distance = estimateDistance(
-                    math.radians(constants.kVisionCameraHeight),
-                    math.radians(target.getPitch()),
+                distance = PhotonUtils.calculateDistanceToTarget(
                     constants.kVisionCameraHeight,
                     constants.kVisionTargetHeight,
-                    target.getYaw()) + constants.kHubRadiusMeter
+                    math.radians(constants.kVisionCameraPitch),
+                    math.radians(target.getPitch())) * math.cos(self.getXOffset().radians()) + constants.kHubRadiusMeter
 
                 self.filteredDistanceMeters = self.distanceFilter.calculate(
                     distance)
                 self.filteredXOffsetRadians = self.xOffsetFilter.calculate(
                     target.getYaw())
                 self.lastValidDistance = distance
-
+                self.latency = res.getLatency() + constants.kVisionLatencyMs
             else:
                 self.filteredDistanceMeters = self.distanceFilter.calculate(
                     self.lastValidDistance)
@@ -61,12 +68,34 @@ class Vision(SubsystemBase):
             self.filteredDistanceMeters = self.distanceFilter.calculate(
                 self.lastValidDistance)
             self.filteredXOffsetRadians = 0.0
+            self.isValid = False
 
     def hasTargets(self):
-        return self.camera.hasTargets()
+        return self.isValid
 
     def getDistanceMeters(self):
         return self.filteredDistanceMeters
 
-    def getXOffsetRadians(self):
-        return self.filteredXOffsetRadians
+    def getXOffset(self):
+        return Rotation2d(-self.filteredXOffsetRadians)
+
+    def getLatency(self):
+        return self.latency
+
+    def getRobotPose(self, robotHeading):
+        return PhotonUtils.estimateFieldToRobot(
+            PhotonUtils.estimateCameraToTarget(
+                PhotonUtils.estimateCameraToTargetTranslation(
+                    self.getDistanceMeters(), self.getXOffset()),
+                VisionHub,
+                robotHeading),
+            VisionHub,
+            constants.kVisionCameraOffset
+        )
+
+    def getRobotToTargetTransform(self, robotHeading):
+        return constants.kVisionCameraOffset + PhotonUtils.estimateCameraToTarget(
+            PhotonUtils.estimateCameraToTargetTranslation(
+                self.getDistanceMeters(), self.getXOffset()),
+            VisionHub,
+            robotHeading)

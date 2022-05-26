@@ -16,12 +16,12 @@ from subsystems.hood import Hood
 
 import constants
 from lib.enums.pov import POVEnum
-from trajectory.trajectory import Trajectory
+from trajectory.trajectory import Trajectories
 
 # from commands.drivetrain.driveandaim import DriveAimCommand
 from commands.drivetrain.drive import DriveCommand
+from commands.drivetrain.turntoangle import TurnToAngleCommand
 
-from commands.shoot.flywheel import FlywheelCommand
 from commands.shoot.resethood import ResetHoodCommandGroup
 
 from commands.intake.intake import IntakeCommand
@@ -35,8 +35,10 @@ from commands.climb.arm import ArmCommand
 from commands.climb.resetelevator import ResetElevatorCommand
 
 from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, Auto3CommandGroup, TestCommandGroup
-from commands.autos.autoshoot import PrepareShootCommandGroup
+from commands.autos.autoshoot import PrepareShootCommandGroup, RotateToTargetCommand
 from commands.autos.autoconvey import AutoConveyCommandGroup
+
+import math
 
 
 class RobotContainer:
@@ -56,7 +58,6 @@ class RobotContainer:
 
         # Create instances of the subsystems.
         # 创建各子系统实例.
-        self.robotDrive = Drivetrain()
         self.elevatorDrive = Elevator()
         self.armDrive = Arm()
         self.flywheelDrive = Flywheel()
@@ -65,10 +66,7 @@ class RobotContainer:
         self.intakerDrive = Intaker()
         self.pneumaticControl = Pneumatic()
         self.visionControl = Vision()
-
-        # Create instances of the commands in SmartDashboard.
-        # 在仪表盘显示各个指令(组), 用于调试.
-        self.putCommandsToSmartDashboard()
+        self.robotDrive = Drivetrain(self.visionControl)
 
         # Configure and set the button bindings for the driver's controller.
         # 设置手柄按键与对应指令的绑定.
@@ -95,44 +93,25 @@ class RobotContainer:
         # The rest are test trajectories.
         # 剩下的是测试轨迹.
         self.autoChooser.addOption(
-            "Test Forward", TestCommandGroup(self, Trajectory.ForwardTest))
+            "Test Forward", TestCommandGroup(self, Trajectories.ForwardTest))
         self.autoChooser.addOption(
-            "Test Backward", TestCommandGroup(self, Trajectory.BackwardTest))
+            "Test Backward", TestCommandGroup(self, Trajectories.BackwardTest))
         self.autoChooser.addOption(
-            "Test Auto11", TestCommandGroup(self, Trajectory.Auto11))
+            "Test Auto11", TestCommandGroup(self, Trajectories.Auto11))
         self.autoChooser.addOption(
-            "Test Auto12", TestCommandGroup(self, Trajectory.Auto12))
+            "Test Auto12", TestCommandGroup(self, Trajectories.Auto12))
         self.autoChooser.addOption(
-            "Test Auto2",  TestCommandGroup(self, Trajectory.Auto2))
+            "Test Auto2",  TestCommandGroup(self, Trajectories.Auto2))
         self.autoChooser.addOption(
-            "Test Auto31", TestCommandGroup(self, Trajectory.Auto31))
+            "Test Auto31", TestCommandGroup(self, Trajectories.Auto31))
         self.autoChooser.addOption(
-            "Test Auto32", TestCommandGroup(self, Trajectory.Auto32))
+            "Test Auto32", TestCommandGroup(self, Trajectories.Auto32))
+        self.autoChooser.addOption(
+            "TurnToAngle", TurnToAngleCommand(self, math.radians(26.5)))
+        self.autoChooser.addOption(
+            "RotateToTarget", RotateToTargetCommand(self))
 
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
-
-    def putCommandsToSmartDashboard(self):
-        """Put commands to the SmartDashboard (Test Only)"""
-        SmartDashboard.putData("Open Intake", PneumaticCommand(self, True))
-        SmartDashboard.putData("Close Intake", PneumaticCommand(self, False))
-        SmartDashboard.putData("Intake and Convey",
-                               AutoConveyCommandGroup(self))
-        SmartDashboard.putData("Auto-assisted Aim",
-                               PrepareShootCommandGroup(self))
-        SmartDashboard.putData("Intake motor forward",
-                               IntakeCommand(self, 0.3))
-        SmartDashboard.putData("Intake motor backward",
-                               IntakeCommand(self, -0.3))
-        SmartDashboard.putData("Conveyor motor forward",
-                               ConveyorCommand(self, 0.3))
-        SmartDashboard.putData("Conveyor motor backward",
-                               ConveyorCommand(self, -0.3))
-        SmartDashboard.putData("Flywheel Forward High",
-                               FlywheelCommand(self, output=19.3))
-        SmartDashboard.putData("Flywheel Forward Low",
-                               FlywheelCommand(self, output=11.3))
-        SmartDashboard.putData("Flywheel Backward",
-                               FlywheelCommand(self, output=-5.0))
 
     def getAutonomousCommand(self):
         return self.autoChooser.getSelected()
@@ -240,6 +219,12 @@ class RobotContainer:
             POVButton(self.siderController,
                       POVEnum.kRight)
             .whileHeld(IntakeCommand(self, -0.4))
+        )
+
+        (
+            POVButton(self.siderController,
+                      POVEnum.kDown)
+            .toggleWhenPressed(TurnToAngleCommand(self, math.radians(90)))
         )
 
         # (Toggle) (Sider) (Back) Open/Close Compressor
