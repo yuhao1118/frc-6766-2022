@@ -69,6 +69,7 @@ class Hood(SubsystemBase):
         self.closedLoop = DriverStation.getInstance().isEnabled()
 
         if not self.resetComplete:
+            self.goalPosition = 0.0
             if DriverStation.getInstance().isEnabled():
                 if not self.resetActive:
                     self.resetActive = True

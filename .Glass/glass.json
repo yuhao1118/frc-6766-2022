@@ -30,23 +30,52 @@
       "/SmartDashboard/Vision": "Subsystem"
     },
     "windows": {
-      "/SmartDashboard/Auto Chooser": {
-        "window": {
-          "visible": true
-        }
-      },
       "/SmartDashboard/Field2d": {
         "height": 8.229999542236328,
         "image": "C:\\Users\\ATOM6766\\Desktop\\frc-6766-2022\\2022-field-light.png",
-        "width": 16.459999084472656,
-        "window": {
-          "visible": true
-        }
+        "width": 16.459999084472656
       }
     }
   },
   "NetworkTables Settings": {
     "mode": "Client",
     "serverTeam": "6766"
+  },
+  "Plots": {
+    "Plot <0>": {
+      "plots": [
+        {
+          "axis": [
+            {
+              "autoFit": true
+            }
+          ],
+          "height": 642,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Left Encoder Speed"
+            },
+            {
+              "color": [
+                0.8666667342185974,
+                0.5176470875740051,
+                0.32156863808631897,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Right Encoder Speed"
+            }
+          ]
+        }
+      ],
+      "window": {
+        "name": "Wheel Speed"
+      }
+    }
   }
 }

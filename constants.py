@@ -10,7 +10,7 @@ PS: angle is in degrees, not radians.
 """
 
 from wpimath.kinematics import DifferentialDriveKinematics
-from wpimath.geometry import Transform2d
+from wpimath.geometry import Transform2d, Pose2d, Rotation2d
 from wpilib import RobotBase, RuntimeType
 from ctre import TalonFXInvertType
 
@@ -176,12 +176,13 @@ kRamseteZeta = 0.7
 # Vision distance measurement constants
 # 视觉测距测量
 # (meters) Height of the target off the ground
-kVisionTargetHeight = 2.64
+kVisionTargetHeight = 2.65
 # (meters) Height of the camera off the ground
-kVisionCameraHeight = 0.65
-kVisionCameraPitch = 40                     # (degrees) Pitch of the camera
+kVisionCameraHeight = 0.63
+kVisionCameraPitch = 50                     # (degrees) Pitch of the camera
 kVisionCameraOffset = Transform2d(0, 0, 0)
 kHubRadiusMeter = 0.61                      # (meters) Radius of the HUB
+kHubPose = Pose2d(8.23, 4.115, Rotation2d())
 
 kVisionFilterTime = 0.1
 kVisionFilterPeriod = 0.02

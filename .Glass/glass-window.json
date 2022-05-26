@@ -4,7 +4,7 @@
       "height": "961",
       "maximized": "0",
       "style": "0",
-      "userScale": "2",
+      "userScale": "4",
       "width": "1280",
       "xpos": "105",
       "ypos": "68"
@@ -14,22 +14,27 @@
     "###/SmartDashboard/Auto Chooser": {
       "Collapsed": "0",
       "Pos": "140,685",
-      "Size": "307,60"
+      "Size": "415,72"
     },
     "###/SmartDashboard/Field2d": {
       "Collapsed": "0",
-      "Pos": "479,200",
+      "Pos": "65,206",
       "Size": "839,590"
     },
     "###NetworkTables": {
       "Collapsed": "0",
-      "Pos": "39,188",
+      "Pos": "155,241",
       "Size": "937,495"
     },
     "###NetworkTables Settings": {
       "Collapsed": "0",
       "Pos": "37,37",
-      "Size": "330,138"
+      "Size": "447,168"
+    },
+    "###Plot <0>": {
+      "Collapsed": "0",
+      "Pos": "176,39",
+      "Size": "1034,722"
     },
     "Debug##Default": {
       "Collapsed": "0",

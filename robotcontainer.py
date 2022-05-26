@@ -20,6 +20,7 @@ from trajectory.trajectory import Trajectories
 
 # from commands.drivetrain.driveandaim import DriveAimCommand
 from commands.drivetrain.drive import DriveCommand
+from commands.drivetrain.tuningdrive import TuningDrive
 from commands.drivetrain.turntoangle import TurnToAngleCommand
 
 from commands.shoot.resethood import ResetHoodCommandGroup
@@ -224,7 +225,7 @@ class RobotContainer:
         (
             POVButton(self.siderController,
                       POVEnum.kDown)
-            .toggleWhenPressed(TurnToAngleCommand(self, math.radians(90)))
+            .toggleWhenPressed(TuningDrive(self))
         )
 
         # (Toggle) (Sider) (Back) Open/Close Compressor

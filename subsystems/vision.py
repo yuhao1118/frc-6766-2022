@@ -1,7 +1,7 @@
 from commands2 import SubsystemBase
-from wpimath.geometry import Rotation2d, Pose2d, Translation2d
+from wpimath.geometry import Rotation2d
 from wpimath.filter import LinearFilter
-from wpilib import SmartDashboard
+from wpilib import RobotBase, SmartDashboard
 
 import math
 
@@ -9,11 +9,7 @@ from lib.limelight.LEDMode import LEDMode
 from lib.limelight.LimelightCamera import LimelightCamera
 from photonvision import PhotonUtils
 
-from trajectory.trajectory import Trajectory
 import constants
-
-VisionHub = Pose2d(8.23, 4.115, Rotation2d())
-
 
 class Vision(SubsystemBase):
     def __init__(self):
@@ -29,6 +25,9 @@ class Vision(SubsystemBase):
         self.filteredDistanceMeters = 0.0
         self.filteredXOffsetRadians = 0.0
 
+        self.rawDistance = 0.0
+        self.rawXOffsetRadians = 0.0
+
         self.lastValidDistance = 0.0
         self.latency = constants.kVisionLatencyMs
         self.isValid = False
@@ -36,34 +35,41 @@ class Vision(SubsystemBase):
     def log(self):
         SmartDashboard.putBoolean(
             "Vision Has Target", self.camera.hasTargets())
-        SmartDashboard.putNumber("Vision Distance (m)", self.getDistance())
+        SmartDashboard.putNumber("Vision Distance (m)", self.getDistanceMeters())
         SmartDashboard.putNumber(
             "Vision Yaw (deg)", self.getXOffset().degrees())
-        SmartDashboard.putData("Vision", self)
+        # SmartDashboard.putData("Vision", self)
 
     def periodic(self):
-        # self.log()
+        self.log()
         res = self.camera.getLatestResult()
         if res.hasTargets():
             target = res.getBestTarget()
             self.isValid = True
             if target is not None:
-                distance = PhotonUtils.calculateDistanceToTarget(
+                self.rawXOffsetRadians = math.radians(target.getYaw())
+
+                self.rawDistance = PhotonUtils.calculateDistanceToTarget(
                     constants.kVisionCameraHeight,
                     constants.kVisionTargetHeight,
                     math.radians(constants.kVisionCameraPitch),
-                    math.radians(target.getPitch())) * math.cos(self.getXOffset().radians()) + constants.kHubRadiusMeter
+                    math.radians(target.getPitch()))
+
+                if RobotBase.isSimulation():
+                    self.rawDistance = SmartDashboard.getNumber("SimTargetDistance", 0.0)
 
                 self.filteredDistanceMeters = self.distanceFilter.calculate(
-                    distance)
+                    self.rawDistance)
                 self.filteredXOffsetRadians = self.xOffsetFilter.calculate(
-                    target.getYaw())
-                self.lastValidDistance = distance
+                    self.rawXOffsetRadians)
+
+                self.lastValidDistance = self.rawDistance
                 self.latency = res.getLatency() + constants.kVisionLatencyMs
             else:
                 self.filteredDistanceMeters = self.distanceFilter.calculate(
                     self.lastValidDistance)
                 self.filteredXOffsetRadians = 0.0
+                
         else:
             self.filteredDistanceMeters = self.distanceFilter.calculate(
                 self.lastValidDistance)
@@ -72,6 +78,12 @@ class Vision(SubsystemBase):
 
     def hasTargets(self):
         return self.isValid
+
+    def getRawDistanceMeters(self):
+        return self.rawDistance
+
+    def getRawXOffset(self):
+        return Rotation2d(-self.rawXOffsetRadians)
 
     def getDistanceMeters(self):
         return self.filteredDistanceMeters
@@ -86,16 +98,16 @@ class Vision(SubsystemBase):
         return PhotonUtils.estimateFieldToRobot(
             PhotonUtils.estimateCameraToTarget(
                 PhotonUtils.estimateCameraToTargetTranslation(
-                    self.getDistanceMeters(), self.getXOffset()),
-                VisionHub,
+                    self.getRawDistanceMeters(), self.getRawXOffset()),
+                constants.kHubPose,
                 robotHeading),
-            VisionHub,
+            constants.kHubPose,
             constants.kVisionCameraOffset
         )
 
     def getRobotToTargetTransform(self, robotHeading):
         return constants.kVisionCameraOffset + PhotonUtils.estimateCameraToTarget(
             PhotonUtils.estimateCameraToTargetTranslation(
-                self.getDistanceMeters(), self.getXOffset()),
-            VisionHub,
+                self.getRawDistanceMeters(), self.getRawXOffset()),
+            constants.kHubPose,
             robotHeading)

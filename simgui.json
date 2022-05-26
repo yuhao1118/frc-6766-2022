@@ -111,7 +111,7 @@
           "width": 0.8999999761581421
         },
         "height": 8.229999542236328,
-        "image": "/Users/liyuhao/FRC2022/frc-6766-2022/2022-field-light.png",
+        "image": "C:\\Users\\ATOM6766\\Desktop\\frc-6766-2022\\2022-field-light.png",
         "traj": {
           "arrows": false,
           "style": "Track"
@@ -123,13 +123,8 @@
       },
       "/SmartDashboard/Field2dVision": {
         "height": 8.229999542236328,
-        "image": "/Users/liyuhao/FRC2022/frc-6766-2022/2022-field-light.png",
+        "image": "C:\\Users\\ATOM6766\\Desktop\\frc-6766-2022\\2022-field-light.png",
         "width": 16.459999084472656,
-        "window": {
-          "visible": true
-        }
-      },
-      "/SmartDashboard/Hood2d": {
         "window": {
           "visible": true
         }

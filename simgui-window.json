@@ -2,19 +2,19 @@
   "MainWindow": {
     "GLOBAL": {
       "height": "765",
-      "maximized": "1",
+      "maximized": "0",
       "style": "1",
       "userScale": "4",
       "width": "1440",
-      "xpos": "648",
-      "ypos": "181"
+      "xpos": "10",
+      "ypos": "47"
     }
   },
   "Window": {
     "###/SmartDashboard/Auto Chooser": {
       "Collapsed": "0",
       "Pos": "896,616",
-      "Size": "361,66"
+      "Size": "415,72"
     },
     "###/SmartDashboard/Conveyor": {
       "Collapsed": "0",
@@ -28,13 +28,13 @@
     },
     "###/SmartDashboard/Field2d": {
       "Collapsed": "0",
-      "Pos": "803,89",
-      "Size": "458,266"
+      "Pos": "725,29",
+      "Size": "700,422"
     },
     "###/SmartDashboard/Field2dVision": {
       "Collapsed": "0",
-      "Pos": "327,58",
-      "Size": "467,289"
+      "Pos": "2,29",
+      "Size": "722,420"
     },
     "###/SmartDashboard/Hood2d": {
       "Collapsed": "0",
@@ -68,13 +68,13 @@
     },
     "###FMS": {
       "Collapsed": "0",
-      "Pos": "681,614",
-      "Size": "388,182"
+      "Pos": "526,361",
+      "Size": "442,200"
     },
     "###Joysticks": {
       "Collapsed": "0",
-      "Pos": "234,152",
-      "Size": "1156,264"
+      "Pos": "61,607",
+      "Size": "1336,354"
     },
     "###Keyboard 0 Settings": {
       "Collapsed": "0",
@@ -83,7 +83,7 @@
     },
     "###NetworkTables": {
       "Collapsed": "0",
-      "Pos": "74,118",
+      "Pos": "553,411",
       "Size": "750,323"
     },
     "###Other Devices": {
@@ -113,13 +113,13 @@
     },
     "###System Joysticks": {
       "Collapsed": "0",
-      "Pos": "0,384",
-      "Size": "273,290"
+      "Pos": "1048,612",
+      "Size": "313,326"
     },
     "###Timing": {
       "Collapsed": "0",
-      "Pos": "494,616",
-      "Size": "188,157"
+      "Pos": "218,460",
+      "Size": "215,172"
     },
     "Debug##Default": {
       "Collapsed": "0",
@@ -129,7 +129,7 @@
     "Robot State": {
       "Collapsed": "0",
       "Pos": "42,472",
-      "Size": "126,129"
+      "Size": "144,144"
     }
   }
 }

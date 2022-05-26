@@ -4,7 +4,7 @@ from commands.shoot.flywheel import FlywheelCommand
 from commands.shoot.hood import HoodCommand
 from commands.conveyor.conveyor import ConveyorCommand
 
-from commands2 import ParallelCommandGroup, WaitUntilCommand, WaitCommand, SequentialCommandGroup
+from commands2 import ParallelCommandGroup, WaitUntilCommand, WaitCommand, SequentialCommandGroup, InstantCommand
 from wpilib import RobotState
 
 
@@ -19,12 +19,13 @@ def RotateToTargetCommand(robotContainer):
 
 def AimCommand(robotContainer):
     if not RobotState.isAutonomous():
+        print("Is Not Auto")
         return SequentialCommandGroup(
-            RotateToTargetCommand(robotContainer),
-            DriveAimCommand(robotContainer)
+            # RotateToTargetCommand(robotContainer),
+            DriveAimCommand(robotContainer, controller=robotContainer.driverController)
         )
     else:
-        return DriveAimCommand(robotContainer, controller=robotContainer.driverController)
+        return DriveAimCommand(robotContainer)
 
 
 def PrepareShootCommandGroup(robotContainer, output=None, angle=None):
@@ -54,3 +55,6 @@ def AutoShootCommandGroup(robotContainer, timeout=2.0):
     )
 
     return cmg.withTimeout(timeout)
+
+def ManualShoot(robotContainer, timeout=2.0):
+    ConveyorCommand(robotContainer, 0.3).withTimeout(timeout)

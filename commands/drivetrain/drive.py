@@ -2,8 +2,6 @@
 # Ref: https://github.com/Mechanical-Advantage/RobotCode2022
 
 from commands2 import CommandBase
-from wpilib import SmartDashboard, XboxController
-from wpimath.controller import PIDController
 
 import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage

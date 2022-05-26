@@ -1,10 +1,9 @@
 from commands2 import CommandBase
-from wpilib.geometry import Pose2d
+from wpimath.geometry import Pose2d
 from wpimath.controller import PIDController
 
 import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
-from lib.utils.interpolatedict import InterpolateDict
 from lib.utils.tunablenumber import TunableNumber
 from lib.utils.maths import clamp, axisProfile
 
@@ -25,9 +24,10 @@ class DriveAimCommand(CommandBase):
         super().__init__()
         super().setName("DriveAimCommand")
         self.robotContainer = robotContainer
-        self.kP = TunableNumber("Aim/kP", 0.0055)
-        self.kI = TunableNumber("Aim/kI", 0.002)
+        self.kP = TunableNumber("Aim/kP", 0.17)
+        self.kI = TunableNumber("Aim/kI", 0.0)
         self.kD = TunableNumber("Aim/kD", 0.1)
+        self.kF = TunableNumber("Aim/kF", 0.025)
 
         self.turnPidController = PIDController(
             self.kP.getDefault(),
@@ -72,9 +72,8 @@ class DriveAimCommand(CommandBase):
 
         # Adjust drivetrain to face the hub
         xOffset = self.robotContainer.visionControl.getXOffset().radians()
-        distance = self.robotContainer.visionControl.getDistanceMeters()
 
-        turnSpeed = self.turnPidController.calculate(xOffset, self.goalAngle)
+        turnSpeed = self.turnPidController.calculate(xOffset, self.goalAngle) + float(self.kF) * xOffset
         if self.turnPidController.atSetpoint():
             turnSpeed = 0.0
 
