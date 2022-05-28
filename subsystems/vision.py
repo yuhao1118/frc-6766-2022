@@ -1,113 +1,162 @@
 from commands2 import SubsystemBase
-from wpimath.geometry import Rotation2d
-from wpimath.filter import LinearFilter
-from wpilib import RobotBase, SmartDashboard
+from wpimath.geometry import Rotation2d, Transform2d, Pose2d, Translation2d
+from wpilib import Timer
 
 import math
 
 from lib.limelight.LEDMode import LEDMode
 from lib.limelight.LimelightCamera import LimelightCamera
-from photonvision import PhotonUtils
+from lib.utils.circlefitter import CircleFitter
 
 import constants
 
+
+def sortCorners(corners, average):
+    # Find top corners
+    topLeftIndex, topRightIndex = None, None
+    minPosPads, minNegRads = math.pi, math.pi
+    for i in range(len(corners)):
+        corner = corners[i]
+        angleRad = (Rotation2d(corner[0] - average[0], average[1] - corner[1])
+                    - Rotation2d.fromDegrees(90.0)).radians()
+        if angleRad > 0.0:
+            if angleRad < minPosPads:
+                minPosPads = angleRad
+                topLeftIndex = i
+        else:
+            if abs(angleRad) < minNegRads:
+                minNegRads = abs(angleRad)
+                topRightIndex = i
+
+    # Find lower corners
+    lowerIndex1, lowerIndex2 = None, None
+    for i in range(len(corners)):
+        alreadySaved = False
+        if topLeftIndex == i or topRightIndex == i:
+            alreadySaved = True
+        if not alreadySaved:
+            if lowerIndex1 is None:
+                lowerIndex1 = i
+            else:
+                lowerIndex2 = i
+
+    # Combine final list
+    newCorners = []
+    if topLeftIndex is not None:
+        newCorners.append(corners[topLeftIndex])
+    if topRightIndex is not None:
+        newCorners.append(corners[topRightIndex])
+    if lowerIndex1 is not None:
+        newCorners.append(corners[lowerIndex1])
+    if lowerIndex2 is not None:
+        newCorners.append(corners[lowerIndex2])
+    return newCorners
+
+
 class Vision(SubsystemBase):
-    def __init__(self):
+    circleFitPrecision = 0.01
+    minTargetCount = 2  # For calculating odometry
+    extraLatencySecs = 0.06  # Approximate camera + network latency
+    vpw = 2.0 * math.tan(constants.kCameraFovHorizontal.radians() / 2.0)
+    vph = 2.0 * math.tan(constants.kCameraFovVertical.radians() / 2.0)
+    lastCaptureTimestamp = 0.0
+    lastTranslationsTimestamp = 0.0
+    lastTranslations = []
+    targetRes = None
+
+    def __init__(self, robotstate):
         super().__init__()
+        self.robotstate = robotstate
         self.camera = LimelightCamera()
         self.camera.setLEDMode(LEDMode.kOn)
 
-        self.xOffsetFilter = LinearFilter.singlePoleIIR(
-            constants.kVisionFilterTime, constants.kVisionFilterPeriod)
-        self.distanceFilter = LinearFilter.singlePoleIIR(
-            constants.kVisionFilterTime, constants.kVisionFilterPeriod)
-
-        self.filteredDistanceMeters = 0.0
-        self.filteredXOffsetRadians = 0.0
-
-        self.rawDistance = 0.0
-        self.rawXOffsetRadians = 0.0
-
-        self.lastValidDistance = 0.0
-        self.latency = constants.kVisionLatencyMs
-        self.isValid = False
-
-    def log(self):
-        SmartDashboard.putBoolean(
-            "Vision Has Target", self.camera.hasTargets())
-        SmartDashboard.putNumber("Vision Distance (m)", self.getDistanceMeters())
-        SmartDashboard.putNumber(
-            "Vision Yaw (deg)", self.getXOffset().degrees())
-        # SmartDashboard.putData("Vision", self)
-
     def periodic(self):
-        self.log()
-        res = self.camera.getLatestResult()
-        if res.hasTargets():
-            target = res.getBestTarget()
-            self.isValid = True
-            if target is not None:
-                self.rawXOffsetRadians = math.radians(target.getYaw())
-
-                self.rawDistance = PhotonUtils.calculateDistanceToTarget(
-                    constants.kVisionCameraHeight,
-                    constants.kVisionTargetHeight,
-                    math.radians(constants.kVisionCameraPitch),
-                    math.radians(target.getPitch()))
-
-                if RobotBase.isSimulation():
-                    self.rawDistance = SmartDashboard.getNumber("SimTargetDistance", 0.0)
-
-                self.filteredDistanceMeters = self.distanceFilter.calculate(
-                    self.rawDistance)
-                self.filteredXOffsetRadians = self.xOffsetFilter.calculate(
-                    self.rawXOffsetRadians)
-
-                self.lastValidDistance = self.rawDistance
-                self.latency = res.getLatency() + constants.kVisionLatencyMs
-            else:
-                self.filteredDistanceMeters = self.distanceFilter.calculate(
-                    self.lastValidDistance)
-                self.filteredXOffsetRadians = 0.0
-                
+        pipelineIndex = self.camera.getPipelineIndex()
+        self.targetRes = self.camera.getLatestResult()
+        if pipelineIndex == 0:
+            targetCount = len(self.targetRes.getBestTarget().getCorners()) / 4
         else:
-            self.filteredDistanceMeters = self.distanceFilter.calculate(
-                self.lastValidDistance)
-            self.filteredXOffsetRadians = 0.0
-            self.isValid = False
-
-    def hasTargets(self):
-        return self.isValid
-
-    def getRawDistanceMeters(self):
-        return self.rawDistance
-
-    def getRawXOffset(self):
-        return Rotation2d(-self.rawXOffsetRadians)
-
-    def getDistanceMeters(self):
-        return self.filteredDistanceMeters
+            targetCount = 0
+        self.processFrame(targetCount)
 
     def getXOffset(self):
-        return Rotation2d(-self.filteredXOffsetRadians)
+        if self.targetRes.hasTargets():
+            return Rotation2d.fromDegrees(self.targetRes.getBestTarget().getYaw())
+        else:
+            return Rotation2d()
 
-    def getLatency(self):
-        return self.latency
+    def hasTargets(self):
+        return self.targetRes.hasTargets()
 
-    def getRobotPose(self, robotHeading):
-        return PhotonUtils.estimateFieldToRobot(
-            PhotonUtils.estimateCameraToTarget(
-                PhotonUtils.estimateCameraToTargetTranslation(
-                    self.getRawDistanceMeters(), self.getRawXOffset()),
-                constants.kHubPose,
-                robotHeading),
-            constants.kHubPose,
-            constants.kVisionCameraOffset
-        )
+    def processFrame(self, targetCount):
+        if self.targetRes.getCaptureTimestamp() == self.lastCaptureTimestamp:
+            return
 
-    def getRobotToTargetTransform(self, robotHeading):
-        return constants.kVisionCameraOffset + PhotonUtils.estimateCameraToTarget(
-            PhotonUtils.estimateCameraToTargetTranslation(
-                self.getRawDistanceMeters(), self.getRawXOffset()),
-            constants.kHubPose,
-            robotHeading)
+        self.lastCaptureTimestamp = self.targetRes.getCaptureTimestamp()
+        captureTimestamp = self.targetRes.getCaptureTimestamp() - self.extraLatencySecs
+
+        if targetCount >= self.minTargetCount:
+            cameraToTargetTranslations = []
+            for targetIndex in range(targetCount):
+                corners = self.targetRes.getBestTarget().getCorners()[targetIndex * 4, targetIndex * 4 + 4]
+                totalX = sum(corners[i][0] for i in range(len(corners)))
+                totalY = sum(corners[i][1] for i in range(len(corners)))
+
+                targetAvg = (totalX / 4, totalY / 4)
+                corners = sortCorners(corners, targetAvg)
+
+                for i in range(len(corners)):
+                    translation = self.solveCameraToTargetTranslation(
+                        corners[i],
+                        constants.kHubHeightHigher if i < 2 else constants.kHubHeightLower,
+                    )
+                    if translation is not None:
+                        cameraToTargetTranslations.append(translation)
+
+            self.lastTranslationsTimestamp = Timer.getFPGATimestamp()
+            self.lastTranslations = cameraToTargetTranslations
+
+            # Combine corner translations to full target translation
+            if len(cameraToTargetTranslations) >= self.minTargetCount * 4:
+                cameraToTargetTranslation = CircleFitter.fit(constants.kHubRadiusMeter,
+                                                             cameraToTargetTranslations,
+                                                             self.circleFitPrecision)
+
+                # Calculate field to robot translation
+                cameraRotation = self.robotstate.getDriveRotation(captureTimestamp)  # camera faces same as drivetrain
+                fieldToTargetRotated = Transform2d(constants.kHubCenter, cameraRotation)
+                fieldToCamera = fieldToTargetRotated + Transform2d(-cameraToTargetTranslation, Rotation2d())
+                fieldToVehicle = fieldToCamera + constants.kCameraOffset.inverse()
+                fieldToVehicle = Pose2d(fieldToVehicle.translation(), fieldToVehicle.rotation())
+
+                if fieldToVehicle.X() > constants.kFieldLengthMeters \
+                        or fieldToVehicle.X() < 0.0 \
+                        or fieldToVehicle.Y() > constants.kFieldWidthMeters \
+                        or fieldToVehicle.Y() < 0.0:
+                    return
+
+                # Send final translation
+                self.robotstate.addVisionData(captureTimestamp, fieldToVehicle.translation())
+
+    def solveCameraToTargetTranslation(self, corner, goalHeight):
+        halfWidthPixel = constants.kVisionWidthPixel / 2.0
+        halfHeightPixel = constants.kVisionHeightPixel / 2.0
+        nY = -((corner[0] - halfWidthPixel - constants.kVisionCrosshairX) / halfWidthPixel)
+        nZ = -((corner[1] - halfHeightPixel - constants.kVisionCrosshairY) / halfHeightPixel)
+
+        xzPlaneTranslation = Translation2d(1.0, self.vph / 2.0 * nZ).rotateBy(constants.kCameraPitch)
+        x = xzPlaneTranslation.X()
+        y = self.vpw / 2.0 * nY
+        z = xzPlaneTranslation.Y()
+
+        differentialHeight = constants.kCameraHeight - goalHeight
+        if (z < 0.0) == (differentialHeight > 0.0):
+            scaling = differentialHeight / -z
+            distance = math.hypot(x, y) * scaling
+            angle = Rotation2d(x, y)
+            return Translation2d(distance * angle.cos(), distance * angle.sin())
+
+        return None
+
+    def setPipeline(self, pipeline):
+        self.camera.setPipelineIndex(pipeline)

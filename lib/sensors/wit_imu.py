@@ -48,7 +48,7 @@ class WIT_IO:
         gyroRates = []
 
         for i in data[:3]:
-            gyroRate = (i) / 32768.0 * self.KGyroRate
+            gyroRate = i / 32768.0 * self.KGyroRate
             if gyroRate >= self.KGyroRate:
                 gyroRate -= 2 * self.KGyroRate
             gyroRates.append(gyroRate)
@@ -59,7 +59,7 @@ class WIT_IO:
         # Clockwise negative in range [-180, 180]
         angles = []
         for i, a in enumerate(data[:3]):
-            angle = (a) / 32768.0 * self.KAngle
+            angle = a / 32768.0 * self.KAngle
             if angle >= self.KAngle:
                 angle -= 2 * self.KAngle
 
@@ -71,7 +71,7 @@ class WIT_IO:
         accels = []
 
         for i in data[:3]:
-            accel = (i) / 32768.0 * self.KAccel
+            accel = i / 32768.0 * self.KAccel
             if accel >= self.KAccel:
                 accel -= 2 * self.KAccel
             accels.append(accel)
@@ -93,21 +93,21 @@ class WIT_IO:
             self.byteCount -= 1
             return
 
-        if (sum(self.byteArray[:self.NUM_OF_BYTES-1]) & 0xff) != self.byteArray[self.NUM_OF_BYTES - 1]:
+        if (sum(self.byteArray[:self.NUM_OF_BYTES - 1]) & 0xff) != self.byteArray[self.NUM_OF_BYTES - 1]:
             byteRepr = [hex(b) for b in self.byteArray[:self.NUM_OF_BYTES]]
             log.error("Parity error: " + ' '.join(byteRepr))
             self.byteCount = 0
             return
 
-        data = self.byteArray[2:self.NUM_OF_BYTES-1]       # high low bytes
+        data = self.byteArray[2:self.NUM_OF_BYTES - 1]  # high low bytes
         # concatenate 8 high and low bytes into 4 shorts in little endian
         data = struct.unpack('<hhhh', data)
 
-        if (self.byteArray[1] == 0x51):  # Accelerometer
+        if self.byteArray[1] == 0x51:  # Accelerometer
             self._parseAccels(data)
-        elif (self.byteArray[1] == 0x52):  # Gyro Rate
+        elif self.byteArray[1] == 0x52:  # Gyro Rate
             self._parseGyroRate(data)
-        elif (self.byteArray[1] == 0x53):  # Gyro Angle
+        elif self.byteArray[1] == 0x53:  # Gyro Angle
             self._parseGyroAngle(data)
 
         self.byteCount = 0
@@ -135,6 +135,7 @@ class WIT_IO:
 
     def _zeroGyroRates(self):
         def mapInt(x): return int(x / self.KGyroRate * 32768)
+
         rates = map(mapInt, self.gyroRates)
         packed_data = struct.pack('<hhh', *rates)
 
@@ -151,6 +152,7 @@ class WIT_IO:
 
     def _zeroAccels(self):
         def mapInt(x): return int(x / self.KAccel * 32768)
+
         accels = map(mapInt, self.accels)
         packed_data = struct.pack('<hhh', *accels)
 
@@ -211,7 +213,7 @@ class WIT_IO:
 
 class WIT_THREAD(threading.Thread):
     def __init__(self, proxiIMU, imuIO, updateRate=50, q=queue.Queue()):
-        super().__init__(self)
+        super().__init__()
         self.proxiIMU = proxiIMU
         self.imuIO = imuIO
         self.updateRate = updateRate
@@ -381,7 +383,7 @@ class WitIMUSim:
         self.m_simAccelZ = self.wrappedSimDevice.getDouble("accel_z")
 
     def setRotation(self, rotation):
-        rotation = rotation - Rotation2d(0)     # -180 to 180
+        rotation = rotation - Rotation2d(0)  # -180 to 180
         self.m_simGyroAngleZ.set(rotation.degrees())
 
     def setRate(self, rateDegreesPerSecond):

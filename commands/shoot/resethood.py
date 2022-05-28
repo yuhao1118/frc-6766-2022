@@ -1,5 +1,6 @@
 from commands2 import InstantCommand, SequentialCommandGroup, WaitCommand
 
+
 def ResetHoodCommandGroup(robotContainer):
     """
     重置hood指令组

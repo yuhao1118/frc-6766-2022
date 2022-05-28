@@ -10,7 +10,7 @@ PS: angle is in degrees, not radians.
 """
 
 from wpimath.kinematics import DifferentialDriveKinematics
-from wpimath.geometry import Transform2d, Pose2d, Rotation2d
+from wpimath.geometry import Transform2d, Pose2d, Rotation2d, Translation2d
 from wpilib import RobotBase, RuntimeType
 from ctre import TalonFXInvertType
 
@@ -173,17 +173,31 @@ kMaxAccelerationMetersPerSecondSquared = 1.5
 kRamseteB = 2
 kRamseteZeta = 0.7
 
-# Vision distance measurement constants
-# 视觉测距测量
-# (meters) Height of the target off the ground
-kVisionTargetHeight = 2.65
-# (meters) Height of the camera off the ground
-kVisionCameraHeight = 0.63
-kVisionCameraPitch = 50                     # (degrees) Pitch of the camera
-kVisionCameraOffset = Transform2d(0, 0, 0)
-kHubRadiusMeter = 0.61                      # (meters) Radius of the HUB
-kHubPose = Pose2d(8.23, 4.115, Rotation2d())
 
+# Field constants
+kFieldLengthMeters = 16.46
+kFieldWidthMeters = 4.23
+kHubHeightLower = 2.58             # (meters) Height of the target off the ground
+kHubHeightHigher = 2.64             # (meters) Height of the target off the ground
+kHubRadiusMeter = 0.678                      # (meters) Radius of the HUB
+kHubCenter = Translation2d(kFieldLengthMeters / 2, kFieldWidthMeters / 2)
+
+
+# Camera constants
+kCameraHeight = 0.63                  # (meters) Height of the camera off the ground
+kCameraPitch = Rotation2d.fromDegrees(52.0)                     # Pitch of the camera
+kCameraOffset = Transform2d(Translation2d(0.3, 0.0), Rotation2d())
+kCameraFovHorizontal = Rotation2d.fromDegrees(59.6)
+kCameraFovVertical = Rotation2d.fromDegrees(49.7)
+
+
+# Vision constants
 kVisionFilterTime = 0.1
 kVisionFilterPeriod = 0.02
 kVisionLatencyMs = 20
+kVisionNominalFramerate = 22
+kVisionWidthPixel = 960
+kVisionHeightPixel = 720
+kVisionCrosshairX = 14.4
+kVisionCrosshairY = 0.0
+

@@ -1,8 +1,8 @@
 from commands2 import SequentialCommandGroup, ParallelRaceGroup
-from wpimath.trajectory import Trajectory
 from commands.autos.autoconvey import AutoConveyCommandGroup
+from commands.conveyor.conveyor import ConveyorCommand
 from commands.intake.pneumatic import PneumaticCommand
-from commands.autos.autoshoot import AutoShootCommandGroup, PresetShootCommandGroup
+from commands.autos.autoshoot import AutoShoot, PresetShoot
 
 from trajectory.trajectory import Trajectories
 
@@ -39,10 +39,11 @@ def Auto1CommandGroup(robotContainer):
     trajectory12 = Trajectories.Auto12        # 人类玩家站位路径
 
     return SequentialCommandGroup(
-        PresetShootCommandGroup(
+        PresetShoot(
             robotContainer, timeout=1.5, output=60.64, angle=0.0),
         PathingAndIntakeCommandGroup(robotContainer, trajectory11),
-        AutoShootCommandGroup(robotContainer),
+        ConveyorCommand(robotContainer, -0.2).withTimeout(0.20),
+        AutoShoot(robotContainer),
         # robotContainer.robotDrive.getTrajectoryCommand(trajectory12),
     )
 
@@ -60,10 +61,11 @@ def Auto2CommandGroup(robotContainer):
     trajectory = Trajectories.Auto2
 
     return SequentialCommandGroup(
-        PresetShootCommandGroup(
+        PresetShoot(
             robotContainer, timeout=1.5, output=19.3, angle=0.0),
         PathingAndIntakeCommandGroup(robotContainer, trajectory),
-        AutoShootCommandGroup(robotContainer),
+        ConveyorCommand(robotContainer, -0.2).withTimeout(0.20),
+        AutoShoot(robotContainer),
     )
 
 
@@ -83,7 +85,8 @@ def Auto3CommandGroup(robotContainer):
 
     return SequentialCommandGroup(
         PathingAndIntakeCommandGroup(robotContainer, trajectory1),
-        AutoShootCommandGroup(robotContainer),
+        ConveyorCommand(robotContainer, -0.2).withTimeout(0.20),
+        AutoShoot(robotContainer),
         PathingAndIntakeCommandGroup(robotContainer, trajectory2),
         AutoConveyCommandGroup(robotContainer, reverse=True),
     )

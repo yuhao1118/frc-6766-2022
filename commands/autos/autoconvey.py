@@ -3,6 +3,7 @@ from commands2 import ParallelCommandGroup
 from commands.intake.intake import IntakeCommand
 from commands.conveyor.conveyor import ConveyorCommand
 
+
 def AutoConveyCommandGroup(robotContainer, reverse=False):
     """
     吸球传球并行指令组
@@ -13,10 +14,10 @@ def AutoConveyCommandGroup(robotContainer, reverse=False):
 
     输出: 
     并行指令组:
-    1. Intake吸球, 速度0.4
-    2. Conveyor传球, 速度0.25
+    1. Intake吸球
+    2. Conveyor传球
     """
     return ParallelCommandGroup(
-        IntakeCommand(robotContainer, -0.4 if reverse else 0.4),
-        ConveyorCommand(robotContainer, -0.25 if reverse else 0.25),
+        IntakeCommand(robotContainer, -0.5 if reverse else 0.5),
+        ConveyorCommand(robotContainer, -0.5 if reverse else 0.5),
     )

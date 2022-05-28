@@ -62,6 +62,7 @@
       "/LiveWindow/Ungrouped/class frc2::SubsystemBase": "Subsystem",
       "/LiveWindow/Ungrouped/frc2::SubsystemBase": "Subsystem",
       "/SmartDashboard/Auto Chooser": "String Chooser",
+      "/SmartDashboard/Auto Command Chooser": "String Chooser",
       "/SmartDashboard/Auto-assisted Aim": "Command",
       "/SmartDashboard/Auto-assisted Ranging and Aim": "Command",
       "/SmartDashboard/Auto-assisted Shoot": "Command",
@@ -72,6 +73,7 @@
       "/SmartDashboard/Conveyor": "Subsystem",
       "/SmartDashboard/Conveyor motor backward": "Command",
       "/SmartDashboard/Conveyor motor forward": "Command",
+      "/SmartDashboard/Debug Command Chooser": "String Chooser",
       "/SmartDashboard/Drivetrain": "Subsystem",
       "/SmartDashboard/Elevator": "Subsystem",
       "/SmartDashboard/Field": "Field2d",
@@ -105,13 +107,23 @@
           "visible": true
         }
       },
+      "/SmartDashboard/Auto Command Chooser": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Debug Command Chooser": {
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/Field2d": {
         "Robot": {
           "length": 1.0,
           "width": 0.8999999761581421
         },
         "height": 8.229999542236328,
-        "image": "C:\\Users\\ATOM6766\\Desktop\\frc-6766-2022\\2022-field-light.png",
+        "image": "/Users/liyuhao/FRC2022/frc-6766-2022/2022-field-light.png",
         "traj": {
           "arrows": false,
           "style": "Track"
@@ -123,11 +135,7 @@
       },
       "/SmartDashboard/Field2dVision": {
         "height": 8.229999542236328,
-        "image": "C:\\Users\\ATOM6766\\Desktop\\frc-6766-2022\\2022-field-light.png",
-        "width": 16.459999084472656,
-        "window": {
-          "visible": true
-        }
+        "width": 16.459999084472656
       }
     }
   },

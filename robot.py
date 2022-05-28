@@ -10,6 +10,7 @@ import constants
 
 from lib.utils.tunablenumber import TunableNumber
 
+
 class MyRobot(commands2.TimedCommandRobot):
     """
     Our default robot class, pass it to wpilib.run
@@ -28,6 +29,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
         # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         # autonomous chooser on the dashboard.
+        # noinspection PyAttributeOutsideInit
         self.container = RobotContainer()
 
         # Forward the limelight/photonvision port so that it can be accessed via USB-B cable.
