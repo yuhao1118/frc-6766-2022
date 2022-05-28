@@ -1,5 +1,4 @@
 from commands2 import SubsystemBase
-from wpilib import SmartDashboard
 
 import ctre
 import constants
@@ -15,11 +14,7 @@ class Intaker(SubsystemBase):
         self.intaker.setNeutralMode(ctre.NeutralMode.Brake)
         self.intaker.setInverted(constants.kIntakeRotate)
 
-    def log(self):
-        SmartDashboard.putData("Intaker", self)
-
     def periodic(self):
-        # self.log()
         pass
 
     def set(self, output):

@@ -1,8 +1,7 @@
-from commands2 import SubsystemBase
-from wpilib import SmartDashboard, DriverStation
-from wpimath.controller import SimpleMotorFeedforwardMeters, PIDController
-
 import ctre
+from commands2 import SubsystemBase
+from wpilib import SmartDashboard
+
 import constants
 from lib.utils.tunablenumber import TunableNumber
 
@@ -34,8 +33,6 @@ class Flywheel(SubsystemBase):
         self.flywheelReady = False
 
     def log(self):
-        SmartDashboard.putData("Flywheel", self)
-        SmartDashboard.putData("Flywheel PID", self.pidController)
         SmartDashboard.putNumber(
             "Flywheel Speed", self.getShooterEncoderSpeed())
 

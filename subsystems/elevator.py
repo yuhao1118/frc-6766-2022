@@ -4,6 +4,8 @@ from lib.utils.tunablenumber import TunableNumber
 
 import ctre
 import constants
+
+
 class Elevator(SubsystemBase):
 
     def __init__(self):
@@ -46,7 +48,6 @@ class Elevator(SubsystemBase):
         for motor in [self.L_motor, self.R_motor]:
             motor.configReverseSoftLimitThreshold(
                 constants.kClimbMotorSoftLimitReverse, 0)
-        
 
         self.L_motor.setInverted(constants.kLeftClimbMotorRotate)
         self.R_motor.setInverted(constants.kRightClimbMotorRotate)
@@ -64,9 +65,9 @@ class Elevator(SubsystemBase):
         SmartDashboard.putData("Elevator", self)
         SmartDashboard.putNumber("Elevator Distance", self.getClimbEncoderDistance())
         SmartDashboard.putNumber("Elevator Speed", self.getClimbEncoderSpeed())
-    
+
     def periodic(self):
-        if self.kP.hasChanged(): 
+        if self.kP.hasChanged():
             self.L_motor.config_kP(0, self.kP.get(), 0)
             self.R_motor.config_kP(0, self.kP.get(), 0)
 
@@ -97,7 +98,7 @@ class Elevator(SubsystemBase):
                         self.resetActive = False
                         self.resetGraceTimer.reset()
                         self.resetEncoder()
-        
+
         else:
             if self.holdActive:
                 self.L_motor.set(ctre.ControlMode.Position, self.holdPosition)

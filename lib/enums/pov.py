@@ -1,4 +1,4 @@
-class POVEnum():
+class POVEnum:
     """
     Enum for the POV on the driver's controller.
     """

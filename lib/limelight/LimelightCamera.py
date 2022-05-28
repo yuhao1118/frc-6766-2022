@@ -5,7 +5,7 @@ from .LEDMode import LEDMode
 from .LimelightPipelineResult import LimelightPipelineResult
 from .LimelightTrackedTarget import LimelightTrackedTarget
 from wpimath.geometry import Transform2d
-
+from wpilib import Timer
 
 class LimelightCamera:
     _enabled = 1
@@ -51,13 +51,12 @@ class LimelightCamera:
         pose = Transform2d(camtran[0], camtran[1], camtran[4])
 
         rawcorners = self.__nt.getNumberArray(
-            "tcornxy", [0, 0, 0, 0, 0, 0, 0, 0])
-        # rawcorners = rawcorners[:8]
+            "tcornxy", [])
 
         corners = []
 
         for i in range(0, len(rawcorners), 2):
-            corners.append((rawcorners[i], rawcorners[i+1]))
+            corners.append((rawcorners[i], rawcorners[i + 1]))
 
         target = LimelightTrackedTarget(
             self.__nt.getNumber("tx", 0),
@@ -68,7 +67,7 @@ class LimelightCamera:
             corners)
 
         return LimelightPipelineResult(
-            self.__nt.getNumber("tl", 0),
+            Timer.getFPGATimestamp() - self.__nt.getNumber("tl", 0.0) / 1000.0,
             target,
             self.hasTargets()
         )

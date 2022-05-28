@@ -19,12 +19,8 @@ class Pneumatic(SubsystemBase):
             
         self.prevSolenoidState = False
 
-    def log(self):
-        SmartDashboard.putData("Pneumatic", self)
-
-    def periodic(self):
-        # self.log()
-        pass
+    def setAutoMode(self):
+        self.compressor.enableDigital()
 
     def setCompressor(self, enable):
         if self.isPneumaticInit:

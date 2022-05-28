@@ -4,6 +4,10 @@
 from commands2.button import JoystickButton, POVButton
 from commands2 import ParallelCommandGroup
 from wpilib import XboxController, SendableChooser, SmartDashboard
+
+from commands.shoot.flywheel import FlywheelCommand
+from commands.shoot.hood import HoodCommand
+from lib.utils.tunablenumber import TunableNumber
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator
 from subsystems.arm import Arm
@@ -14,50 +18,40 @@ from subsystems.pneumatic import Pneumatic
 from subsystems.vision import Vision
 from subsystems.hood import Hood
 
+from robotstate import RobotState
+
 import constants
 from lib.enums.pov import POVEnum
 from trajectory.trajectory import Trajectories
 
-# from commands.drivetrain.driveandaim import DriveAimCommand
 from commands.drivetrain.drive import DriveCommand
-from commands.drivetrain.tuningdrive import TuningDrive
-from commands.drivetrain.turntoangle import TurnToAngleCommand
-
+from commands.drivetrain.debugdrive import DebugDrive
+from commands.drivetrain.debugautoaim import DebugAutoAim
+from commands.drivetrain.autoaim import AutoAim
+from commands.drivetrain.autoaimsimple import AutoAimSimple
 from commands.shoot.resethood import ResetHoodCommandGroup
-
 from commands.intake.intake import IntakeCommand
 from commands.intake.compressor import CompressorCommand
 from commands.intake.pneumatic import PneumaticCommand
-
 from commands.conveyor.conveyor import ConveyorCommand
-
 from commands.climb.elevator import ElevatorCommand
 from commands.climb.arm import ArmCommand
 from commands.climb.resetelevator import ResetElevatorCommand
-
 from commands.autos.autopath import Auto1CommandGroup, Auto2CommandGroup, Auto3CommandGroup, TestCommandGroup
-from commands.autos.autoshoot import PrepareShootCommandGroup, RotateToTargetCommand
+from commands.autos.autoshoot import PrepareShootCommandGroup, ManualShoot
 from commands.autos.autoconvey import AutoConveyCommandGroup
-
-import math
 
 
 class RobotContainer:
-    """
-    This file manages all the subsystems and the lifecycle of each command. 
-    Joystick - command bindings are also configurated here.
-
-    在这个文件中管理所有子系统和每个指令的生命周期. 手柄按键与对应指令的绑定也在这个文件中设置.
-    """
 
     def __init__(self):
+        # 创建里程计实例
+        self.robotState = RobotState()
 
-        # Create the driver's controller.
         # 创建手柄实例.
         self.driverController = XboxController(constants.kDriverControllerPort)
         self.siderController = XboxController(constants.kSiderControllerPort)
 
-        # Create instances of the subsystems.
         # 创建各子系统实例.
         self.elevatorDrive = Elevator()
         self.armDrive = Arm()
@@ -66,188 +60,164 @@ class RobotContainer:
         self.conveyorDrive = Conveyor()
         self.intakerDrive = Intaker()
         self.pneumaticControl = Pneumatic()
-        self.visionControl = Vision()
-        self.robotDrive = Drivetrain(self.visionControl)
+        self.visionControl = Vision(self.robotState)
+        self.robotDrive = Drivetrain(self.robotState)
 
-        # Configure and set the button bindings for the driver's controller.
-        # 设置手柄按键与对应指令的绑定.
-        self.configureButtons()
-
-        # Set the default command for the drive subsystem. It's default command will allow
-        # the robot to drive with the controller.
         # 设置底盘默认指令, 允许机器人使用手柄控制.
         self.robotDrive.setDefaultCommand(
             DriveCommand(self, self.driverController)
         )
 
-        # Display the autonomous chooser on the SmartDashboard.
         # 在仪表盘显示自动阶段任务下拉选择器.
-        self.autoChooser = SendableChooser()
+        self.autoCommandChooser = SendableChooser()  # 自动任务选择器
+        self.autoCommandChooser.setDefaultOption("Auto1", Auto1CommandGroup(self))  # 3球自动
+        self.autoCommandChooser.addOption("Auto2", Auto2CommandGroup(self))  # 2球自动
+        self.autoCommandChooser.addOption("Auto3", Auto3CommandGroup(self))  # 2球自动 + 干扰敌方一球
+        SmartDashboard.putData("Auto Command Chooser", self.autoCommandChooser)
 
-        self.autoChooser.setDefaultOption(
-            "Auto1", Auto1CommandGroup(self))                               # 3 ball auto. 3球自动
-        self.autoChooser.addOption(
-            "Auto2", Auto2CommandGroup(self))                               # 2 ball auto. 2球自动
-        self.autoChooser.addOption(
-            "Auto3", Auto3CommandGroup(self))                               # 2 ball auto + 1 defense ball. 2球自动 + 干扰敌方一球
+        self.debugCommandChooser = SendableChooser()  # 调试指令选择器
+        self.debugCommandChooser.setDefaultOption("DebugAutoAim", DebugAutoAim(self))
+        self.debugCommandChooser.addOption("AutoAim", AutoAim(self, controller=self.driverController))
+        self.debugCommandChooser.addOption("AutoAimSimple", AutoAimSimple(self, controller=self.driverController))
+        self.debugCommandChooser.addOption("DebugDrive", DebugDrive(self))
+        self.debugCommandChooser.addOption("DebugHood", HoodCommand(self, TunableNumber("Hood/debugAngle", 0.0)))
+        self.debugCommandChooser.addOption("DebugFlywheel",
+                                           FlywheelCommand(self, TunableNumber("Flywheel/debugRPS", 0.0)))
+        self.debugCommandChooser.addOption("Test Forward", TestCommandGroup(self, Trajectories.ForwardTest))
+        self.debugCommandChooser.addOption("Test Backward", TestCommandGroup(self, Trajectories.BackwardTest))
+        self.debugCommandChooser.addOption("Test Auto11", TestCommandGroup(self, Trajectories.Auto11))
+        self.debugCommandChooser.addOption("Test Auto12", TestCommandGroup(self, Trajectories.Auto12))
+        self.debugCommandChooser.addOption("Test Auto2", TestCommandGroup(self, Trajectories.Auto2))
+        self.debugCommandChooser.addOption("Test Auto31", TestCommandGroup(self, Trajectories.Auto31))
+        self.debugCommandChooser.addOption("Test Auto32", TestCommandGroup(self, Trajectories.Auto32))
+        SmartDashboard.putData("Debug Command Chooser", self.debugCommandChooser)
 
-        # The rest are test trajectories.
-        # 剩下的是测试轨迹.
-        self.autoChooser.addOption(
-            "Test Forward", TestCommandGroup(self, Trajectories.ForwardTest))
-        self.autoChooser.addOption(
-            "Test Backward", TestCommandGroup(self, Trajectories.BackwardTest))
-        self.autoChooser.addOption(
-            "Test Auto11", TestCommandGroup(self, Trajectories.Auto11))
-        self.autoChooser.addOption(
-            "Test Auto12", TestCommandGroup(self, Trajectories.Auto12))
-        self.autoChooser.addOption(
-            "Test Auto2",  TestCommandGroup(self, Trajectories.Auto2))
-        self.autoChooser.addOption(
-            "Test Auto31", TestCommandGroup(self, Trajectories.Auto31))
-        self.autoChooser.addOption(
-            "Test Auto32", TestCommandGroup(self, Trajectories.Auto32))
-        self.autoChooser.addOption(
-            "TurnToAngle", TurnToAngleCommand(self, math.radians(26.5)))
-        self.autoChooser.addOption(
-            "RotateToTarget", RotateToTargetCommand(self))
-
-        SmartDashboard.putData("Auto Chooser", self.autoChooser)
+        # 设置手柄按键与对应指令的绑定.
+        self.configureButtons()
 
     def getAutonomousCommand(self):
-        return self.autoChooser.getSelected()
+        return self.autoCommandChooser.getSelected()
+
+    def getDebugCommand(self):
+        return self.debugCommandChooser.getSelected()
 
     def getResetCommand(self):
-        return ParallelCommandGroup(ResetHoodCommandGroup(self), ResetElevatorCommand(self))
+        return ParallelCommandGroup(ResetHoodCommandGroup(self), ResetElevatorCommand(self)).withTimeout(2.0)
 
     def configureButtons(self):
-        """Configure the buttons for the driver's controller"""
-
-        ############ Auto-assisted control / 自动辅助控制 ############
-
-        # (Hold) (Sider) (LB) Open/Close Intake
-        # (按住) (副操作手) (LB) 开/关 Intake, 按住时打开Intake, 松手自动收起
+        ############ 主操作手 ############
+        # (按住) (主操作手) (LB+RB) 摄像头自瞄 (同时可以前后移动)
         (
-            JoystickButton(self.siderController,
-                           XboxController.Button.kLeftBumper)
-            .whileHeld(PneumaticCommand(self, True))
+            JoystickButton(self.driverController, XboxController.Button.kLeftBumper)
+                .and_(JoystickButton(self.driverController, XboxController.Button.kRightBumper))
+                .whileActiveOnce(
+                PrepareShootCommandGroup(self, aimMode="camera", controller=self.driverController).perpetually())
         )
 
-        # (Hold) (Sider) (RB) Intake and convey
-        # (按住) (副操作手) (RB) 吸球并传球
+        # (按住) (主操作手) (LB) 里程计自瞄 (同时可以前后移动)
         (
-            JoystickButton(self.siderController,
-                           XboxController.Button.kRightBumper)
-            .whileHeld(AutoConveyCommandGroup(self))
-            .whenReleased(ConveyorCommand(self, -0.2).withTimeout(0.20))
+            JoystickButton(self.driverController, XboxController.Button.kLeftBumper)
+                .and_(JoystickButton(self.driverController, XboxController.Button.kRightBumper).not_())
+                .whileActiveOnce(
+                PrepareShootCommandGroup(self, aimMode="odometry", controller=self.driverController).perpetually())
         )
 
-        # (Hold) (Sider) (Start) Backball and drop
-        # (按住) (副操作手) (Start) 退球并吐球
-        (
-            JoystickButton(self.siderController,
-                           XboxController.Button.kStart)
-            .whileHeld(AutoConveyCommandGroup(self, reverse=True))
-        )
-
-        # (Press) (Sider) (Y) Aiming
-        # (切换) (副操作手) (Y) 自瞄
-        (
-            JoystickButton(self.siderController, XboxController.Button.kY)
-            .toggleWhenPressed(PrepareShootCommandGroup(self))
-        )
-
-        # (Hold) (Drive) (LB) Aiming
-        # (按住) (主操作手) (LB) 自瞄 (同时可以前后移动)
-        (
-            JoystickButton(self.driverController,
-                           XboxController.Button.kLeftBumper)
-            .whileHeld(PrepareShootCommandGroup(self))
-        )
-
-        # (Press) (Sider) (B) Shooting - fixed distance at 0cm
-        # (按一下) (副操作手) (B) 射球
-        (
-            JoystickButton(self.siderController, XboxController.Button.kB)
-            .whenPressed(ConveyorCommand(self, 0.3).withTimeout(2.0))
-        )
-
-        ############ Manual Controls ############
-
-        # (Hold) (Driver) (B) Climb Up
         # (按住) (主操作手) (B) 摇臂向车头
         (
             JoystickButton(self.driverController,
                            XboxController.Button.kB)
-            .whileHeld(ArmCommand(self, 0.15))
+                .whileHeld(ArmCommand(self, 0.15))
         )
 
-        # (Hold) (Driver) (X) Climb Up
         # (按住) (主操作手) (X) 摇臂向车尾
         (
             JoystickButton(self.driverController,
                            XboxController.Button.kX)
-            .whileHeld(ArmCommand(self, -0.15))
+                .whileHeld(ArmCommand(self, -0.15))
         )
 
-        # (Hold) (Driver) (Y) Climb Up
         # (按住) (主操作手) (Y) 爬升, <缩>伸缩杆
         (
             JoystickButton(self.driverController,
                            XboxController.Button.kY)
-            .whileHeld(ElevatorCommand(self, 1.0))
+                .whileHeld(ElevatorCommand(self, 1.0))
         )
 
-        # (Hold) (Driver) (A) Climb Down
         # (按住) (主操作手) (A) 爬升, <升>伸缩杆
         (
             JoystickButton(self.driverController,
                            XboxController.Button.kA)
-            .whileHeld(ElevatorCommand(self, -1.0))
+                .whileHeld(ElevatorCommand(self, -1.0))
         )
 
-        # (Hold) (Sider) (POV-Left) Intake Motor Forward
+        if constants.tuningMode:
+            # (切换) (主操作手) (start) 调试指令
+            (
+                JoystickButton(self.siderController,
+                               XboxController.Button.kStart)
+                    .toggleWhenPressed(self.getDebugCommand())
+            )
+
+        ############ 副操作手 ############
+        # (按一下) (副操作手) (B) 射球
+        (
+            JoystickButton(self.siderController, XboxController.Button.kB)
+                .whenPressed(ManualShoot(self))
+        )
+
+        # (按住) (副操作手) (LB) 开/关 Intake, 按住时打开Intake, 松手自动收起
+        (
+            JoystickButton(self.siderController,
+                           XboxController.Button.kLeftBumper)
+                .whileHeld(PneumaticCommand(self, True))
+        )
+
+        # (按住) (副操作手) (Y) 吸球并传球
+        (
+            JoystickButton(self.siderController,
+                           XboxController.Button.kY)
+                .whileHeld(AutoConveyCommandGroup(self))
+                .whenReleased(ConveyorCommand(self, -0.2).withTimeout(0.20))
+        )
+
+        # (按住) (副操作手) (A) 退球并吐球
+        (
+            JoystickButton(self.siderController,
+                           XboxController.Button.kA)
+                .whileHeld(AutoConveyCommandGroup(self, reverse=True))
+        )
+
+        # (切换) (副操作手) (start) 开/关 压缩机
+        (
+            JoystickButton(self.siderController,
+                           XboxController.Button.kStart)
+                .toggleWhenPressed(CompressorCommand(self))
+        )
+
         # (按住) (副操作手) (POV左) Intake吸球
         (
             POVButton(self.siderController,
                       POVEnum.kLeft)
-            .whileHeld(IntakeCommand(self, 0.4))
+                .whileHeld(IntakeCommand(self, 0.5))
         )
 
-        # (Hold) (Sider) (POV-Right) Intake Motor Backward
         # (按住) (副操作手) (POV右) Intake吐球
         (
             POVButton(self.siderController,
                       POVEnum.kRight)
-            .whileHeld(IntakeCommand(self, -0.4))
+                .whileHeld(IntakeCommand(self, -0.5))
         )
 
+        # (按住) (副操作手) (POV上) 传送带传球
+        (
+            POVButton(self.siderController,
+                      POVEnum.kUp)
+                .whileHeld(ConveyorCommand(self, 0.5))
+        )
+
+        # (按住) (副操作手) (POV下) 传送带退球
         (
             POVButton(self.siderController,
                       POVEnum.kDown)
-            .toggleWhenPressed(TuningDrive(self))
-        )
-
-        # (Toggle) (Sider) (Back) Open/Close Compressor
-        # (切换) (副操作手) (Back) 开/关 压缩机
-        (
-            JoystickButton(self.siderController,
-                           XboxController.Button.kBack)
-            .toggleWhenPressed(CompressorCommand(self))
-        )
-
-        # (Hold) (Sider) (X) Conveyor Forward
-        # (按住) (副操作手) (X) 传送带传球
-        (
-            JoystickButton(self.siderController,
-                           XboxController.Button.kX)
-            .whileHeld(ConveyorCommand(self, 0.3))
-        )
-
-        # (Hold) (Sider) (A) Conveyor Backward
-        # (按住) (副操作手) (A) 传送带退球
-        (
-            JoystickButton(self.siderController,
-                           XboxController.Button.kA)
-            .whileHeld(ConveyorCommand(self, -0.3))
+                .whileHeld(ConveyorCommand(self, -0.5))
         )

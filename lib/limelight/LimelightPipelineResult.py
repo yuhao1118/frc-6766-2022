@@ -1,9 +1,9 @@
 class LimelightPipelineResult:
     def __init__(self,
-        latency,
-        target,
-        hasTargets
-    ):
+                 latency,
+                 target,
+                 hasTargets
+                 ):
         self._latency = latency
         self._bestTarget = target
         self._hasTargets = hasTargets
@@ -11,7 +11,7 @@ class LimelightPipelineResult:
     def getBestTarget(self):
         return self._bestTarget
 
-    def getLatency(self):
+    def getCaptureTimestamp(self):
         return self._latency
 
     def getTargets(self):
@@ -19,5 +19,3 @@ class LimelightPipelineResult:
 
     def hasTargets(self):
         return self._hasTargets
-
-    

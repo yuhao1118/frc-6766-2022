@@ -1,11 +1,8 @@
-import math
 from commands2 import SubsystemBase, RamseteCommand, InstantCommand, SequentialCommandGroup
 
-from wpilib import SerialPort, SmartDashboard, Field2d, RobotBase, Timer
-from wpimath.kinematics import DifferentialDriveOdometry, DifferentialDriveWheelSpeeds
+from wpilib import SerialPort, SmartDashboard, Field2d
+from wpimath.kinematics import DifferentialDriveWheelSpeeds
 from wpimath.controller import RamseteController, PIDController, SimpleMotorFeedforwardMeters
-# from wpimath.estimator import DifferentialDrivePoseEstimator
-from wpimath.geometry import Pose2d, Rotation2d
 import ctre
 
 import constants
@@ -15,25 +12,21 @@ from lib.utils.tunablenumber import TunableNumber
 
 class Drivetrain(SubsystemBase):
 
-    def __init__(self, visionControl):
+    def __init__(self, robotState):
         super().__init__()
+        self.robotState = robotState
         self.feedforwardController = SimpleMotorFeedforwardMeters(
             constants.ksVolts,
             constants.kvVoltSecondsPerMeter,
             constants.kaVoltSecondsSquaredPerMeter,
         )
 
-        self.field2d = Field2d()    # Display field image in dashboard
-        self.field2dVision = Field2d()
+        self.field2d = Field2d()  # Display field image in dashboard
+
         self.LF_motor = ctre.WPI_TalonFX(constants.kLeftMotor1Port)
         self.LR_motor = ctre.WPI_TalonFX(constants.kLeftMotor2Port)
         self.RF_motor = ctre.WPI_TalonFX(constants.kRightMotor1Port)
         self.RR_motor = ctre.WPI_TalonFX(constants.kRightMotor2Port)
-
-        self.kP = TunableNumber("Drivetrain/kP", 0.037)
-        self.kI = TunableNumber("Drivetrain/kI", 0.0)
-        self.kD = TunableNumber("Drivetrain/kD", 1.5)
-        self.kF = TunableNumber("Drivetrain/kF", 0.06)
 
         for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
             motor.configFactoryDefault()
@@ -42,11 +35,6 @@ class Drivetrain(SubsystemBase):
             motor.enableVoltageCompensation(True)
             motor.configPeakOutputForward(constants.kDrivetrainMaxOutput)
             motor.configPeakOutputReverse(-constants.kDrivetrainMaxOutput)
-
-            motor.config_kP(0, self.kP.getDefault(), 0)
-            motor.config_kI(0, self.kI.getDefault(), 0)
-            motor.config_kD(0, self.kD.getDefault(), 0)
-            motor.config_kF(0, self.kF.getDefault(), 0)
 
         self.LR_motor.follow(self.LF_motor)
         self.RR_motor.follow(self.RF_motor)
@@ -62,97 +50,40 @@ class Drivetrain(SubsystemBase):
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
 
-        self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
-        # self.visionOdometry = DifferentialDrivePoseEstimator(self.gyro.getRotation2d(),
-        #                                                      Pose2d(),
-        #                                                      (0.05, 0.05, math.radians(
-        #                                                          5), 0.01, 0.01),
-        #                                                      (0.02, 0.02,
-        #                                                       math.radians(1)),
-        #                                                      (0.5, 0.5, math.radians(30)))
-        self.visionOdometry = DifferentialDriveOdometry(
-            self.gyro.getRotation2d())
+        self.kP = TunableNumber("Drivetrain/kP", 0.5)
+        self.kI = TunableNumber("Drivetrain/kI", 0.0)
+        self.kD = TunableNumber("Drivetrain/kD", 0.0)
 
         self.leftPIDController = PIDController(
             self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
         self.rightPIDController = PIDController(
             self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
 
-        self.visionControl = visionControl
-
     def log(self):
-        # SmartDashboard.putData("Drivetrain", self)
-        # SmartDashboard.putData("Field2d", self.field2d)
-        # SmartDashboard.putData("Field2dVision", self.field2dVision)
-        # SmartDashboard.putData("LeftPIDController", self.leftPIDController)
-        # SmartDashboard.putData("RightPIDController", self.rightPIDController)
-        SmartDashboard.putNumber("Left Encoder Speed",
-                                 self.getLeftEncoderSpeed())
-        SmartDashboard.putNumber(
-            "Right Encoder Speed", self.getRightEncoderSpeed())
-        # SmartDashboard.putNumber(
-        #     "Left Encoder Distance", self.getLeftEncoderDistance())
-        # SmartDashboard.putNumber(
-        #     "Right Encoder Distance", self.getRightEncoderDistance())
+        SmartDashboard.putData("Field2d", self.field2d)
+        SmartDashboard.putNumber("Left Encoder Speed", self.getLeftEncoderSpeed())
+        SmartDashboard.putNumber("Right Encoder Speed", self.getRightEncoderSpeed())
         SmartDashboard.putNumber("Heading", self.gyro.getAngle())
-        # SmartDashboard.putNumber("Gyro Rate", self.gyro.getRate())
-        # SmartDashboard.putNumber("SimTargetDistance", self.getPose(fromVisionOdometry=True).translation().distance(constants.kHubPose.translation()) )
-    def _updateOdometry(self):
-        self.odometry.update(
-            self.gyro.getRotation2d(),
-            self.getLeftEncoderDistance(),
-            self.getRightEncoderDistance()
-        )
-
-        # self.visionOdometry.update(
-        #     self.gyro.getRotation2d(),
-        #     self.getWheelSpeeds(),
-        #     self.getLeftEncoderDistance(),
-        #     self.getRightEncoderDistance())
-
-        self.visionOdometry.update(
-            self.gyro.getRotation2d(),
-            self.getLeftEncoderDistance(),
-            self.getRightEncoderDistance()
-        )
-
-        if self.visionControl.hasTargets():
-            # self.visionOdometry.addVisionMeasurement(
-            #     self.visionControl.getRobotPose(
-            #         self.getPose(fromVisionOdometry=True).rotation()),
-            #     Timer.getFPGATimestamp() - self.visionControl.getLatency()
-            # )
-            poseFromVision = self.visionControl.getRobotPose(
-                self.getPose(fromVisionOdometry=True).rotation())
-
-            self.resetOdometry(poseFromVision, visionOdometryOnly=True)
-            # print(poseFromVision)
-
-        self.field2d.setRobotPose(self.getPose())
-        self.field2dVision.setRobotPose(self.getPose(fromVisionOdometry=True))
 
     def periodic(self):
         if self.kP.hasChanged():
-            # self.leftPIDController.setP(self.kP.get())
-            # self.rightPIDController.setP(self.kP.get())
-            for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
-                motor.config_kP(0, float(self.kP), 0)
+            self.leftPIDController.setP(self.kP.get())
+            self.rightPIDController.setP(self.kP.get())
 
         if self.kI.hasChanged():
-            for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
-                motor.config_kI(0, float(self.kI), 0)
+            self.leftPIDController.setI(self.kI.get())
+            self.rightPIDController.setI(self.kI.get())
 
         if self.kD.hasChanged():
-             for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
-                motor.config_kD(0, float(self.kD), 0)
+            self.leftPIDController.setD(self.kD.get())
+            self.rightPIDController.setD(self.kD.get())
 
-        if self.kF.hasChanged():
-            for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
-                motor.config_kF(0, float(self.kF), 0)
-
-        self._updateOdometry()
-
-        # if RobotBase.isSimulation():
+        self.robotState.addDriveData(
+            self.gyro.getRotation2d(),
+            self.getLeftEncoderDistance(),
+            self.getRightEncoderDistance()
+        )
+        self.field2d.setRobotPose(self.getPose())
         self.log()
 
     def setOpenloopRamp(self, seconds):
@@ -162,21 +93,14 @@ class Drivetrain(SubsystemBase):
         self.RR_motor.configOpenloopRamp(seconds, 0)
 
     def resetEncoder(self):
-        self.LF_motor.setSelectedSensorPosition(0, 0, 0)
-        self.LR_motor.setSelectedSensorPosition(0, 0, 0)
-        self.RF_motor.setSelectedSensorPosition(0, 0, 0)
-        self.RR_motor.setSelectedSensorPosition(0, 0, 0)
+        self.LF_motor.setSelectedSensorPosition(0, 0, 20)
+        self.LR_motor.setSelectedSensorPosition(0, 0, 20)
+        self.RF_motor.setSelectedSensorPosition(0, 0, 20)
+        self.RR_motor.setSelectedSensorPosition(0, 0, 20)
 
-    def resetOdometry(self, pose, visionOdometryOnly=False):
+    def resetOdometry(self, pose):
         self.resetEncoder()
-
-        if visionOdometryOnly:
-            self.visionOdometry.resetPosition(pose, self.gyro.getRotation2d())
-            self.odometry.resetPosition(
-                self.getPose(), self.gyro.getRotation2d())
-        else:
-            self.visionOdometry.resetPosition(pose, self.gyro.getRotation2d())
-            self.odometry.resetPosition(pose, self.gyro.getRotation2d())
+        self.robotState.resetPose(pose)
 
     def zeroHeading(self):
         self.gyro.reset()
@@ -190,29 +114,7 @@ class Drivetrain(SubsystemBase):
     def tankDriveVolts(self, leftVolts, rightVolts):
         self.tankDrive(leftVolts / 12, rightVolts / 12)
 
-    def tankDriveVelocity(self, leftVel, rightVel):
-        # leftFF = self.feedforwardController.calculate(leftVel)
-        # rightFF = self.feedforwardController.calculate(rightVel)
-
-        # leftVolt = self.leftPIDController.calculate(self.getLeftEncoderSpeed(), leftVel) + leftFF
-        # rightVolt = self.rightPIDController.calculate(self.getRightEncoderSpeed(), rightVel) + rightFF
-        
-        # self.tankDriveVolts(leftVolt, rightVolt)
-
-        self.LF_motor.set(ctre.TalonFXControlMode.Velocity, 
-                            leftVel / constants.kDrivetrainEncoderDistancePerPulse / 10, 
-                            # ctre.DemandType.ArbitraryFeedForward,
-                            # leftFF / constants.kNominalVoltage
-                        )
-
-        self.RF_motor.set(ctre.TalonFXControlMode.Velocity,
-                            rightVel / constants.kDrivetrainEncoderDistancePerPulse / 10,
-                            # ctre.DemandType.ArbitraryFeedForward,
-                            # rightFF / constants.kNominalVoltage
-                            )
-
     ############## Getter functions ##############
-
     def getTrajectoryCommand(self, trajectory, shouldInitPose=True):
 
         # Close loop RaseteCommand
@@ -220,8 +122,12 @@ class Drivetrain(SubsystemBase):
             trajectory,
             self.getPose,
             RamseteController(constants.kRamseteB, constants.kRamseteZeta),
+            self.feedforwardController,
             constants.kDriveKinematics,
-            self.tankDriveVelocity,
+            self.getWheelSpeeds,
+            self.leftPIDController,
+            self.rightPIDController,
+            self.tankDriveVolts,
             [self],
         )
 
@@ -242,13 +148,9 @@ class Drivetrain(SubsystemBase):
             InstantCommand(lambda: self.tankDriveVolts(0, 0))
         )
 
-    def getPose(self, fromVisionOdometry=False):
+    def getPose(self):
         # return the estimated pose of the robot
-        if fromVisionOdometry:
-            # return self.visionOdometry.getEstimatedPosition()
-            return self.visionOdometry.getPose()
-
-        return self.odometry.getPose()
+        return self.robotState.getLatestPose()
 
     def getWheelSpeeds(self):
         speeds = DifferentialDriveWheelSpeeds(
@@ -258,13 +160,17 @@ class Drivetrain(SubsystemBase):
         return speeds
 
     def getLeftEncoderSpeed(self):
-        return self.LF_motor.getSelectedSensorVelocity() * constants.kDrivetrainEncoderDistancePerPulse * 10
+        return (self.LF_motor.getSelectedSensorVelocity() + self.LR_motor.getSelectedSensorVelocity()) / 2 \
+               * constants.kDrivetrainEncoderDistancePerPulse * 10
 
     def getRightEncoderSpeed(self):
-        return self.RF_motor.getSelectedSensorVelocity() * constants.kDrivetrainEncoderDistancePerPulse * 10
+        return (self.RF_motor.getSelectedSensorVelocity() + self.RR_motor.getSelectedSensorVelocity()) / 2 \
+               * constants.kDrivetrainEncoderDistancePerPulse * 10
 
     def getLeftEncoderDistance(self):
-        return self.LF_motor.getSelectedSensorPosition() * constants.kDrivetrainEncoderDistancePerPulse
+        return (self.LF_motor.getSelectedSensorPosition() + self.LR_motor.getSelectedSensorPosition()) / 2 \
+               * constants.kDrivetrainEncoderDistancePerPulse
 
     def getRightEncoderDistance(self):
-        return self.RF_motor.getSelectedSensorPosition() * constants.kDrivetrainEncoderDistancePerPulse
+        return (self.RF_motor.getSelectedSensorPosition() + self.RR_motor.getSelectedSensorPosition()) / 2 \
+               * constants.kDrivetrainEncoderDistancePerPulse

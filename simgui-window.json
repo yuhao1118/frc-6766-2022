@@ -14,12 +14,22 @@
     "###/SmartDashboard/Auto Chooser": {
       "Collapsed": "0",
       "Pos": "896,616",
-      "Size": "415,72"
+      "Size": "361,66"
+    },
+    "###/SmartDashboard/Auto Command Chooser": {
+      "Collapsed": "0",
+      "Pos": "43,48",
+      "Size": "361,66"
     },
     "###/SmartDashboard/Conveyor": {
       "Collapsed": "0",
       "Pos": "12,696",
       "Size": "172,87"
+    },
+    "###/SmartDashboard/Debug Command Chooser": {
+      "Collapsed": "0",
+      "Pos": "40,121",
+      "Size": "361,66"
     },
     "###/SmartDashboard/Field": {
       "Collapsed": "0",
@@ -28,7 +38,7 @@
     },
     "###/SmartDashboard/Field2d": {
       "Collapsed": "0",
-      "Pos": "725,29",
+      "Pos": "299,21",
       "Size": "700,422"
     },
     "###/SmartDashboard/Field2dVision": {
@@ -74,7 +84,7 @@
     "###Joysticks": {
       "Collapsed": "0",
       "Pos": "61,607",
-      "Size": "1336,354"
+      "Size": "1156,91"
     },
     "###Keyboard 0 Settings": {
       "Collapsed": "0",
@@ -114,12 +124,12 @@
     "###System Joysticks": {
       "Collapsed": "0",
       "Pos": "1048,612",
-      "Size": "313,326"
+      "Size": "273,290"
     },
     "###Timing": {
       "Collapsed": "0",
       "Pos": "218,460",
-      "Size": "215,172"
+      "Size": "188,157"
     },
     "Debug##Default": {
       "Collapsed": "0",
@@ -129,7 +139,7 @@
     "Robot State": {
       "Collapsed": "0",
       "Pos": "42,472",
-      "Size": "144,144"
+      "Size": "126,129"
     }
   }
 }
