@@ -18,8 +18,6 @@ from subsystems.pneumatic import Pneumatic
 from subsystems.vision import Vision
 from subsystems.hood import Hood
 
-from robotstate import RobotState
-
 import constants
 from lib.enums.pov import POVEnum
 from trajectory.trajectory import Trajectories
@@ -46,13 +44,13 @@ class RobotContainer:
 
     def __init__(self):
         # 创建里程计实例
-        self.robotState = RobotState()
-
         # 创建手柄实例.
         self.driverController = XboxController(constants.kDriverControllerPort)
         self.siderController = XboxController(constants.kSiderControllerPort)
 
         # 创建各子系统实例.
+        self.robotDrive = Drivetrain()
+        self.odometry = self.robotDrive.getOdometry()
         self.elevatorDrive = Elevator()
         self.armDrive = Arm()
         self.flywheelDrive = Flywheel()
@@ -60,8 +58,8 @@ class RobotContainer:
         self.conveyorDrive = Conveyor()
         self.intakerDrive = Intaker()
         self.pneumaticControl = Pneumatic()
-        self.visionControl = Vision(self.robotState)
-        self.robotDrive = Drivetrain(self.robotState)
+        self.visionControl = Vision()
+        self.visionControl.setVisionOdometry(self.odometry)
 
         # 设置底盘默认指令, 允许机器人使用手柄控制.
         self.robotDrive.setDefaultCommand(

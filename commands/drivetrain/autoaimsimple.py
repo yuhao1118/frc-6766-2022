@@ -42,7 +42,7 @@ class AutoAimSimple(CommandBase):
         self.addRequirements(self.robotContainer.robotDrive)
 
     def initialize(self):
-        self.robotContainer.visionControl.setPipeline(1)
+        self.robotContainer.visionControl.setPipeline(0)
         self.turnPidController.reset()
         self.tolerenceTimer.reset()
         self.tolerenceTimer.start()
@@ -96,5 +96,5 @@ class AutoAimSimple(CommandBase):
 
     def end(self, interrputed):
         self.robotContainer.robotDrive.tankDrive(0, 0)
-        self.robotContainer.visionControl.setPipeline(0)
+        self.robotContainer.visionControl.setPipeline(1)
         self.tolerenceTimer.stop()

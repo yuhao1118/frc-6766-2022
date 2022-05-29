@@ -3,7 +3,6 @@ import math
 from commands2 import CommandBase
 from wpilib import Timer
 from wpimath.controller import PIDController
-from wpimath.geometry import Rotation2d
 
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
 from lib.utils.tunablenumber import TunableNumber
@@ -30,6 +29,7 @@ class DebugAutoAim(CommandBase):
         self.tolerenceDegrees = TunableNumber("AutoAim/tolerenceDegrees", 3.0)
         self.tolerenceTime = TunableNumber("AutoAim/toleranceTime", 0.3)
         self.angle = TunableNumber("AutoAim/debugAngle", 90.0)
+        self.initialDegrees = 0.0
 
         self.turnPidController = PIDController(
             self.kP.getDefault(),
@@ -48,7 +48,7 @@ class DebugAutoAim(CommandBase):
         self.turnPidController.reset()
         self.tolerenceTimer.reset()
         self.tolerenceTimer.start()
-        self.initialDegrees = self.robotContainer.robotState.getLatestRotation().degrees()
+        self.initialDegrees = self.robotContainer.odometry.getPose().rotation().degrees()
 
     def execute(self):
         if self.kP.hasChanged():
@@ -70,7 +70,7 @@ class DebugAutoAim(CommandBase):
         else:
             self.turnPidController.setI(float(self.kI))
 
-        turnSpeed = self.turnPidController.calculate(self.robotContainer.robotState.getLatestRotation().degrees())
+        turnSpeed = self.turnPidController.calculate(self.robotContainer.odometry.getPose().rotation().degrees())
         if abs(turnSpeed) < float(self.minVelocity):
             turnSpeed = math.copysign(float(self.minVelocity), turnSpeed)
 

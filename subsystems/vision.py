@@ -64,20 +64,23 @@ class Vision(SubsystemBase):
     lastTranslations = []
     targetRes = None
 
-    def __init__(self, robotstate):
+    def __init__(self):
         super().__init__()
-        self.robotstate = robotstate
         self.camera = LimelightCamera()
         self.camera.setLEDMode(LEDMode.kOn)
+        self.odometry = None
 
     def periodic(self):
         pipelineIndex = self.camera.getPipelineIndex()
         self.targetRes = self.camera.getLatestResult()
-        if pipelineIndex == 0:
+        if pipelineIndex == 1:
             targetCount = len(self.targetRes.getBestTarget().getCorners()) / 4
         else:
             targetCount = 0
         self.processFrame(targetCount)
+
+    def setVisionOdometry(self, odometry):
+        self.odometry = odometry
 
     def getXOffset(self):
         if self.targetRes.hasTargets():
@@ -90,6 +93,9 @@ class Vision(SubsystemBase):
 
     def processFrame(self, targetCount):
         if self.targetRes.getCaptureTimestamp() == self.lastCaptureTimestamp:
+            return
+
+        if self.odometry is None:
             return
 
         self.lastCaptureTimestamp = self.targetRes.getCaptureTimestamp()
@@ -123,20 +129,21 @@ class Vision(SubsystemBase):
                                                              self.circleFitPrecision)
 
                 # Calculate field to robot translation
-                cameraRotation = self.robotstate.getDriveRotation(captureTimestamp)  # camera faces same as drivetrain
-                fieldToTargetRotated = Transform2d(constants.kHubCenter, cameraRotation)
-                fieldToCamera = fieldToTargetRotated + Transform2d(-cameraToTargetTranslation, Rotation2d())
-                fieldToVehicle = fieldToCamera + constants.kCameraOffset.inverse()
-                fieldToVehicle = Pose2d(fieldToVehicle.translation(), fieldToVehicle.rotation())
+                cameraRotation = self.odometry.getDriveRotation(captureTimestamp)  # camera faces same as drivetrain
+                if cameraRotation is not None:
+                    fieldToTargetRotated = Transform2d(constants.kHubCenter, cameraRotation)
+                    fieldToCamera = fieldToTargetRotated + Transform2d(-cameraToTargetTranslation, Rotation2d())
+                    fieldToVehicle = fieldToCamera + constants.kCameraOffset.inverse()
+                    fieldToVehicle = Pose2d(fieldToVehicle.translation(), fieldToVehicle.rotation())
 
-                if fieldToVehicle.X() > constants.kFieldLengthMeters \
-                        or fieldToVehicle.X() < 0.0 \
-                        or fieldToVehicle.Y() > constants.kFieldWidthMeters \
-                        or fieldToVehicle.Y() < 0.0:
-                    return
+                    if fieldToVehicle.X() > constants.kFieldLengthMeters \
+                            or fieldToVehicle.X() < 0.0 \
+                            or fieldToVehicle.Y() > constants.kFieldWidthMeters \
+                            or fieldToVehicle.Y() < 0.0:
+                        return
 
-                # Send final translation
-                self.robotstate.addVisionData(captureTimestamp, fieldToVehicle.translation())
+                    # Send final translation
+                    self.odometry.addVisionMeasurement(captureTimestamp, fieldToVehicle.translation())
 
     def solveCameraToTargetTranslation(self, corner, goalHeight):
         halfWidthPixel = constants.kVisionWidthPixel / 2.0

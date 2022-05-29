@@ -39,7 +39,7 @@ class HoodCommand(CommandBase):
         self.addRequirements(self.robotContainer.hoodDrive)
 
     def execute(self):
-        distance = self.robotContainer.robotState.getDistanceToTarget(constants.kHubCenter)
+        distance = self.robotContainer.odometry.getDistanceToTarget(constants.kHubCenter)
         angle = HoodDistanceAngle.getInterpolated(distance) if self.angle is None else float(self.angle)
 
         self.robotContainer.hoodDrive.setAngle(angle)
