@@ -5,7 +5,7 @@ from collections import OrderedDict
 import math
 
 
-class VisionOdometry(DifferentialDriveOdometry):
+class DifferentialVOdometry(DifferentialDriveOdometry):
     historyLengthSecs = 1.0
     visionShiftPerSec = 0.999
     visionMaxAngularVelocity = math.radians(180.0)
@@ -24,10 +24,11 @@ class VisionOdometry(DifferentialDriveOdometry):
         self.nomainalFramerate = framerate
 
     def addVisionMeasurement(self, timestamp, translation):
-        historicalDrivePose, _, historicalAngularVelocity, _, _ = self.driveData.get(timestamp)
-        if historicalDrivePose is None:
+        res = self.driveData.get(timestamp)
+        if res is None:
             print("No historical drive pose", timestamp)
             return
+        historicalDrivePose, _, historicalAngularVelocity, _, _ = res
 
         angularErrorScale = abs(historicalAngularVelocity) / self.visionMaxAngularVelocity
         visionShift = 1 - math.pow(1 - self.visionShiftPerSec, 1 / self.nomainalFramerate)
@@ -55,7 +56,7 @@ class VisionOdometry(DifferentialDriveOdometry):
         self.baseRightDistanceMeters = currentRightDistanceMeters
 
     def updatePose(self, gyroRotation, gyroRateRadPerSec, leftDistanceMeters, rightDistanceMeters):
-        timestamp = Timer.getFPGATimestamp()
+        timestamp = round(Timer.getFPGATimestamp(), 2)
         pose = super().update(gyroRotation,
                               leftDistanceMeters - self.baseLeftDistanceMeters,
                               rightDistanceMeters - self.baseRightDistanceMeters)
@@ -64,11 +65,13 @@ class VisionOdometry(DifferentialDriveOdometry):
             self.driveData.popitem(last=False)
 
     def getTimestampedPose(self, timestamp):
-        historicalDrivePose, _, _, _, _ = self.driveData.get(timestamp)
-        return historicalDrivePose
+        res = self.driveData.get(timestamp)
+        if res is not None:
+            historicalDrivePose, _, _, _, _ = res
+            return historicalDrivePose
 
     def getDistanceToTarget(self, target):
         return (self.getPose().translation() - target).norm()
 
     def getDriveRotation(self, timestamp):
-        return self.driveData.get(timestamp)
+        return self.getTimestampedPose(timestamp).rotation()

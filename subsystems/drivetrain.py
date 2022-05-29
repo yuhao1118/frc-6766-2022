@@ -10,7 +10,7 @@ import ctre
 import constants
 from lib.sensors.wit_imu import WitIMU
 from lib.utils.tunablenumber import TunableNumber
-from lib.drivetrain.differentialdriveodometry import VisionOdometry
+from lib.drivetrain.differentialdriveodometry import DifferentialVOdometry
 
 
 class Drivetrain(SubsystemBase):
@@ -61,7 +61,7 @@ class Drivetrain(SubsystemBase):
         self.rightPIDController = PIDController(
             self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
 
-        self.odometry = VisionOdometry(self.gyro.getRotation2d())
+        self.odometry = DifferentialVOdometry(self.gyro.getRotation2d())
         SmartDashboard.putData("Field2d", self.field2d)
 
     def log(self):
