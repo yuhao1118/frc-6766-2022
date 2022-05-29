@@ -51,7 +51,7 @@ class DifferentialVOdometry(DifferentialDriveOdometry):
         )
 
         # Update the odometry
-        self.resetPosition(filteredPose, -currentGyroRotation)
+        self.resetPosition(filteredPose, currentGyroRotation)
         self.baseLeftDistanceMeters = currentLeftDistanceMeters
         self.baseRightDistanceMeters = currentRightDistanceMeters
 
