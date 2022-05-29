@@ -1,3 +1,5 @@
+import math
+
 from commands2 import SubsystemBase, RamseteCommand, InstantCommand, SequentialCommandGroup
 
 from wpilib import SerialPort, SmartDashboard, Field2d
@@ -8,13 +10,13 @@ import ctre
 import constants
 from lib.sensors.wit_imu import WitIMU
 from lib.utils.tunablenumber import TunableNumber
+from lib.drivetrain.differentialdriveodometry import VisionOdometry
 
 
 class Drivetrain(SubsystemBase):
 
-    def __init__(self, robotState):
+    def __init__(self):
         super().__init__()
-        self.robotState = robotState
         self.feedforwardController = SimpleMotorFeedforwardMeters(
             constants.ksVolts,
             constants.kvVoltSecondsPerMeter,
@@ -58,6 +60,8 @@ class Drivetrain(SubsystemBase):
             self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
         self.rightPIDController = PIDController(
             self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
+
+        self.odometry = VisionOdometry(self.gyro.getRotation2d())
         SmartDashboard.putData("Field2d", self.field2d)
 
     def log(self):
@@ -78,8 +82,9 @@ class Drivetrain(SubsystemBase):
             self.leftPIDController.setD(self.kD.get())
             self.rightPIDController.setD(self.kD.get())
 
-        self.robotState.addDriveData(
+        self.odometry.updatePose(
             self.gyro.getRotation2d(),
+            math.radians(self.gyro.getRate()),
             self.getLeftEncoderDistance(),
             self.getRightEncoderDistance()
         )
@@ -100,7 +105,7 @@ class Drivetrain(SubsystemBase):
 
     def resetOdometry(self, pose):
         self.resetEncoder()
-        self.robotState.resetPose(pose)
+        self.odometry.resetPosition(pose, self.gyro.getRotation2d())
 
     def zeroHeading(self):
         self.gyro.reset()
@@ -150,7 +155,10 @@ class Drivetrain(SubsystemBase):
 
     def getPose(self):
         # return the estimated pose of the robot
-        return self.robotState.getLatestPose()
+        return self.odometry.getPose()
+
+    def getOdometry(self):
+        return self.odometry
 
     def getWheelSpeeds(self):
         speeds = DifferentialDriveWheelSpeeds(

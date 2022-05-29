@@ -69,7 +69,7 @@ class AutoAim(CommandBase):
             self.turnPidController.setTolerance(positionTolerance=float(self.tolerenceDegrees))
 
         self.turnPidController.setSetpoint(
-            getTargetRotation(self.robotContainer.robotState.getLatestPose().translation()).degrees()
+            getTargetRotation(self.robotContainer.odometry.getPose().translation()).degrees()
         )
 
         if not self.turnPidController.atSetpoint():
@@ -98,7 +98,7 @@ class AutoAim(CommandBase):
                 + arcadeSpeeds.right * (1 - hybridScale))
 
         # Adjust drivetrain to aim at the hub
-        turnSpeed = self.turnPidController.calculate(self.robotContainer.robotState.getLatestRotation().degrees())
+        turnSpeed = self.turnPidController.calculate(self.robotContainer.odometry.getPose().rotation().degrees())
         if abs(turnSpeed) < float(self.minVelocity):
             turnSpeed = math.copysign(float(self.minVelocity), turnSpeed)
 
