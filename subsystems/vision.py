@@ -1,6 +1,5 @@
 from commands2 import SubsystemBase
 from wpimath.geometry import Rotation2d, Transform2d, Pose2d, Translation2d
-from wpilib import Timer
 
 import math
 
@@ -60,7 +59,6 @@ class Vision(SubsystemBase):
     vpw = 2.0 * math.tan(constants.kCameraFovHorizontal.radians() / 2.0)
     vph = 2.0 * math.tan(constants.kCameraFovVertical.radians() / 2.0)
     lastCaptureTimestamp = 0.0
-    lastTranslationsTimestamp = 0.0
     lastTranslations = []
     targetRes = None
 
@@ -98,8 +96,8 @@ class Vision(SubsystemBase):
         if self.odometry is None:
             return
 
-        self.lastCaptureTimestamp = self.targetRes.getCaptureTimestamp()
-        captureTimestamp = self.targetRes.getCaptureTimestamp() - self.extraLatencySecs
+        captureTimestamp = round(self.targetRes.getCaptureTimestamp() - self.extraLatencySecs, 2)
+        self.lastCaptureTimestamp = captureTimestamp
 
         if targetCount >= self.minTargetCount:
             cameraToTargetTranslations = []
@@ -119,7 +117,6 @@ class Vision(SubsystemBase):
                     if translation is not None:
                         cameraToTargetTranslations.append(translation)
 
-            self.lastTranslationsTimestamp = Timer.getFPGATimestamp()
             self.lastTranslations = cameraToTargetTranslations
 
             # Combine corner translations to full target translation

@@ -73,31 +73,27 @@ class RobotContainer:
         self.autoCommandChooser.addOption("Auto3", Auto3CommandGroup(self))  # 2球自动 + 干扰敌方一球
         SmartDashboard.putData("Auto Command Chooser", self.autoCommandChooser)
 
-        self.debugCommandChooser = SendableChooser()  # 调试指令选择器
-        self.debugCommandChooser.setDefaultOption("DebugAutoAim", DebugAutoAim(self))
-        self.debugCommandChooser.addOption("AutoAim", AutoAim(self, controller=self.driverController))
-        self.debugCommandChooser.addOption("AutoAimSimple", AutoAimSimple(self, controller=self.driverController))
-        self.debugCommandChooser.addOption("DebugDrive", DebugDrive(self))
-        self.debugCommandChooser.addOption("DebugHood", HoodCommand(self, TunableNumber("Hood/debugAngle", 0.0)))
-        self.debugCommandChooser.addOption("DebugFlywheel",
-                                           FlywheelCommand(self, TunableNumber("Flywheel/debugRPS", 0.0)))
-        self.debugCommandChooser.addOption("Test Forward", TestCommandGroup(self, Trajectories.ForwardTest))
-        self.debugCommandChooser.addOption("Test Backward", TestCommandGroup(self, Trajectories.BackwardTest))
-        self.debugCommandChooser.addOption("Test Auto11", TestCommandGroup(self, Trajectories.Auto11))
-        self.debugCommandChooser.addOption("Test Auto12", TestCommandGroup(self, Trajectories.Auto12))
-        self.debugCommandChooser.addOption("Test Auto2", TestCommandGroup(self, Trajectories.Auto2))
-        self.debugCommandChooser.addOption("Test Auto31", TestCommandGroup(self, Trajectories.Auto31))
-        self.debugCommandChooser.addOption("Test Auto32", TestCommandGroup(self, Trajectories.Auto32))
-        SmartDashboard.putData("Debug Command Chooser", self.debugCommandChooser)
+        self.debugCommandDict = {
+            "DebugAutoAim": DebugAutoAim(self),
+            "AutoAim": AutoAim(self, controller=self.driverController),
+            "AutoAimSimple": AutoAimSimple(self, controller=self.driverController),
+            "DebugDrive": DebugDrive(self),
+            "DebugHood": HoodCommand(self, TunableNumber("Hood/debugAngle", 0.0)),
+            "DebugFlywheel": FlywheelCommand(self, TunableNumber("Flywheel/debugRPS", 0.0)),
+            "TestForward": TestCommandGroup(self, Trajectories.ForwardTest),
+            "TestBackward": TestCommandGroup(self, Trajectories.BackwardTest),
+            "TestAuto11": TestCommandGroup(self, Trajectories.Auto11),
+            "TestAuto12": TestCommandGroup(self, Trajectories.Auto12),
+            "TestAuto2": TestCommandGroup(self, Trajectories.Auto2),
+            "TestAuto31": TestCommandGroup(self, Trajectories.Auto31),
+            "TestAuto32": TestCommandGroup(self, Trajectories.Auto32),
+        }  # 调试指令列表
 
         # 设置手柄按键与对应指令的绑定.
         self.configureButtons()
 
     def getAutonomousCommand(self):
         return self.autoCommandChooser.getSelected()
-
-    def getDebugCommand(self):
-        return self.debugCommandChooser.getSelected()
 
     def getResetCommand(self):
         return ParallelCommandGroup(ResetHoodCommandGroup(self), ResetElevatorCommand(self)).withTimeout(2.0)
@@ -153,7 +149,7 @@ class RobotContainer:
             (
                 JoystickButton(self.driverController,
                                XboxController.Button.kStart)
-                    .toggleWhenPressed(self.getDebugCommand())
+                    .toggleWhenPressed(self.debugCommandDict["DebugHood"])
             )
 
         ############ 副操作手 ############

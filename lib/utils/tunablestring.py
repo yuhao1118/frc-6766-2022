@@ -2,20 +2,20 @@ from wpilib import SmartDashboard
 import constants
 
 
-class TunableNumber():
-    def __init__(self, name, defaultValue=0.0):
-        self.key = "TunableNumbers/" + name
+class TunableString():
+    def __init__(self, name, defaultValue=""):
+        self.key = "TunableStrings/" + name
         self.defaultValue = defaultValue
         self.lastHasChangedValue = defaultValue
         self.setDefault(defaultValue)
 
     def get(self):
-        return SmartDashboard.getNumber(self.key, self.defaultValue) if constants.tuningMode else self.defaultValue
+        return SmartDashboard.getString(self.key, self.defaultValue) if constants.tuningMode else self.defaultValue
 
     def setDefault(self, defaultValue):
         self.defaultValue = defaultValue
         if constants.tuningMode:
-            SmartDashboard.putNumber(self.key, SmartDashboard.getNumber(self.key, defaultValue))
+            SmartDashboard.putString(self.key, SmartDashboard.getString(self.key, defaultValue))
         else:
             SmartDashboard.delete(self.key)
 
@@ -29,5 +29,5 @@ class TunableNumber():
             return True
         return False
 
-    def __float__(self):
+    def __str__(self):
         return self.get()
