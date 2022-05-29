@@ -46,6 +46,4 @@ def AutoShoot(robotContainer, timeout=2.0):
 
 
 def ManualShoot(robotContainer, timeout=2.0):
-    terminateCommand = InstantCommand()
-    terminateCommand.addRequirements(robotContainer.hoodDrive, robotContainer.flywheelDrive)
-    return ConveyorCommand(robotContainer, 0.3).withTimeout(timeout).andThen(terminateCommand)
+    return ConveyorCommand(robotContainer, 0.3).withTimeout(timeout)

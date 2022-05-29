@@ -29,7 +29,7 @@ class AutoAim(CommandBase):
         super().__init__()
         super().setName("AutoAim")
         self.robotContainer = robotContainer
-        self.kP = TunableNumber("AutoAim/kP", 0.008)
+        self.kP = TunableNumber("AutoAim/kP", 0.0029)
         self.kI = TunableNumber("AutoAim/kI", 0.0)
         self.kD = TunableNumber("AutoAim/kD", 0.0005)
         self.integralMaxError = TunableNumber("AutoAim/IntegralMaxError", 0.0)

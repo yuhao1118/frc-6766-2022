@@ -12,7 +12,8 @@ class Pneumatic(SubsystemBase):
             self.compressor = Compressor(PneumaticsModuleType.CTREPCM)
             self.solenoidRight = Solenoid(PneumaticsModuleType.CTREPCM, constants.kSolenoidLeft)
             self.solenoidLeft = Solenoid(PneumaticsModuleType.CTREPCM, constants.kSolenoidRight)
-            self.compressor.disable()
+            # self.compressor.disable()
+            self.setAutoMode()
             self.isPneumaticInit = True
         except:
             reportError("Pneumatic subsystem init failed")

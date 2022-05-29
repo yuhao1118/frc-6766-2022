@@ -18,12 +18,11 @@ class LimelightSim(VisionSim):
         There are a lot of constructor parameters:
 
         :param targets:          List of target positions (x, y) on field in meter
-        :param view_angle_start: Center angle that the robot can 'see' the target from (in degrees)
         :param camera_fov:       Field of view of camera (in degrees)
         :param view_dst_start:   If the robot is closer than this, the target cannot be seen
         :param view_dst_end:     If the robot is farther than this, the target cannot be seen
         :param data_frequency:   How often the camera transmits new coordinates
-        :param data_lag:         How long it takes for the camera data to be processed
+        :param data_log:         How long it takes for the camera data to be processed
                                  and make it to the robot
         :param physics_controller: If set, will draw target information in UI
         """
@@ -50,5 +49,4 @@ class LimelightSim(VisionSim):
         if data is not None:
             has_target, capture_time, angle, distance = data[0]
             self.visionTable.putNumber('tv', has_target)
-            self.visionTable.putNumber(
-                'tx', -angle if angle != float("inf") else 0.0)
+            self.visionTable.putNumber('tx', -angle if angle != float("inf") else 0.0)

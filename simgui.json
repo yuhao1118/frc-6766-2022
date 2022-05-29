@@ -135,7 +135,10 @@
       },
       "/SmartDashboard/Field2dVision": {
         "height": 8.229999542236328,
-        "width": 16.459999084472656
+        "width": 16.459999084472656,
+        "window": {
+          "visible": true
+        }
       }
     }
   },

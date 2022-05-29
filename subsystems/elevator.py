@@ -61,28 +61,13 @@ class Elevator(SubsystemBase):
         self.holdActive = False
         self.holdPosition = 0.0
 
-    def log(self):
         SmartDashboard.putData("Elevator", self)
+
+    def log(self):
         SmartDashboard.putNumber("Elevator Distance", self.getClimbEncoderDistance())
         SmartDashboard.putNumber("Elevator Speed", self.getClimbEncoderSpeed())
 
     def periodic(self):
-        if self.kP.hasChanged():
-            self.L_motor.config_kP(0, self.kP.get(), 0)
-            self.R_motor.config_kP(0, self.kP.get(), 0)
-
-        if self.kI.hasChanged():
-            self.L_motor.config_kI(0, self.kI.get(), 0)
-            self.R_motor.config_kI(0, self.kI.get(), 0)
-
-        if self.kD.hasChanged():
-            self.L_motor.config_kD(0, self.kD.get(), 0)
-            self.R_motor.config_kD(0, self.kD.get(), 0)
-
-        if self.kF.hasChanged():
-            self.L_motor.config_kF(0, self.kF.get(), 0)
-            self.R_motor.config_kF(0, self.kF.get(), 0)
-
         # self.log()
         if not self.resetComplete:
             if DriverStation.getInstance().isEnabled():

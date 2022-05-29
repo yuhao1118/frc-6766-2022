@@ -1,6 +1,5 @@
 from commands2 import SubsystemBase
 from wpilib import SmartDashboard, DriverStation, Timer
-from wpimath.controller import SimpleMotorFeedforwardMeters, PIDController
 
 import ctre
 import constants
@@ -31,8 +30,8 @@ class Hood(SubsystemBase):
         self.hood.config_kF(0, self.kF.getDefault(), 0)
         self.hood.configAllowableClosedloopError(
             0, int(0.33 / constants.kHoodEncoderDegreesPerPulse), 20)
-        self.hood.configClosedLoopPeakOutput(0, 0.14, 0)
-        self.hood.configClosedloopRamp(0.4)
+        self.hood.configClosedLoopPeakOutput(0, 0.3, 0)
+        self.hood.configClosedloopRamp(0.2)
 
         self.resetActive = False
         self.resetComplete = False
