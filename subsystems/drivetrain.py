@@ -58,9 +58,9 @@ class Drivetrain(SubsystemBase):
             self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
         self.rightPIDController = PIDController(
             self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
+        SmartDashboard.putData("Field2d", self.field2d)
 
     def log(self):
-        SmartDashboard.putData("Field2d", self.field2d)
         SmartDashboard.putNumber("Left Encoder Speed", self.getLeftEncoderSpeed())
         SmartDashboard.putNumber("Right Encoder Speed", self.getRightEncoderSpeed())
         SmartDashboard.putNumber("Heading", self.gyro.getAngle())

@@ -1,6 +1,9 @@
 from commands2 import SubsystemBase
 import ctre
+from wpilib import SmartDashboard
+
 import constants
+
 
 class Arm(SubsystemBase):
     def __init__(self):

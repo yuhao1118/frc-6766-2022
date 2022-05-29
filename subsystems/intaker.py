@@ -14,8 +14,5 @@ class Intaker(SubsystemBase):
         self.intaker.setNeutralMode(ctre.NeutralMode.Brake)
         self.intaker.setInverted(constants.kIntakeRotate)
 
-    def periodic(self):
-        pass
-
     def set(self, output):
         self.intaker.set(ctre.ControlMode.PercentOutput, output)

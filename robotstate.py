@@ -27,12 +27,11 @@ class RobotState:
 
     def addDriveData(self, rotation, leftDistanceMeters, rightDistanceMeters):
         distanceMeters = (leftDistanceMeters + rightDistanceMeters) / 2.0
-        self.driveData.put(Timer.getFPGATimestamp(),
-                           Twist2d(
-                               distanceMeters - self.lastDistanceMeters,
-                               0.0,
-                               (rotation - self.lastRotation).radians()
-                           ))
+        twist = Twist2d(distanceMeters - self.lastDistanceMeters,
+                        0.0,
+                        (rotation - self.lastRotation).radians()
+                        )
+        self.driveData.put(Timer.getFPGATimestamp(), twist)
         self.lastDistanceMeters = distanceMeters
         self.lastRotation = rotation
         self.update()

@@ -22,7 +22,7 @@ class DebugAutoAim(CommandBase):
         super().__init__()
         super().setName("DebugAutoAim")
         self.robotContainer = robotContainer
-        self.kP = TunableNumber("AutoAim/kP", 0.008)
+        self.kP = TunableNumber("AutoAim/kP", 0.0029)
         self.kI = TunableNumber("AutoAim/kI", 0.0)
         self.kD = TunableNumber("AutoAim/kD", 0.0005)
         self.integralMaxError = TunableNumber("AutoAim/IntegralMaxError", 0.0)
@@ -48,6 +48,7 @@ class DebugAutoAim(CommandBase):
         self.turnPidController.reset()
         self.tolerenceTimer.reset()
         self.tolerenceTimer.start()
+        self.initialDegrees = self.robotContainer.robotState.getLatestRotation().degrees()
 
     def execute(self):
         if self.kP.hasChanged():
@@ -59,7 +60,7 @@ class DebugAutoAim(CommandBase):
         if self.tolerenceDegrees.hasChanged():
             self.turnPidController.setTolerance(positionTolerance=float(self.tolerenceDegrees))
 
-        self.turnPidController.setSetpoint(float(self.angle))
+        self.turnPidController.setSetpoint(self.initialDegrees + float(self.angle))
 
         if not self.turnPidController.atSetpoint():
             self.tolerenceTimer.reset()

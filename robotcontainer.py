@@ -153,7 +153,7 @@ class RobotContainer:
         if constants.tuningMode:
             # (切换) (主操作手) (start) 调试指令
             (
-                JoystickButton(self.siderController,
+                JoystickButton(self.driverController,
                                XboxController.Button.kStart)
                     .toggleWhenPressed(self.getDebugCommand())
             )
