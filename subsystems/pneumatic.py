@@ -1,5 +1,5 @@
 from commands2 import SubsystemBase
-from wpilib import Compressor, Solenoid, PneumaticsModuleType, SmartDashboard, reportError
+from wpilib import Compressor, Solenoid, PneumaticsModuleType, reportError
 import constants
 
 

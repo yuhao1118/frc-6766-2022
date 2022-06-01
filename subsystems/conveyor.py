@@ -10,7 +10,7 @@ class Conveyor(SubsystemBase):
     def __init__(self):
         super().__init__()
 
-        self.conveyor = ctre.TalonFX(constants.kConveyorPort)
+        self.conveyor = ctre.TalonFX(constants.kConveyorMotorPort)
         self.conveyor.configFactoryDefault()
         self.conveyor.setNeutralMode(ctre.NeutralMode.Brake)
         self.conveyor.setInverted(constants.kConveyorRotate)

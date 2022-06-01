@@ -51,9 +51,6 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def autonomousInit(self) -> None:
         """This autonomous runs the autonomous command selected by your RobotContainer class."""
-        self.container.robotDrive.setOpenloopRamp(
-            constants.kOpenloopRampRateAuto)
-
         self.autonomousCommand = self.container.getAutonomousCommand()
 
         if self.autonomousCommand:
@@ -67,9 +64,6 @@ class MyRobot(commands2.TimedCommandRobot):
         # teleop starts running. If you want the autonomous to
         # continue until interrupted by another command, remove
         # this line or comment it out.
-        self.container.robotDrive.setOpenloopRamp(
-            constants.kOpenloopRampRateTeleop)
-
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
 

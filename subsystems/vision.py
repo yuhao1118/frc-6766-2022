@@ -1,12 +1,12 @@
 from commands2 import SubsystemBase
 from wpimath.geometry import Rotation2d, Transform2d, Pose2d, Translation2d
-
+from wpimath.filter import LinearFilter
 import math
 
 from lib.limelight.LEDMode import LEDMode
 from lib.limelight.LimelightCamera import LimelightCamera
 from lib.utils.circlefitter import CircleFitter
-
+from photonvision import PhotonUtils
 import constants
 
 
@@ -53,7 +53,7 @@ def sortCorners(corners, average):
 
 
 class Vision(SubsystemBase):
-    circleFitPrecision = 0.01
+    circleFitPrecision = 0.1
     minTargetCount = 2  # For calculating odometry
     extraLatencySecs = 0.06  # Approximate camera + network latency
     vpw = 2.0 * math.tan(constants.kCameraFovHorizontal.radians() / 2.0)
@@ -68,41 +68,60 @@ class Vision(SubsystemBase):
         self.camera.setLEDMode(LEDMode.kOn)
         self.odometry = None
 
+        self.distance = 0.0
+        self.lastValidDistance = 0.0
+        self.distanceFilter = LinearFilter.singlePoleIIR(constants.kVisionFilterTime, constants.kVisionFilterPeriod)
+
+        self.xOffset = 0.0
+        self.xOffsetFilter = LinearFilter.singlePoleIIR(constants.kVisionFilterTime, constants.kVisionFilterPeriod)
+
     def periodic(self):
-        pipelineIndex = self.camera.getPipelineIndex()
         self.targetRes = self.camera.getLatestResult()
-        if pipelineIndex == 1:
-            targetCount = len(self.targetRes.getBestTarget().getCorners()) / 4
+        targetCount = len(self.targetRes.getBestTarget().getCorners()) / 4
+        # print("Total target count", targetCount)
+        if self.targetRes.hasTargets():
+            self.processFrame(targetCount)
+            target = self.targetRes.getBestTarget()
+
+            _distance = PhotonUtils.calculateDistanceToTarget(
+                constants.kCameraHeight,
+                constants.kHubHeightHigher,
+                constants.kCameraPitch.radians(),
+                math.radians(target.getPitch()))
+            self.lastValidDistance = _distance
+            self.distance = self.distanceFilter.calculate(_distance)
+
+            _xOffset = target.getYaw()
+            self.xOffset = self.xOffsetFilter.calculate(_xOffset)
         else:
-            targetCount = 0
-        self.processFrame(targetCount)
+            self.distance = self.distanceFilter.calculate(self.lastValidDistance)
+            self.xOffset = self.xOffsetFilter.calculate(0.0)
 
     def setVisionOdometry(self, odometry):
         self.odometry = odometry
 
+    def getDistance(self):
+        return self.distance
+
     def getXOffset(self):
-        if self.targetRes.hasTargets():
-            return Rotation2d.fromDegrees(self.targetRes.getBestTarget().getYaw())
-        else:
-            return Rotation2d()
+        return Rotation2d.fromDegrees(self.xOffset)
 
     def hasTargets(self):
         return self.targetRes.hasTargets()
 
     def processFrame(self, targetCount):
-        if self.targetRes.getCaptureTimestamp() == self.lastCaptureTimestamp:
-            return
-
         if self.odometry is None:
             return
 
         captureTimestamp = round(self.targetRes.getCaptureTimestamp() - self.extraLatencySecs, 2)
+        if captureTimestamp == self.lastCaptureTimestamp:
+            return
         self.lastCaptureTimestamp = captureTimestamp
 
         if targetCount >= self.minTargetCount:
             cameraToTargetTranslations = []
-            for targetIndex in range(targetCount):
-                corners = self.targetRes.getBestTarget().getCorners()[targetIndex * 4, targetIndex * 4 + 4]
+            for targetIndex in range(int(targetCount)):
+                corners = self.targetRes.getBestTarget().getCorners()[targetIndex * 4: targetIndex * 4 + 4]
                 totalX = sum(corners[i][0] for i in range(len(corners)))
                 totalY = sum(corners[i][1] for i in range(len(corners)))
 
@@ -118,7 +137,6 @@ class Vision(SubsystemBase):
                         cameraToTargetTranslations.append(translation)
 
             self.lastTranslations = cameraToTargetTranslations
-
             # Combine corner translations to full target translation
             if len(cameraToTargetTranslations) >= self.minTargetCount * 4:
                 cameraToTargetTranslation = CircleFitter.fit(constants.kHubRadiusMeter,
@@ -161,6 +179,3 @@ class Vision(SubsystemBase):
             return Translation2d(distance * angle.cos(), distance * angle.sin())
 
         return None
-
-    def setPipeline(self, pipeline):
-        self.camera.setPipelineIndex(pipeline)
