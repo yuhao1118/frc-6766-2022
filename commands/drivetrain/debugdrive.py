@@ -15,8 +15,8 @@ class DebugDrive(CommandBase):
         self.addRequirements(self.robotContainer.robotDrive)
 
     def execute(self):
-        speeds = WheelSpeedsPercentage.fromArcade(float(self.linearX), 0.0)
-        self.robotContainer.robotDrive.tankDriveVelocity(speeds.left, speeds.right)
+        # speeds = WheelSpeedsPercentage.fromArcade(float(self.linearX), 0.0)
+        self.robotContainer.robotDrive.tankDriveVelocity(float(self.linearX), float(self.linearX))
 
     def isFinished(self):
         return False

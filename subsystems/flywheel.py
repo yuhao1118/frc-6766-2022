@@ -11,7 +11,7 @@ class Flywheel(SubsystemBase):
     def __init__(self):
         super().__init__()
 
-        self.shooter = ctre.TalonFX(constants.kShooterPort)
+        self.shooter = ctre.TalonFX(constants.kShooteMotorPort)
         self.shooter.configFactoryDefault()
         self.shooter.setNeutralMode(ctre.NeutralMode.Coast)
         self.shooter.setInverted(constants.kShooterRotate)
@@ -33,8 +33,7 @@ class Flywheel(SubsystemBase):
         self.flywheelReady = False
 
     def log(self):
-        SmartDashboard.putNumber(
-            "Flywheel Speed", self.getShooterEncoderSpeed())
+        SmartDashboard.putNumber("Flywheel Speed", self.getShooterEncoderSpeed())
 
     def periodic(self):
         # self.log()
@@ -47,7 +46,8 @@ class Flywheel(SubsystemBase):
         if self.kF.hasChanged():
             self.shooter.config_kF(0, float(self.kF), 0)
 
-        if self.setActive and abs(self.shooter.getClosedLoopError()) < 500:
+        if self.setActive and \
+                abs(self.shooter.getClosedLoopError()) < 0.5 / constants.kShooterEncoderRotatePerPulse / 10:
             self.flywheelReady = True
 
     def setRPS(self, rps):
@@ -63,4 +63,4 @@ class Flywheel(SubsystemBase):
         return self.flywheelReady
 
     def getShooterEncoderSpeed(self):
-        return self.shooter.getSelectedSensorVelocity() * constants.kShooterEncoderDistancePerPulse * 10
+        return self.shooter.getSelectedSensorVelocity() * constants.kShooterEncoderRotatePerPulse * 10

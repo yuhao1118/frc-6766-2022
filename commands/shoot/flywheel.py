@@ -43,7 +43,7 @@ class FlywheelCommand(CommandBase):
         self.addRequirements(self.robotContainer.flywheelDrive)
 
     def execute(self):
-        distance = self.robotContainer.odometry.getDistanceToTarget(constants.kHubCenter)
+        distance = self.robotContainer.visionControl.getDistance()
         rps = FlywheelDistanceAngle.getInterpolated(distance) if self.output is None else float(self.output)
 
         self.robotContainer.flywheelDrive.setRPS(rps)

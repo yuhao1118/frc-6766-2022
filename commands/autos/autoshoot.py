@@ -4,28 +4,28 @@ from commands.shoot.flywheel import FlywheelCommand
 from commands.shoot.hood import HoodCommand
 from commands.conveyor.conveyor import ConveyorCommand
 
-from commands2 import ParallelCommandGroup, WaitUntilCommand, WaitCommand, InstantCommand
+from commands2 import ParallelCommandGroup, WaitUntilCommand, WaitCommand, PrintCommand
 
 
-def AimCommand(robotContainer, aimMode, controller):
+def AimCommand(robotContainer, aimMode, io, shouldAutoTerminate):
     if aimMode == "camera":
-        return AutoAimSimple(robotContainer, controller=controller)
+        return AutoAimSimple(robotContainer, io=io, shouldAutoTerminate=shouldAutoTerminate)
     elif aimMode == "odometry":
-        return AutoAim(robotContainer, controller=controller)
+        return AutoAim(robotContainer, io=io, shouldAutoTerminate=shouldAutoTerminate)
     else:
-        return InstantCommand()
+        return PrintCommand("Unknown aim mode: {}".format(aimMode))
 
 
-def PrepareShootCommandGroup(robotContainer, aimMode, output=None, angle=None, controller=None):
+def PrepareShootCommandGroup(robotContainer, aimMode, shouldAutoTerminate, io=None, output=None, angle=None):
     return ParallelCommandGroup(
-        AimCommand(robotContainer, aimMode=aimMode, controller=controller),
+        AimCommand(robotContainer, aimMode, io=io, shouldAutoTerminate=shouldAutoTerminate),
         FlywheelCommand(robotContainer, output=output),
         HoodCommand(robotContainer, angle=angle),
     )
 
 
 def PresetShoot(robotContainer, output=None, angle=None, timeout=2.0):
-    cmg = PrepareShootCommandGroup(robotContainer, output=output, angle=angle, aimMode="none")
+    cmg = PrepareShootCommandGroup(robotContainer, aimMode="none", shouldAutoTerminate=True, output=output, angle=angle)
     cmg.addCommands(
         WaitCommand(0.6).andThen(ConveyorCommand(robotContainer, 0.3))
     )
@@ -34,7 +34,7 @@ def PresetShoot(robotContainer, output=None, angle=None, timeout=2.0):
 
 
 def AutoShoot(robotContainer, timeout=2.0):
-    cmg = PrepareShootCommandGroup(robotContainer, aimMode="camera")
+    cmg = PrepareShootCommandGroup(robotContainer, aimMode="camera", shouldAutoTerminate=True)
     cmg.addCommands(
         WaitUntilCommand(
             lambda: robotContainer.hoodDrive.isHoodReady() and robotContainer.flywheelDrive.isFlywheelReady()).andThen(

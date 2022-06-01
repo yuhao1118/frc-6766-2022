@@ -2,10 +2,9 @@ from commands2 import CommandBase
 from wpilib import Timer
 from wpimath.controller import PIDController
 
-import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
+from lib.utils.axisProfile import AxisProfile
 from lib.utils.tunablenumber import TunableNumber
-from lib.utils.maths import clamp, axisProfile
 
 
 class AutoAimSimple(CommandBase):
@@ -14,18 +13,27 @@ class AutoAimSimple(CommandBase):
 
     输入:
         robotContainer: RobotContainer实例
-        controller=None: 手柄控制器, 默认None
+        shouldAutoTerminate: 是否自动终止
     """
 
-    def __init__(self, robotContainer, controller=None):
+    def __init__(self, robotContainer, io=None, shouldAutoTerminate=False):
         super().__init__()
         super().setName("AutoAimSimple")
         self.robotContainer = robotContainer
-        self.kP = TunableNumber("AutoAimSimple/kP", 0.005)
+
+        self.linearXProfiler = None
+        self.linearXSupplier = None
+
+        if io is not None:
+            self.linearXProfiler = AxisProfile(0.04)
+            self.linearXSupplier = io.getDriveXSupplier()
+
+        self.kP = TunableNumber("AutoAimSimple/kP", 0.007)
         self.kI = TunableNumber("AutoAimSimple/kI", 0.0)
-        self.kD = TunableNumber("AutoAimSimple/kD", 0.0)
+        self.kD = TunableNumber("AutoAimSimple/kD", 0.0005)
         self.tolerenceDegrees = TunableNumber("AutoAimSimple/tolerenceDegrees", 3.0)
-        self.tolerenceTime = TunableNumber("AutoAimSimple/toleranceTime", 0.3)
+        self.tolerenceTime = TunableNumber("AutoAimSimple/toleranceTime", 1.0)
+        self.shouldAutoTerminate = shouldAutoTerminate
 
         self.turnPidController = PIDController(
             self.kP.getDefault(),
@@ -37,18 +45,15 @@ class AutoAimSimple(CommandBase):
         self.turnPidController.setSetpoint(0.0)
 
         self.tolerenceTimer = Timer()
-        self.controller = controller
-
         self.addRequirements(self.robotContainer.robotDrive)
 
     def initialize(self):
-        self.robotContainer.visionControl.setPipeline(0)
         self.turnPidController.reset()
         self.tolerenceTimer.reset()
         self.tolerenceTimer.start()
 
     def execute(self):
-        speeds = WheelSpeedsPercentage(0, 0)
+        speeds = WheelSpeedsPercentage(0.0, 0.0)
 
         if self.kP.hasChanged():
             self.turnPidController.setP(float(self.kP))
@@ -62,22 +67,11 @@ class AutoAimSimple(CommandBase):
         if not self.turnPidController.atSetpoint():
             self.tolerenceTimer.reset()
 
-        if self.controller is not None:
-            linearX = axisProfile(-self.controller.getRawAxis(1))
-            angularZ = axisProfile(self.controller.getRawAxis(4))
-
-            arcadeSpeeds = WheelSpeedsPercentage.fromArcade(
-                linearX, angularZ * constants.kDrivetrainTurnSensitive)
-            curvatureSpeeds = WheelSpeedsPercentage.fromCurvature(
-                linearX, angularZ)
-
-            hybridScale = clamp(
-                abs(linearX) / constants.kCurvatureThreshold, 0, 1)
-            speeds = WheelSpeedsPercentage(
-                curvatureSpeeds.left * hybridScale
-                + arcadeSpeeds.left * (1 - hybridScale),
-                curvatureSpeeds.right * hybridScale
-                + arcadeSpeeds.right * (1 - hybridScale))
+        if self.linearXSupplier is not None:
+            speeds = WheelSpeedsPercentage.fromArcade(
+                self.linearXProfiler.calculate(self.linearXSupplier()),
+                0.0
+            )
 
         # Adjust drivetrain to aim at the hub
         turnSpeed = 0.0
@@ -88,13 +82,14 @@ class AutoAimSimple(CommandBase):
             self.tolerenceTimer.reset()
             self.turnPidController.reset()
 
-        speeds = speeds + WheelSpeedsPercentage.fromArcade(0.0, -turnSpeed)
-        self.robotContainer.robotDrive.tankDrive(speeds.left, speeds.right)
+        finalSpeeds = speeds + WheelSpeedsPercentage.fromArcade(0.0, -turnSpeed)
+        self.robotContainer.robotDrive.tankDrive(finalSpeeds.left, finalSpeeds.right)
 
     def isFinished(self):
-        return self.tolerenceTimer.hasElapsed(self.tolerenceTime.get())
+        if self.shouldAutoTerminate:
+            return self.tolerenceTimer.hasPeriodPassed(self.tolerenceTime.getDefault())
+        return False
 
     def end(self, interrputed):
         self.robotContainer.robotDrive.tankDrive(0, 0)
-        self.robotContainer.visionControl.setPipeline(1)
         self.tolerenceTimer.stop()

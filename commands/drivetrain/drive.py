@@ -1,12 +1,11 @@
-# Implement custom curvature drive
-# Ref: https://github.com/Mechanical-Advantage/RobotCode2022
-
 from commands2 import CommandBase
 
 import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
-from lib.utils.maths import clamp, axisProfile
+from lib.utils.axisProfile import AxisProfile
+from lib.utils.maths import clamp
 from lib.enums.pov import POVEnum
+
 
 class DriveCommand(CommandBase):
     """
@@ -14,30 +13,33 @@ class DriveCommand(CommandBase):
 
     输入:
         robotContainer: RobotContainer实例
-        controller: 底盘Xbox遥控器实例
+        io: 手柄控制io
     """
 
-    def __init__(self, robotContainer, controller):
+    def __init__(self, robotContainer, io):
         super().__init__()
         super().setName("DriveCommand")
         self.robotContainer = robotContainer
-        self.controller = controller
+        self.linearXSupplier = io.getDriveXSupplier()
+        self.angularZSupplier = io.getDriveZSupplier()
+        self.povSupplier = io.getPOVSupplier()
+        self.linearXProfiler = AxisProfile(0.04)
+        self.angularZProfiler = AxisProfile(0.08)
+
         self.addRequirements(self.robotContainer.robotDrive)
 
     def execute(self):
-        linearX =  axisProfile(-self.controller.getRawAxis(1))
-        angularZ =  axisProfile(self.controller.getRawAxis(4))
-        povValue = self.controller.getPOV()
+
+        linearX = self.linearXProfiler.calculate(self.linearXSupplier())
+        angularZ = self.angularZProfiler.calculate(self.angularZSupplier())
+        povValue = self.povSupplier()
 
         arcadeSpeeds = WheelSpeedsPercentage.fromArcade(linearX, angularZ * constants.kDrivetrainTurnSensitive)
         curvatureSpeeds = WheelSpeedsPercentage.fromCurvature(linearX, angularZ)
 
         hybridScale = clamp(abs(linearX) / constants.kCurvatureThreshold, 0, 1)
-        speeds = WheelSpeedsPercentage(
-            curvatureSpeeds.left * hybridScale
-                + arcadeSpeeds.left * (1 - hybridScale),
-            curvatureSpeeds.right * hybridScale
-                + arcadeSpeeds.right * (1 - hybridScale))
+        speeds = WheelSpeedsPercentage(curvatureSpeeds.left * hybridScale + arcadeSpeeds.left * (1 - hybridScale),
+                                       curvatureSpeeds.right * hybridScale + arcadeSpeeds.right * (1 - hybridScale))
 
         if povValue == POVEnum.kUp:
             speeds = WheelSpeedsPercentage.fromArcade(0.2, 0.0)

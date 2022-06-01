@@ -18,6 +18,6 @@ def AutoConveyCommandGroup(robotContainer, reverse=False):
     2. Conveyor传球
     """
     return ParallelCommandGroup(
-        IntakeCommand(robotContainer, -0.5 if reverse else 0.5),
+        IntakeCommand(robotContainer, -0.35 if reverse else 0.35),
         ConveyorCommand(robotContainer, -0.5 if reverse else 0.5),
     )

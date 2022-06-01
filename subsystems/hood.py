@@ -11,13 +11,12 @@ class Hood(SubsystemBase):
     def __init__(self):
         super().__init__()
 
-        self.hood = ctre.TalonFX(constants.kHoodPort)
+        self.hood = ctre.TalonFX(constants.kHoodMotorPort)
         self.hood.configFactoryDefault()
         self.hood.setNeutralMode(ctre.NeutralMode.Coast)
         self.hood.setInverted(constants.kHoodRotate)
 
-        self.hood.configForwardSoftLimitThreshold(
-            constants.kHoodMotorSoftLimitForward, 0)
+        self.hood.configForwardSoftLimitThreshold(constants.kHoodMotorSoftLimitForward, 0)
 
         self.kP = TunableNumber("Hood/kP", 0.60)
         self.kI = TunableNumber("Hood/kI", 0.00)
@@ -88,7 +87,8 @@ class Hood(SubsystemBase):
         if self.closedLoop and self.resetComplete:
             self.hood.set(ctre.ControlMode.Position, self.goalPosition)
 
-            if self.setActive and abs(self.hood.getClosedLoopError()) < int(0.33 / constants.kHoodEncoderDegreesPerPulse):
+            if self.setActive and abs(self.hood.getClosedLoopError()) < \
+                    int(0.33 / constants.kHoodEncoderDegreesPerPulse):
                 self.hoodReady = True
 
     def set(self, output):

@@ -9,7 +9,7 @@ class Intaker(SubsystemBase):
     def __init__(self):
         super().__init__()
 
-        self.intaker = ctre.TalonFX(constants.kIntakePort)
+        self.intaker = ctre.TalonFX(constants.kIntakeMotorPort)
         self.intaker.configFactoryDefault()
         self.intaker.setNeutralMode(ctre.NeutralMode.Brake)
         self.intaker.setInverted(constants.kIntakeRotate)

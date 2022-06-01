@@ -2,9 +2,9 @@ import math
 
 from commands2 import SubsystemBase, RamseteCommand, InstantCommand, SequentialCommandGroup
 
-from wpilib import SerialPort, SmartDashboard, Field2d
+from wpilib import SerialPort, SmartDashboard, Field2d, DriverStation
 from wpimath.kinematics import DifferentialDriveWheelSpeeds
-from wpimath.controller import RamseteController, PIDController, SimpleMotorFeedforwardMeters
+from wpimath.controller import RamseteController, SimpleMotorFeedforwardMeters, PIDController
 import ctre
 
 import constants
@@ -17,11 +17,18 @@ class Drivetrain(SubsystemBase):
 
     def __init__(self):
         super().__init__()
+        self.kP = TunableNumber("Drivetrain/kP", 0.78)
+        self.kI = TunableNumber("Drivetrain/kI", 0.0)
+        self.kD = TunableNumber("Drivetrain/kD", 0.0)
+        self.brakeMode = True
+
         self.feedforwardController = SimpleMotorFeedforwardMeters(
             constants.ksVolts,
             constants.kvVoltSecondsPerMeter,
             constants.kaVoltSecondsSquaredPerMeter,
         )
+        self.leftPIDController = PIDController(self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
+        self.rightPIDController = PIDController(self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
 
         self.field2d = Field2d()  # Display field image in dashboard
 
@@ -32,11 +39,16 @@ class Drivetrain(SubsystemBase):
 
         for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
             motor.configFactoryDefault()
-            motor.setNeutralMode(ctre.NeutralMode.Brake)
+            motor.setNeutralMode(ctre.NeutralMode.Coast)
             motor.configVoltageCompSaturation(constants.kNominalVoltage)
             motor.enableVoltageCompensation(True)
             motor.configPeakOutputForward(constants.kDrivetrainMaxOutput)
             motor.configPeakOutputReverse(-constants.kDrivetrainMaxOutput)
+            # motor.config_kP(0, self.kP.getDefault())
+            # motor.config_kI(0, self.kI.getDefault())
+            # motor.config_kD(0, self.kD.getDefault())
+            # motor.config_kF(0, 0.0)
+            # motor.configClosedloopRamp(0.4)
 
         self.LR_motor.follow(self.LF_motor)
         self.RR_motor.follow(self.RF_motor)
@@ -47,19 +59,9 @@ class Drivetrain(SubsystemBase):
         self.RR_motor.setInverted(ctre.TalonFXInvertType.FollowMaster)
 
         self.resetEncoder()
-        self.setOpenloopRamp(constants.kOpenloopRampRateTeleop)
 
         self.gyro = WitIMU(SerialPort.Port.kUSB)
         self.gyro.calibrate()
-
-        self.kP = TunableNumber("Drivetrain/kP", 0.5)
-        self.kI = TunableNumber("Drivetrain/kI", 0.0)
-        self.kD = TunableNumber("Drivetrain/kD", 0.0)
-
-        self.leftPIDController = PIDController(
-            self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
-        self.rightPIDController = PIDController(
-            self.kP.getDefault(), self.kI.getDefault(), self.kD.getDefault())
 
         self.odometry = DifferentialVOdometry(self.gyro.getRotation2d())
         SmartDashboard.putData("Field2d", self.field2d)
@@ -71,16 +73,30 @@ class Drivetrain(SubsystemBase):
 
     def periodic(self):
         if self.kP.hasChanged():
-            self.leftPIDController.setP(self.kP.get())
-            self.rightPIDController.setP(self.kP.get())
+            # for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
+            #     motor.config_kP(0, float(self.kP))
+            self.leftPIDController.setP(float(self.kP))
+            self.rightPIDController.setP(float(self.kP))
 
         if self.kI.hasChanged():
-            self.leftPIDController.setI(self.kI.get())
-            self.rightPIDController.setI(self.kI.get())
+            # for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
+            #     motor.config_kI(0, float(self.kI))
+            self.leftPIDController.setI(float(self.kI))
+            self.rightPIDController.setI(float(self.kI))
 
         if self.kD.hasChanged():
-            self.leftPIDController.setD(self.kD.get())
-            self.rightPIDController.setD(self.kD.get())
+            # for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
+            #     motor.config_kD(0, float(self.kD))
+            self.leftPIDController.setD(float(self.kD))
+            self.rightPIDController.setD(float(self.kD))
+
+        # Disable时容易推车
+        if DriverStation.getInstance().isEnabled():
+            if not self.getBrakeMode():
+                self.setBrakeMode(True)
+        else:
+            if self.getBrakeMode():
+                self.setBrakeMode(False)
 
         self.odometry.updatePose(
             self.gyro.getRotation2d(),
@@ -91,11 +107,13 @@ class Drivetrain(SubsystemBase):
         self.field2d.setRobotPose(self.getPose())
         self.log()
 
-    def setOpenloopRamp(self, seconds):
-        self.LF_motor.configOpenloopRamp(seconds, 0)
-        self.LR_motor.configOpenloopRamp(seconds, 0)
-        self.RF_motor.configOpenloopRamp(seconds, 0)
-        self.RR_motor.configOpenloopRamp(seconds, 0)
+    def setBrakeMode(self, shouldBrake):
+        self.brakeMode = shouldBrake
+        for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
+            motor.setNeutralMode(ctre.NeutralMode.Brake if shouldBrake else ctre.NeutralMode.Coast)
+
+    def getBrakeMode(self):
+        return self.brakeMode
 
     def resetEncoder(self):
         self.LF_motor.setSelectedSensorPosition(0, 0, 20)
@@ -119,6 +137,24 @@ class Drivetrain(SubsystemBase):
     def tankDriveVolts(self, leftVolts, rightVolts):
         self.tankDrive(leftVolts / 12, rightVolts / 12)
 
+    # def tankDriveVelocity(self, leftVelocity, rightVelocity):
+    #     leftFF = self.feedforwardController.calculate(leftVelocity) / constants.kNominalVoltage
+    #     rightFF = self.feedforwardController.calculate(rightVelocity) / constants.kNominalVoltage
+    #     leftVelocity = leftVelocity / constants.kDrivetrainEncoderDistancePerPulse / 10
+    #     rightVelocity = rightVelocity / constants.kDrivetrainEncoderDistancePerPulse / 10
+    #
+    #     self.LF_motor.set(
+    #         ctre.TalonFXControlMode.Velocity, leftVelocity, ctre.DemandType.ArbitraryFeedForward, leftFF)
+    #     self.RF_motor.set(
+    #         ctre.TalonFXControlMode.Velocity, rightVelocity, ctre.DemandType.ArbitraryFeedForward, rightFF)
+
+    def tankDriveVelocity(self, leftVelocity, rightVelocity):
+        leftFF = self.feedforwardController.calculate(leftVelocity)
+        rightFF = self.feedforwardController.calculate(rightVelocity)
+        leftVolts = self.leftPIDController.calculate(self.getLeftEncoderSpeed(), leftVelocity) + leftFF
+        rightVolts = self.rightPIDController.calculate(self.getRightEncoderSpeed(), rightVelocity) + rightFF
+        self.tankDriveVolts(leftVolts, rightVolts)
+
     ############## Getter functions ##############
     def getTrajectoryCommand(self, trajectory, shouldInitPose=True):
 
@@ -135,6 +171,14 @@ class Drivetrain(SubsystemBase):
             self.tankDriveVolts,
             [self],
         )
+        # ramseteCommand = RamseteCommand(
+        #     trajectory,
+        #     self.getPose,
+        #     RamseteController(constants.kRamseteB, constants.kRamseteZeta),
+        #     constants.kDriveKinematics,
+        #     self.tankDriveVelocity,
+        #     [self]
+        # )
 
         def beforeStart():
             self.field2d.getObject("traj").setTrajectory(trajectory)

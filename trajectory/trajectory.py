@@ -2,7 +2,6 @@ from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 from wpimath.trajectory import TrajectoryGenerator, TrajectoryConfig
 from wpimath.trajectory.constraint import DifferentialDriveVoltageConstraint
 from wpimath.controller import SimpleMotorFeedforwardMeters
-import os
 
 import constants
 from lib.utils.trajectory import getTrajectoryFromFile

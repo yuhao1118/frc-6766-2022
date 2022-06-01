@@ -44,7 +44,6 @@ class DebugAutoAim(CommandBase):
         self.addRequirements(self.robotContainer.robotDrive)
 
     def initialize(self):
-        self.robotContainer.visionControl.setPipeline(1)
         self.turnPidController.reset()
         self.tolerenceTimer.reset()
         self.tolerenceTimer.start()

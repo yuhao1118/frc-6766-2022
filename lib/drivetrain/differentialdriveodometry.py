@@ -4,16 +4,18 @@ from wpilib import Timer
 from collections import OrderedDict
 import math
 
+from lib.utils.maths import clamp
+
 
 class DifferentialVOdometry(DifferentialDriveOdometry):
     historyLengthSecs = 1.0
-    visionShiftPerSec = 0.999
+    visionShiftPerSec = 0.85
     visionMaxAngularVelocity = math.radians(180.0)
     nomainalFramerate = 22
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.driveDataCapacity = 100
+        self.driveDataCapacity = 50
         self.driveData = OrderedDict()
 
         # Flags
@@ -24,18 +26,20 @@ class DifferentialVOdometry(DifferentialDriveOdometry):
         self.nomainalFramerate = framerate
 
     def addVisionMeasurement(self, timestamp, translation):
-        res = self.driveData.get(timestamp)
+        res = self.getDrivedata(timestamp)
         if res is None:
-            print("No historical drive pose", timestamp)
             return
-        historicalDrivePose, _, historicalAngularVelocity, _, _ = res
 
-        angularErrorScale = abs(historicalAngularVelocity) / self.visionMaxAngularVelocity
+        latestDriveData = next(reversed(self.driveData.items()))
+        if latestDriveData is None:
+            return
+
+        historicalDrivePose, _, historicalAngularVelocity, _, _ = res
+        currentPose, currentGyroRotation, _, currentLeftDistanceMeters, currentRightDistanceMeters = latestDriveData[1]
+
+        angularErrorScale = clamp(abs(historicalAngularVelocity) / self.visionMaxAngularVelocity, 0.0, 1.0)
         visionShift = 1 - math.pow(1 - self.visionShiftPerSec, 1 / self.nomainalFramerate)
         visionShift *= 1 - angularErrorScale
-
-        currentPose, currentGyroRotation, _, currentLeftDistanceMeters, currentRightDistanceMeters = next(
-            reversed(self.driveData.items()))
 
         # Estimate correct current pose
         fieldToVisionField = translation - historicalDrivePose.translation()
@@ -64,14 +68,20 @@ class DifferentialVOdometry(DifferentialDriveOdometry):
         if len(self.driveData) > self.driveDataCapacity:
             self.driveData.popitem(last=False)
 
-    def getTimestampedPose(self, timestamp):
+    def getDrivedata(self, timestamp):
         res = self.driveData.get(timestamp)
-        if res is not None:
-            historicalDrivePose, _, _, _, _ = res
-            return historicalDrivePose
+        if res is None:
+            for i in self.driveData.keys():
+                if timestamp - i <= 0.01:
+                    return self.driveData[i]
+            print("No historical drive pose", timestamp)
+        else:
+            return res
 
     def getDistanceToTarget(self, target):
         return (self.getPose().translation() - target).norm()
 
     def getDriveRotation(self, timestamp):
-        return self.getTimestampedPose(timestamp).rotation()
+        res = self.getDrivedata(timestamp)
+        if res is not None:
+            return res[0].rotation()
