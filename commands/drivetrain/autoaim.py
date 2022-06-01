@@ -1,9 +1,8 @@
-import math
-
 from commands2 import CommandBase
 from wpilib import Timer
-from wpimath.controller import PIDController
+from wpimath.controller import ProfiledPIDController
 from wpimath.geometry import Rotation2d
+from wpimath.trajectory import TrapezoidProfile
 
 import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
@@ -22,7 +21,12 @@ class AutoAim(CommandBase):
 
     输入:
         robotContainer: RobotContainer实例
+        io: 手柄IO实例
+        shouldAutoTerminate: 是否自动终止
     """
+
+    maxDegreesVelocityPerSecond = 360
+    maxDegreesAccelerationPerSecond = 360
 
     def __init__(self, robotContainer, io=None, shouldAutoTerminate=True):
         super().__init__()
@@ -40,15 +44,15 @@ class AutoAim(CommandBase):
         self.kI = TunableNumber("AutoAim/kI", 0.0)
         self.kD = TunableNumber("AutoAim/kD", 0.0005)
         self.integralMaxError = TunableNumber("AutoAim/IntegralMaxError", 0.0)
-        self.minVelocity = TunableNumber("AutoAim/MinVelocity", 0.0)
         self.tolerenceDegrees = TunableNumber("AutoAim/tolerenceDegrees", 3.0)
         self.tolerenceTime = TunableNumber("AutoAim/toleranceTime", 0.3)
         self.shouldAutoTerminate = shouldAutoTerminate
 
-        self.turnPidController = PIDController(
+        self.turnPidController = ProfiledPIDController(
             self.kP.getDefault(),
             self.kI.getDefault(),
-            self.kD.getDefault()
+            self.kD.getDefault(),
+            TrapezoidProfile.Constraints(self.maxDegreesVelocityPerSecond, self.maxDegreesAccelerationPerSecond)
         )
         self.turnPidController.setTolerance(positionTolerance=self.tolerenceDegrees.getDefault())
         self.turnPidController.enableContinuousInput(-180.0, 180.0)
@@ -58,7 +62,6 @@ class AutoAim(CommandBase):
         self.addRequirements(self.robotContainer.robotDrive)
 
     def initialize(self):
-        self.turnPidController.reset()
         self.tolerenceTimer.reset()
         self.tolerenceTimer.start()
 
@@ -74,7 +77,7 @@ class AutoAim(CommandBase):
         if self.tolerenceDegrees.hasChanged():
             self.turnPidController.setTolerance(positionTolerance=float(self.tolerenceDegrees))
 
-        self.turnPidController.setSetpoint(
+        self.turnPidController.setGoal(
             getTargetRotation(self.robotContainer.odometry.getPose().translation()).degrees()
         )
 
@@ -94,9 +97,6 @@ class AutoAim(CommandBase):
 
         # Adjust drivetrain to aim at the hub
         turnSpeed = self.turnPidController.calculate(self.robotContainer.odometry.getPose().rotation().degrees())
-        if abs(turnSpeed) < float(self.minVelocity):
-            turnSpeed = math.copysign(float(self.minVelocity), turnSpeed)
-
         finalSpeeds = speeds + WheelSpeedsPercentage.fromArcade(
             -self.robotContainer.driverController.getLeftY(), -turnSpeed)
         self.robotContainer.robotDrive.tankDrive(finalSpeeds.left, finalSpeeds.right)

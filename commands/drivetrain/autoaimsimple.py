@@ -1,6 +1,7 @@
 from commands2 import CommandBase
 from wpilib import Timer
-from wpimath.controller import PIDController
+from wpimath.controller import ProfiledPIDController
+from wpimath.trajectory import TrapezoidProfile
 
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
 from lib.utils.axisProfile import AxisProfile
@@ -13,8 +14,11 @@ class AutoAimSimple(CommandBase):
 
     输入:
         robotContainer: RobotContainer实例
+        io: 手柄IO实例
         shouldAutoTerminate: 是否自动终止
     """
+    maxDegreesVelocityPerSecond = 360
+    maxDegreesAccelerationPerSecond = 360
 
     def __init__(self, robotContainer, io=None, shouldAutoTerminate=False):
         super().__init__()
@@ -35,20 +39,20 @@ class AutoAimSimple(CommandBase):
         self.tolerenceTime = TunableNumber("AutoAimSimple/toleranceTime", 1.0)
         self.shouldAutoTerminate = shouldAutoTerminate
 
-        self.turnPidController = PIDController(
+        self.turnPidController = ProfiledPIDController(
             self.kP.getDefault(),
             self.kI.getDefault(),
-            self.kD.getDefault()
+            self.kD.getDefault(),
+            TrapezoidProfile.Constraints(self.maxDegreesVelocityPerSecond, self.maxDegreesAccelerationPerSecond)
         )
         self.turnPidController.setTolerance(positionTolerance=self.tolerenceDegrees.getDefault())
         self.turnPidController.enableContinuousInput(-180.0, 180.0)
-        self.turnPidController.setSetpoint(0.0)
+        self.turnPidController.setGoal(0.0)
 
         self.tolerenceTimer = Timer()
         self.addRequirements(self.robotContainer.robotDrive)
 
     def initialize(self):
-        self.turnPidController.reset()
         self.tolerenceTimer.reset()
         self.tolerenceTimer.start()
 
@@ -80,7 +84,7 @@ class AutoAimSimple(CommandBase):
             turnSpeed = self.turnPidController.calculate(xOffset)
         else:
             self.tolerenceTimer.reset()
-            self.turnPidController.reset()
+            self.turnPidController.reset(0.0)
 
         finalSpeeds = speeds + WheelSpeedsPercentage.fromArcade(0.0, -turnSpeed)
         self.robotContainer.robotDrive.tankDrive(finalSpeeds.left, finalSpeeds.right)
