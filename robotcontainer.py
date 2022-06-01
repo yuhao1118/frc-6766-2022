@@ -24,7 +24,7 @@ from commands.shoot.flywheel import FlywheelCommand
 from commands.shoot.hood import HoodCommand
 from commands.drivetrain.drive import DriveCommand
 from commands.drivetrain.debugdrive import DebugDrive
-from commands.drivetrain.debugautoaim import DebugAutoAim
+from commands.drivetrain.turntoangleprofile import TurnToAngleProfile
 from commands.drivetrain.autoaim import AutoAim
 from commands.drivetrain.autoaimsimple import AutoAimSimple
 from commands.shoot.resethood import ResetHoodCommandGroup
@@ -69,7 +69,7 @@ class RobotContainer:
         SmartDashboard.putData("Auto Command Chooser", self.autoCommandChooser)
 
         self.debugCommandDict = {
-            "DebugAutoAim": DebugAutoAim(self),
+            "DebugAutoAim": TurnToAngleProfile(self),
             "AutoAim": AutoAim(self, shouldAutoTerminate=True),
             "AutoAimSimple": AutoAimSimple(self, shouldAutoTerminate=True),
             "DebugDrive": DebugDrive(self),
