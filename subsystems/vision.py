@@ -1,4 +1,5 @@
 from commands2 import SubsystemBase
+from wpilib import RobotState
 from wpimath.geometry import Rotation2d, Transform2d, Pose2d, Translation2d
 from wpimath.filter import LinearFilter
 import math
@@ -110,6 +111,10 @@ class Vision(SubsystemBase):
         return self.targetRes.hasTargets()
 
     def processFrame(self, targetCount):
+        # 在自动阶段不使用视觉对里程计进行修正
+        if RobotState.isAutonomous():
+            return
+
         if self.odometry is None:
             return
 

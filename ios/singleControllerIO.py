@@ -53,3 +53,4 @@ class SingleControllerIO(IO2022):
 
     def getDebugButton(self):
         return Trigger(self.controller.getLeftStickButton)
+    
