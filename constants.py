@@ -30,8 +30,8 @@ kLeftMotor1Port = 6
 kLeftMotor2Port = 7
 kRightMotor1Port = 8
 kRightMotor2Port = 9
-kLeftClimbMotorPort = 13
-kRightClimbMotorPort = 14
+kLeftClimbMotorPort = 14
+kRightClimbMotorPort = 13
 kLeftClimbArmMotorPort = 15
 kRightClimbArmMotorPort = 16
 kShooteMotorPort = 10
@@ -43,8 +43,8 @@ kIntakeMotorPort = 12
 # 电机旋转方向
 kLeftMotorRotate = TalonFXInvertType.Clockwise                  # 底盘左电机旋转方向
 kRightMotorRotate = TalonFXInvertType.CounterClockwise          # 底盘右电机旋转方向
-kLeftClimbMotorRotate = TalonFXInvertType.CounterClockwise      # 左爬升电机旋转方向
-kRightClimbMotorRotate = TalonFXInvertType.Clockwise            # ➡️爬升电机旋转方向
+kLeftClimbMotorRotate = TalonFXInvertType.Clockwise             # 左爬升电机旋转方向
+kRightClimbMotorRotate = TalonFXInvertType.CounterClockwise     # 右爬升电机旋转方向
 kLeftCLimbArmMotorRotate = TalonFXInvertType.Clockwise          # 左爬升摇臂电机旋转方向
 kRightCLimbArmMotorRotate = TalonFXInvertType.OpposeMaster      # 又爬升摇臂电机旋转方向
 kShooterRotate = TalonFXInvertType.Clockwise                    # 射球电机旋转方向
@@ -78,7 +78,7 @@ kClimbMotorThresholdCurrent = 60
 kClimbMotorThresholdDuration = 0.8
 ## 爬升电机软限位 (以伸缩杆完全收紧时为基准)
 kClimbMotorSoftLimitForward = 0                                     # (脉冲) 前向限位
-kClimbMotorSoftLimitReverse = -345000                               # (脉冲) 后向限位
+kClimbMotorSoftLimitReverse = -355000                               # (脉冲) 后向限位
 ## 射球罩电机软限位 (以射球罩完全收起时为基准)
 kHoodMotorSoftLimitForward = 20 / kHoodEncoderDegreesPerPulse       # (°) 前向限位
 
@@ -91,9 +91,9 @@ kDrivetrainTurnSensitive = 0.3                                      # 转向灵�
 kDrivetrainMaxOutput = 0.8                                          # 底盘最大输出
 kDrivetrainMotorCount = 4                                           # 底盘电机数量
 ## 底盘前向控制常量, 由Sysid工具计算得到
-ksVolts = 0.15
-kvVoltSecondsPerMeter = 2.2941
-kaVoltSecondsSquaredPerMeter = 0.31198
+ksVolts = 0.6191
+kvVoltSecondsPerMeter = 2.3148
+kaVoltSecondsSquaredPerMeter = 0.2779
 ## 自动路径规划时的最大速度和加速度
 kMaxSpeedMetersPerSecond = 3.0
 kMaxAccelerationMetersPerSecondSquared = 1.5

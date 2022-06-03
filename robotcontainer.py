@@ -24,7 +24,7 @@ from commands.shoot.flywheel import FlywheelCommand
 from commands.shoot.hood import HoodCommand
 from commands.drivetrain.drive import DriveCommand
 from commands.drivetrain.debugdrive import DebugDrive
-from commands.drivetrain.turntoangleprofile import TurnToAngleProfile
+from commands.drivetrain.turntoangle import TurnToAngle
 from commands.drivetrain.autoaim import AutoAim
 from commands.drivetrain.autoaimsimple import AutoAimSimple
 from commands.shoot.resethood import ResetHoodCommandGroup
@@ -69,7 +69,7 @@ class RobotContainer:
         SmartDashboard.putData("Auto Command Chooser", self.autoCommandChooser)
 
         self.debugCommandDict = {
-            "DebugAutoAim": TurnToAngleProfile(self),
+            "DebugAutoAim": TurnToAngle(self),
             "AutoAim": AutoAim(self, shouldAutoTerminate=True),
             "AutoAimSimple": AutoAimSimple(self, shouldAutoTerminate=True),
             "DebugDrive": DebugDrive(self),
@@ -99,41 +99,30 @@ class RobotContainer:
                                                                               aimMode="camera",
                                                                               io=self.io,
                                                                               shouldAutoTerminate=False))
-
         # (按住) 里程计自瞄 (同时可以前后移动)
         self.io.getGlobalAimButton().whileActiveOnce(PrepareShootCommandGroup(self,
                                                                               aimMode="odometry",
                                                                               io=self.io,
                                                                               shouldAutoTerminate=False))
-
         # (按住) 摇臂向车头
         self.io.getClimbArmForwardButton().whileActiveOnce(ArmCommand(self, 0.15).perpetually())
-
         # (按住) 摇臂向车尾
         self.io.getClimbArmBackwardButton().whileActiveOnce(ArmCommand(self, -0.15).perpetually())
-
         # (按住) 爬升, <缩>伸缩杆
         self.io.getClimbElevatorUpButton().whileActiveOnce(ElevatorCommand(self, 1.0).perpetually())
-
         # (按住) 爬升, <升>伸缩杆
         self.io.getClimbElevatorDownButton().whileActiveOnce(ElevatorCommand(self, -1.0).perpetually())
-
+        # (切换) 调试指令
         if constants.tuningMode:
-            # 调试指令
-            self.io.getDebugButton().toggleWhenActive(self.debugCommandDict["DebugDrive"])
-
+            self.io.getDebugButton().toggleWhenActive(self.debugCommandDict["DebugAutoAim"])
         # (按一下) 射球
         self.io.getShootButton().whenActive(ManualShoot(self))
-
         # (按住) 开/关 Intake, 按住时打开Intake, 松手自动收起
         self.io.getIntakerButton().whileActiveOnce(PneumaticCommand(self, True).perpetually())
-
         # (按住) 吸球并传球
         self.io.getCargoIntakeButton().whileActiveOnce(AutoConveyCommandGroup(self).perpetually()
                                                        ).whenInactive(ConveyorCommand(self, -0.2).withTimeout(0.20))
-
         # (按住) 退球并吐球
         self.io.getCargoOuttakeButton().whileActiveOnce(AutoConveyCommandGroup(self, reverse=True))
-
         # (切换) 开/关 压缩机
         self.io.getCompressorButton().toggleWhenActive(CompressorCommand(self))

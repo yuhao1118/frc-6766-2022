@@ -8,13 +8,10 @@ from wpiutil import PortForwarder
 from robotcontainer import RobotContainer
 import constants
 
-from lib.utils.tunablenumber import TunableNumber
-
 
 class MyRobot(commands2.TimedCommandRobot):
     """
-    Our default robot class, pass it to wpilib.run
-
+    Our default robot class, pass it to wpilib.run.
     Command v2 robots are encouraged to inherit from TimedCommandRobot, which
     has an implementation of robotPeriodic which runs the scheduler for you
     """

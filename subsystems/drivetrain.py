@@ -44,6 +44,7 @@ class Drivetrain(SubsystemBase):
             motor.enableVoltageCompensation(True)
             motor.configPeakOutputForward(constants.kDrivetrainMaxOutput)
             motor.configPeakOutputReverse(-constants.kDrivetrainMaxOutput)
+            motor.configOpenloopRamp(0.4)
             # motor.config_kP(0, self.kP.getDefault())
             # motor.config_kI(0, self.kI.getDefault())
             # motor.config_kD(0, self.kD.getDefault())
@@ -70,6 +71,10 @@ class Drivetrain(SubsystemBase):
         SmartDashboard.putNumber("Left Encoder Speed", self.getLeftEncoderSpeed())
         SmartDashboard.putNumber("Right Encoder Speed", self.getRightEncoderSpeed())
         SmartDashboard.putNumber("Heading", self.gyro.getAngle())
+
+    def setOpenloopRamp(self, seconds):
+        for motor in [self.LF_motor, self.LR_motor, self.RF_motor, self.RR_motor]:
+            motor.configOpenloopRamp(seconds)
 
     def periodic(self):
         if self.kP.hasChanged():
@@ -182,8 +187,13 @@ class Drivetrain(SubsystemBase):
 
         def beforeStart():
             self.field2d.getObject("traj").setTrajectory(trajectory)
+            self.setOpenloopRamp(0.1)
             if shouldInitPose:
                 self.resetOdometry(trajectory.initialPose())
+
+        def afterFinish():
+            self.tankDriveVolts(0.0)
+            self.setOpenloopRamp(0.4)
 
         if shouldInitPose:
             return SequentialCommandGroup(
@@ -194,7 +204,7 @@ class Drivetrain(SubsystemBase):
 
         return SequentialCommandGroup(
             ramseteCommand,
-            InstantCommand(lambda: self.tankDriveVolts(0, 0))
+            InstantCommand(afterFinish)
         )
 
     def getPose(self):
