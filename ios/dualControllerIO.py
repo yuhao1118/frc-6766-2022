@@ -37,11 +37,8 @@ class DualControllerIO(IO2022):
     def getClimbArmBackwardButton(self):
         return Trigger(self.driverController.getXButton)
 
-    def getClimbElevatorUpButton(self):
-        return Trigger(self.driverController.getYButton)
-
-    def getClimbElevatorDownButton(self):
-        return Trigger(self.driverController.getAButton)
+    def getClimbElevatorPressSupplier(self):
+        return self.driverController.getYButtonPressed
 
     def getPOVSupplier(self):
         return self.driverController.getPOV
@@ -54,3 +51,4 @@ class DualControllerIO(IO2022):
 
     def getDebugButton(self):
         return Trigger(self.driverController.getStartButton)
+

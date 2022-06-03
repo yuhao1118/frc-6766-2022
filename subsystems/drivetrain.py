@@ -109,8 +109,8 @@ class Drivetrain(SubsystemBase):
             self.getLeftEncoderDistance(),
             self.getRightEncoderDistance()
         )
-        self.field2d.setRobotPose(self.getPose())
-        self.log()
+        # self.field2d.setRobotPose(self.getPose())
+        # self.log()
 
     def setBrakeMode(self, shouldBrake):
         self.brakeMode = shouldBrake
@@ -192,7 +192,7 @@ class Drivetrain(SubsystemBase):
                 self.resetOdometry(trajectory.initialPose())
 
         def afterFinish():
-            self.tankDriveVolts(0.0)
+            self.tankDriveVolts(0.0, 0.0)
             self.setOpenloopRamp(0.4)
 
         if shouldInitPose:

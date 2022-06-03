@@ -1,76 +1,41 @@
 #!/usr/bin/env python3
 
-import typing
 import wpilib
 import commands2
-from wpiutil import PortForwarder
 
 from robotcontainer import RobotContainer
-import constants
 
 
 class MyRobot(commands2.TimedCommandRobot):
-    """
-    Our default robot class, pass it to wpilib.run.
-    Command v2 robots are encouraged to inherit from TimedCommandRobot, which
-    has an implementation of robotPeriodic which runs the scheduler for you
-    """
+    autonomousCommand = None
+    container = None
 
-    autonomousCommand: typing.Optional[commands2.Command] = None
-
-    def robotInit(self) -> None:
-        """
-        This function is run when the robot is first started up and should be used for any
-        initialization code.
-        """
-
-        # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
-        # autonomous chooser on the dashboard.
-        # noinspection PyAttributeOutsideInit
+    def robotInit(self):
         self.container = RobotContainer()
 
-        # Forward the limelight/photonvision port so that it can be accessed via USB-B cable.
-        # 将limelight/photonvision的端口转发到Roborio网络服务器, 这样就可以通过USB-B线访问.
-        try:
-            PortForwarder.getInstance().add(5800, constants.kLimelightIp, 5800)
-            PortForwarder.getInstance().add(5801, constants.kLimelightIp, 5801)
-        except Exception as e:
-            print("Port Forwarder Not Connected!")
-            print(repr(e))
-
-    def disabledInit(self) -> None:
-        """This function is called once each time the robot enters Disabled mode."""
+    def disabledInit(self):
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
 
-    def disabledPeriodic(self) -> None:
-        """This function is called periodically when disabled"""
+    def disabledPeriodic(self):
+        pass
 
-    def autonomousInit(self) -> None:
-        """This autonomous runs the autonomous command selected by your RobotContainer class."""
-        self.autonomousCommand = self.container.getAutonomousCommand()
-
-        if self.autonomousCommand:
-            self.autonomousCommand.schedule()
-
-    def autonomousPeriodic(self) -> None:
-        """This function is called periodically during autonomous"""
-
-    def teleopInit(self) -> None:
-        # This makes sure that the autonomous stops running when
-        # teleop starts running. If you want the autonomous to
-        # continue until interrupted by another command, remove
-        # this line or comment it out.
-        if self.autonomousCommand:
-            self.autonomousCommand.cancel()
-
+    def autonomousInit(self):
+        self.container.getAutonomousCommand().schedule()
         self.container.getResetCommand().schedule()
+        self.container.getStateMachineCommand().schedule()
 
-    def teleopPeriodic(self) -> None:
-        """This function is called periodically during operator control"""
+    def autonomousPeriodic(self):
+        pass
 
-    def testInit(self) -> None:
-        # Cancels all running commands at the start of test mode
+    def teleopInit(self):
+        if self.autonomousCommand:
+            self.autonomousCommand.cancel()
+
+    def teleopPeriodic(self):
+        pass
+
+    def testInit(self):
         commands2.CommandScheduler.getInstance().cancelAll()
 
 
