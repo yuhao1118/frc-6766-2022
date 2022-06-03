@@ -29,10 +29,7 @@ class IO2022(ABC):
     def getClimbArmBackwardButton(self):
         pass
 
-    def getClimbElevatorUpButton(self):
-        pass
-
-    def getClimbElevatorDownButton(self):
+    def getClimbElevatorPressSupplier(self):
         pass
 
     def getPOVSupplier(self):

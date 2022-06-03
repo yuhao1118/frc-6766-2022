@@ -36,12 +36,6 @@ class SingleControllerIO(IO2022):
     def getClimbArmBackwardButton(self):
         return Trigger(lambda: self.controller.getLeftTriggerAxis() > 0.95)
 
-    def getClimbElevatorUpButton(self):
-        return Trigger(self.controller.getStartButton)
-
-    def getClimbElevatorDownButton(self):
-        return Trigger(self.controller.getBackButton)
-
     def getPOVSupplier(self):
         return self.controller.getPOV
 
@@ -53,4 +47,7 @@ class SingleControllerIO(IO2022):
 
     def getDebugButton(self):
         return Trigger(self.controller.getLeftStickButton)
+
+    def getClimbElevatorPressSupplier(self):
+        return self.controller.getStartButtonPressed
     

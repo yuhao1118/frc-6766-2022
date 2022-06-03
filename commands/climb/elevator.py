@@ -1,5 +1,7 @@
 from commands2 import CommandBase
 
+from subsystems.elevator import ElevatorState
+
 
 class ElevatorCommand(CommandBase):
     """
@@ -7,22 +9,32 @@ class ElevatorCommand(CommandBase):
 
     输入:
         robotContainer: RobotContainer实例
+        io: 手柄IO实例
         output: 输出值, 取值范围-1.0~1.0, 正输入为爬升(<收>伸缩杆), 负输入为下降(<升>伸缩杆)
     """
 
-    def __init__(self, robotContainer, output):
+    def __init__(self, robotContainer, io):
         super().__init__()
         super().setName("ElevatorCommand")
-        self.robotContainer = robotContainer
-        self.output = output
-        self.addRequirements(self.robotContainer.elevatorDrive)
+        self.stateSwitchBtnSupplier = io.getClimbElevatorPressSupplier()
+        self.elevatorDrive = robotContainer.elevatorDrive
 
     def execute(self):
-        self.robotContainer.elevatorDrive.set(self.output)
+        curState = self.elevatorDrive.getState()
+
+        if self.stateSwitchBtnSupplier():
+            if curState == ElevatorState.RESETTING:
+                self.elevatorDrive.setState(ElevatorState.IDLE)
+            elif curState == ElevatorState.IDLE:
+                self.elevatorDrive.setState(ElevatorState.EXTENDING)
+            elif curState == ElevatorState.EXTENDING:
+                self.elevatorDrive.setState(ElevatorState.RETRACTING)
+            elif curState == ElevatorState.RETRACTING or curState == ElevatorState.HOLDING:
+                self.elevatorDrive.setState(ElevatorState.IDLE)
+
+        if self.elevatorDrive.isRetracted() and self.elevatorDrive.getState() == ElevatorState.RETRACTING:
+            self.elevatorDrive.setState(ElevatorState.HOLDING)
 
     def isFinished(self):
         return False
 
-    def end(self, interrupted):
-        # self.robotContainer.elevatorDrive.holdAtHere()
-        self.robotContainer.elevatorDrive.set(0.0)

@@ -1,12 +1,22 @@
-from commands2 import SubsystemBase
-from wpilib import SmartDashboard, DriverStation, Timer
-from lib.utils.tunablenumber import TunableNumber
+from enum import Enum
+
+from wpilib import SmartDashboard, DriverStation
+from commands2 import FunctionalCommand, StartEndCommand, InstantCommand
+from lib.statefulsubsystem import StatefulSubsystem
 
 import ctre
 import constants
 
 
-class Elevator(SubsystemBase):
+class ElevatorState(Enum):
+    IDLE = "idle"
+    EXTENDING = "extending"
+    RETRACTING = "retracting"
+    HOLDING = "holding"
+    RESETTING = "resetting"
+
+
+class Elevator(StatefulSubsystem):
 
     def __init__(self):
         super().__init__()
@@ -44,16 +54,38 @@ class Elevator(SubsystemBase):
                                                  ctre.LimitSwitchNormal.NormallyOpen)
             motor.overrideLimitSwitchesEnable(True)
 
-        self.resetActive = False
-        self.resetComplete = True
-        self.resetGraceTimer = Timer()
-
-        self.resetGraceTimer.start()
-
-        self.holdActive = False
-        self.holdPosition = 0.0
-
+        self.isLeftFwdSwitchClose, self.isRightFwdSwitchClose = False, False
+        self.initStates()
         SmartDashboard.putData("Elevator", self)
+
+    def initStates(self):
+        self.addStateAction(ElevatorState.IDLE, InstantCommand(
+            lambda: self.set(0.0),
+            [self]
+        ), default=True)
+        self.addStateAction(ElevatorState.EXTENDING, StartEndCommand(
+            lambda: self.set(-1.0),
+            lambda: self.set(0.0),
+            [self]
+        ))
+        self.addStateAction(ElevatorState.RETRACTING, StartEndCommand(
+            lambda: self.set(1.0),
+            lambda: self.set(0.0),
+            [self]
+        ))
+        self.addStateAction(ElevatorState.HOLDING, StartEndCommand(
+            lambda: self.set(0.08),
+            lambda: self.set(0.0),
+            [self]
+        ))
+        self.addStateAction(ElevatorState.RESETTING, FunctionalCommand(
+            self.resetInit,
+            self.resetExecute,
+            self.resetEnd,
+            self.isRetracted,
+            [self]
+        ))
+        super().initStates()
 
     def log(self):
         SmartDashboard.putNumber("Elevator Distance", self.getClimbEncoderDistance())
@@ -61,48 +93,51 @@ class Elevator(SubsystemBase):
 
     def periodic(self):
         # self.log()
-        if not self.resetComplete:
-            if DriverStation.getInstance().isEnabled():
-                if not self.resetActive:
-                    self.resetActive = True
-                    self.resetGraceTimer.reset()
-                    self.set(0.5)
-                else:
-                    if bool(self.L_motor.isFwdLimitSwitchClosed()) and not bool(self.R_motor.isFwdLimitSwitchClosed()):
-                        self.set(0.0, 0.5)
+        self.isLeftFwdSwitchClose = bool(self.L_motor.isFwdLimitSwitchClosed())
+        self.isRightFwdSwitchClose = bool(self.R_motor.isFwdLimitSwitchClosed())
 
-                    if not bool(self.L_motor.isFwdLimitSwitchClosed()) and bool(self.R_motor.isFwdLimitSwitchClosed()):
-                        self.set(0.5, 0.0)
+        if self.isRetracted():
+            self.resetEncoder()
 
-                    if bool(self.L_motor.isFwdLimitSwitchClosed()) and bool(self.R_motor.isFwdLimitSwitchClosed()):
-                        self.set(0.0, 0.0)
-                        self.resetComplete = True
-                        self.resetActive = False
-                        self.resetGraceTimer.reset()
-                        self.resetEncoder()
+        if self.hasChanged():
+            print("Switch to", self.getState())
+            self.getStateAction(self.getState()).schedule()
 
     def set(self, output, rightOutput=None):
-        self.holdActive = False
+        print("Elevator set", output, rightOutput)
+        _leftOutput, _rightOutput = output, output
 
-        leftOutput, rightOutput = output, output
         if rightOutput is not None:
-            rightOutput = rightOutput
+            _rightOutput = rightOutput
 
-        self.L_motor.set(ctre.ControlMode.PercentOutput, leftOutput)
-        self.R_motor.set(ctre.ControlMode.PercentOutput, rightOutput)
+        self.L_motor.set(ctre.ControlMode.PercentOutput, _leftOutput)
+        self.R_motor.set(ctre.ControlMode.PercentOutput, _rightOutput)
 
     def resetEncoder(self):
         self.L_motor.setSelectedSensorPosition(0, 0, 20)
         self.R_motor.setSelectedSensorPosition(0, 0, 20)
 
-        self.L_motor.configReverseSoftLimitEnable(True)
-        self.R_motor.configReverseSoftLimitEnable(True)
-
-    def reset(self):
+    def resetInit(self):
         self.L_motor.configReverseSoftLimitEnable(False)
         self.R_motor.configReverseSoftLimitEnable(False)
+        if DriverStation.getInstance().isEnabled():
+            self.set(0.5)
 
-        self.resetComplete = False
+    def resetExecute(self):
+        if DriverStation.getInstance().isEnabled():
+            if self.isLeftFwdSwitchClose and not self.isRightFwdSwitchClose:
+                self.set(0.0, 0.5)
+            elif not self.isLeftFwdSwitchClose and self.isRightFwdSwitchClose:
+                self.set(0.5, 0.0)
+
+    def isRetracted(self):
+        return DriverStation.getInstance().isDisabled() or (self.isLeftFwdSwitchClose and self.isRightFwdSwitchClose)
+
+    def resetEnd(self, interrupted):
+        self.setState(ElevatorState.IDLE)
+        self.resetEncoder()
+        self.L_motor.configReverseSoftLimitEnable(True)
+        self.R_motor.configReverseSoftLimitEnable(True)
 
     def getClimbEncoderDistance(self):
         return (self.L_motor.getSelectedSensorPosition() + self.R_motor.getSelectedSensorPosition()) / 2

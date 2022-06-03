@@ -93,6 +93,11 @@ class RobotContainer:
     def getResetCommand(self):
         return ParallelCommandGroup(ResetHoodCommandGroup(self), ResetElevatorCommand(self)).withTimeout(2.0)
 
+    def getStateMachineCommand(self):
+        return ParallelCommandGroup(
+            ElevatorCommand(self, self.io)
+        )
+
     def configureButtons(self):
         # (按住) 摄像头自瞄 (同时可以前后移动)
         self.io.getSimpleAimButton().whileActiveOnce(PrepareShootCommandGroup(self,
@@ -108,10 +113,6 @@ class RobotContainer:
         self.io.getClimbArmForwardButton().whileActiveOnce(ArmCommand(self, 0.15).perpetually())
         # (按住) 摇臂向车尾
         self.io.getClimbArmBackwardButton().whileActiveOnce(ArmCommand(self, -0.15).perpetually())
-        # (按住) 爬升, <缩>伸缩杆
-        self.io.getClimbElevatorUpButton().whileActiveOnce(ElevatorCommand(self, 1.0).perpetually())
-        # (按住) 爬升, <升>伸缩杆
-        self.io.getClimbElevatorDownButton().whileActiveOnce(ElevatorCommand(self, -1.0).perpetually())
         # (切换) 调试指令
         if constants.tuningMode:
             self.io.getDebugButton().toggleWhenActive(self.debugCommandDict["DebugAutoAim"])
