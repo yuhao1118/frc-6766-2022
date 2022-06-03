@@ -175,7 +175,7 @@ class WIT_IO:
         self.gyroAngles = [0.0, 0.0, 0.0]
 
     def getData(self):
-        # This function should be call periodically to get the latest data from the IMU
+        # This function should be called periodically to get the latest data from the IMU
         bytesAval = self.imu.getBytesReceived()
 
         if bytesAval > 0:

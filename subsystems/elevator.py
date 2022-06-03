@@ -104,7 +104,6 @@ class Elevator(StatefulSubsystem):
             self.getStateAction(self.getState()).schedule()
 
     def set(self, output, rightOutput=None):
-        print("Elevator set", output, rightOutput)
         _leftOutput, _rightOutput = output, output
 
         if rightOutput is not None:
@@ -114,8 +113,8 @@ class Elevator(StatefulSubsystem):
         self.R_motor.set(ctre.ControlMode.PercentOutput, _rightOutput)
 
     def resetEncoder(self):
-        self.L_motor.setSelectedSensorPosition(0, 0, 20)
-        self.R_motor.setSelectedSensorPosition(0, 0, 20)
+        self.L_motor.setSelectedSensorPosition(0, 0, 0)
+        self.R_motor.setSelectedSensorPosition(0, 0, 0)
 
     def resetInit(self):
         self.L_motor.configReverseSoftLimitEnable(False)

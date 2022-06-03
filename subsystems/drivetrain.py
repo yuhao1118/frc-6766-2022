@@ -121,10 +121,10 @@ class Drivetrain(SubsystemBase):
         return self.brakeMode
 
     def resetEncoder(self):
-        self.LF_motor.setSelectedSensorPosition(0, 0, 20)
-        self.LR_motor.setSelectedSensorPosition(0, 0, 20)
-        self.RF_motor.setSelectedSensorPosition(0, 0, 20)
-        self.RR_motor.setSelectedSensorPosition(0, 0, 20)
+        self.LF_motor.setSelectedSensorPosition(0, 0, 0)
+        self.LR_motor.setSelectedSensorPosition(0, 0, 0)
+        self.RF_motor.setSelectedSensorPosition(0, 0, 0)
+        self.RR_motor.setSelectedSensorPosition(0, 0, 0)
 
     def resetOdometry(self, pose):
         self.resetEncoder()

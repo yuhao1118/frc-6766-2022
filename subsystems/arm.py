@@ -56,8 +56,8 @@ class Arm(SubsystemBase):
         self.LArm_motor.set(ctre.ControlMode.PercentOutput, output)
 
     def resetEncoder(self):
-        self.LArm_motor.setSelectedSensorPosition(0, 0, 20)
-        self.RArm_motor.setSelectedSensorPosition(0, 0, 20)
+        self.LArm_motor.setSelectedSensorPosition(0, 0, 0)
+        self.RArm_motor.setSelectedSensorPosition(0, 0, 0)
 
     def getArmEncoderDegrees(self):
         rawPulse = (self.LArm_motor.getSelectedSensorPosition() + self.RArm_motor.getSelectedSensorPosition()) / 2

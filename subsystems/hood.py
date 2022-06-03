@@ -28,7 +28,7 @@ class Hood(SubsystemBase):
         self.hood.config_kD(0, self.kD.getDefault(), 0)
         self.hood.config_kF(0, self.kF.getDefault(), 0)
         self.hood.configAllowableClosedloopError(
-            0, int(0.33 / constants.kHoodEncoderDegreesPerPulse), 20)
+            0, int(0.33 / constants.kHoodEncoderDegreesPerPulse), 0)
         self.hood.configClosedLoopPeakOutput(0, 0.3, 0)
         self.hood.configClosedloopRamp(0.2)
 
@@ -102,11 +102,11 @@ class Hood(SubsystemBase):
         self.setAngle(0.0)
 
     def resetEncoder(self):
-        self.hood.setSelectedSensorPosition(0, 0, 20)
-        self.hood.configForwardSoftLimitEnable(True, 20)
+        self.hood.setSelectedSensorPosition(0, 0, 0)
+        self.hood.configForwardSoftLimitEnable(True, 0)
 
     def reset(self):
-        self.hood.configForwardSoftLimitEnable(False, 20)
+        self.hood.configForwardSoftLimitEnable(False, 0)
         self.resetComplete = False
         self.closedLoop = False
         self.setActive = False

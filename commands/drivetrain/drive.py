@@ -2,7 +2,7 @@ from commands2 import CommandBase
 
 import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
-from lib.utils.axisProfile import AxisProfile
+from lib.utils.axisprofile import AxisProfile
 from lib.utils.maths import clamp
 from lib.enums.pov import POVEnum
 
