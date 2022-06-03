@@ -7,15 +7,14 @@ from robotcontainer import RobotContainer
 
 
 class MyRobot(commands2.TimedCommandRobot):
-    autonomousCommand = None
     container = None
 
     def robotInit(self):
+        wpilib.LiveWindow.disableAllTelemetry()
         self.container = RobotContainer()
 
     def disabledInit(self):
-        if self.autonomousCommand:
-            self.autonomousCommand.cancel()
+        commands2.CommandScheduler.getInstance().cancelAll()
 
     def disabledPeriodic(self):
         pass
@@ -29,8 +28,10 @@ class MyRobot(commands2.TimedCommandRobot):
         pass
 
     def teleopInit(self):
-        if self.autonomousCommand:
-            self.autonomousCommand.cancel()
+        commands2.CommandScheduler.getInstance().cancelAll()
+
+        self.container.getResetCommand().schedule()
+        self.container.getStateMachineCommand().schedule()
 
     def teleopPeriodic(self):
         pass

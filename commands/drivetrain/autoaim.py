@@ -6,7 +6,7 @@ from wpimath.trajectory import TrapezoidProfile
 
 import constants
 from lib.drivetrain.wheelspeedspercentage import WheelSpeedsPercentage
-from lib.utils.axisProfile import AxisProfile
+from lib.utils.axisprofile import AxisProfile
 from lib.utils.tunablenumber import TunableNumber
 
 
