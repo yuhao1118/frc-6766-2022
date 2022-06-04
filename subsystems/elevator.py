@@ -63,18 +63,22 @@ class Elevator(StatefulSubsystem):
             lambda: self.set(0.0),
             [self]
         ), default=True)
-        self.addStateAction(ElevatorState.EXTENDING, StartEndCommand(
+        self.addStateAction(ElevatorState.EXTENDING, FunctionalCommand(
             lambda: self.set(-1.0),
-            lambda: self.set(0.0),
+            lambda: None,
+            lambda interrputed: self.set(0.0),
+            self.isExtended,
             [self]
         ))
-        self.addStateAction(ElevatorState.RETRACTING, StartEndCommand(
+        self.addStateAction(ElevatorState.RETRACTING, FunctionalCommand(
             lambda: self.set(1.0),
-            lambda: self.set(0.0),
+            lambda: None,
+            lambda interrputed: self.set(0.0),
+            self.isRetracted,
             [self]
         ))
         self.addStateAction(ElevatorState.HOLDING, StartEndCommand(
-            lambda: self.set(0.08),
+            lambda: self.set(0.0),
             lambda: self.set(0.0),
             [self]
         ))
@@ -109,6 +113,8 @@ class Elevator(StatefulSubsystem):
         if rightOutput is not None:
             _rightOutput = rightOutput
 
+        print(_leftOutput, _rightOutput)
+
         self.L_motor.set(ctre.ControlMode.PercentOutput, _leftOutput)
         self.R_motor.set(ctre.ControlMode.PercentOutput, _rightOutput)
 
@@ -131,6 +137,9 @@ class Elevator(StatefulSubsystem):
 
     def isRetracted(self):
         return DriverStation.getInstance().isDisabled() or (self.isLeftFwdSwitchClose and self.isRightFwdSwitchClose)
+
+    def isExtended(self):
+        return self.getClimbEncoderDistance() <= constants.kClimbMotorSoftLimitReverse
 
     def resetEnd(self, interrupted):
         self.setState(ElevatorState.IDLE)

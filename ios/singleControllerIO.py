@@ -1,13 +1,14 @@
 from wpilib import XboxController
 from commands2 import Trigger
 
+import constants
 from ios.io2022 import IO2022
 
 
 class SingleControllerIO(IO2022):
-    def __init__(self, controllerPort):
+    def __init__(self):
         super().__init__()
-        self.controller = XboxController(controllerPort)
+        self.controller = XboxController(constants.kDriverControllerPort)
 
     def getIntakerButton(self):
         return Trigger(self.controller.getLeftBumper)

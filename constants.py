@@ -21,7 +21,7 @@ kNominalVoltage = 12.0              # 电机峰值电压
 kLimelightIp = "10.67.66.30"
 ## 手柄端口
 kDriverControllerPort = 0
-kSiderControllerPort = 1
+kOperatorControllerPort = 1
 ## 电磁阀端口
 kSolenoidLeft = 0
 kSolenoidRight = 1
