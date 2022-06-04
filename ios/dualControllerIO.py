@@ -1,14 +1,15 @@
 from wpilib import XboxController
 from commands2 import Trigger
+import constants
 
 from ios.io2022 import IO2022
 
 
 class DualControllerIO(IO2022):
-    def __init__(self, driverControllerPort, operatorControllerPort):
+    def __init__(self):
         super().__init__()
-        self.driverController = XboxController(driverControllerPort)
-        self.operatorController = XboxController(operatorControllerPort)
+        self.driverController = XboxController(constants.kDriverControllerPort)
+        self.operatorController = XboxController(constants.kOperatorControllerPort)
 
     def getSimpleAimButton(self):
         return Trigger(self.driverController.getRightBumper)
@@ -44,11 +45,10 @@ class DualControllerIO(IO2022):
         return self.driverController.getPOV
 
     def getDriveXSupplier(self):
-        return lambda: self.driverController.getLeftTriggerAxis() - self.driverController.getRightTriggerAxis()
+        return lambda: self.driverController.getRightTriggerAxis() - self.driverController.getLeftTriggerAxis()
 
     def getDriveZSupplier(self):
         return self.driverController.getLeftX
 
     def getDebugButton(self):
         return Trigger(self.driverController.getStartButton)
-

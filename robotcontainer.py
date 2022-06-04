@@ -43,7 +43,7 @@ class RobotContainer:
 
     def __init__(self):
         # 创建IO实例.
-        self.io = SingleControllerIO(controllerPort=constants.kDriverControllerPort)
+        self.io = DualControllerIO()
 
         # 创建各子系统实例.
         self.robotDrive = Drivetrain()
