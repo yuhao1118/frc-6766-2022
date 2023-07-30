@@ -47,7 +47,7 @@ class DualControllerIO(IO2022):
         return self.driverController.getPOV
 
     def getDriveXSupplier(self):
-        return lambda: self.driverController.getLeftTriggerAxis() - self.driverController.getRightTriggerAxis()
+        return lambda: self.driverController.getRightTriggerAxis() - self.driverController.getLeftTriggerAxis()
 
     def getDriveZSupplier(self):
         return self.driverController.getLeftX

@@ -21,10 +21,12 @@ kNominalVoltage = 12.0              # 电机峰值电压
 kLimelightIp = "10.67.66.30"
 ## 手柄端口
 kDriverControllerPort = 0
-kSiderControllerPort = 1
+kOperatorControllerPort = 1
 ## 电磁阀端口
 kSolenoidLeft = 0
 kSolenoidRight = 1
+kArmSolenoidLeft = 2
+kArmSolenoidRight = 3
 ## 电机CAN ID
 kLeftMotor1Port = 6
 kLeftMotor2Port = 7
@@ -32,8 +34,6 @@ kRightMotor1Port = 8
 kRightMotor2Port = 9
 kLeftClimbMotorPort = 14
 kRightClimbMotorPort = 13
-kLeftClimbArmMotorPort = 15
-kRightClimbArmMotorPort = 16
 kShooteMotorPort = 10
 kHoodMotorPort = 17
 kConveyorMotorPort = 11
@@ -45,8 +45,6 @@ kLeftMotorRotate = TalonFXInvertType.Clockwise                  # 底盘左电�
 kRightMotorRotate = TalonFXInvertType.CounterClockwise          # 底盘右电机旋转方向
 kLeftClimbMotorRotate = TalonFXInvertType.Clockwise             # 左爬升电机旋转方向
 kRightClimbMotorRotate = TalonFXInvertType.CounterClockwise     # 右爬升电机旋转方向
-kLeftCLimbArmMotorRotate = TalonFXInvertType.Clockwise          # 左爬升摇臂电机旋转方向
-kRightCLimbArmMotorRotate = TalonFXInvertType.OpposeMaster      # 又爬升摇臂电机旋转方向
 kShooterRotate = TalonFXInvertType.Clockwise                    # 射球电机旋转方向
 kConveyorRotate = TalonFXInvertType.CounterClockwise            # 传送带电机旋转方向
 kIntakeRotate = TalonFXInvertType.CounterClockwise              # Intake电机旋转方向
@@ -64,8 +62,6 @@ kDrivetrainWheelDiameterMeters = 4 * 0.0254                     # (m) 底盘轮�
 kDrivetrainEncoderDistancePerPulse = (kDrivetrainWheelDiameterMeters * math.pi) / (kEncoderCPR * kDrivetrainGearRatio)
 ## 射球轮脉冲距离(m): 一个脉冲相当于轮子走多少距离
 kShooterEncoderRotatePerPulse = 1 / (kEncoderCPR * kShooterGearRatio)
-## 爬升摇臂脉冲角度(°): 一个脉冲相当于摇臂转多少角度
-kClimbArmEncoderDegreesPerPulse = 360 / (kEncoderCPR * kClimbArmGearRatio)
 ## 射球罩脉冲角度(°): 一个脉冲相当于罩转多少角度
 kHoodEncoderDegreesPerPulse = 360 / (kEncoderCPR * kHoodGearRatio)
 

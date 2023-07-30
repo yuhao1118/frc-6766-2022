@@ -6,7 +6,6 @@ from wpilib import SendableChooser, SmartDashboard
 
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator
-from subsystems.arm import Arm
 from subsystems.flywheel import Flywheel
 from subsystems.conveyor import Conveyor
 from subsystems.intaker import Intaker
@@ -43,13 +42,12 @@ class RobotContainer:
 
     def __init__(self):
         # 创建IO实例.
-        self.io = SingleControllerIO(controllerPort=constants.kDriverControllerPort)
+        self.io = DualControllerIO(constants.kDriverControllerPort, constants.kOperatorControllerPort)
 
         # 创建各子系统实例.
         self.robotDrive = Drivetrain()
         self.odometry = self.robotDrive.getOdometry()
         self.elevatorDrive = Elevator()
-        self.armDrive = Arm()
         self.flywheelDrive = Flywheel()
         self.hoodDrive = Hood()
         self.conveyorDrive = Conveyor()
@@ -105,9 +103,9 @@ class RobotContainer:
                                                                               io=self.io,
                                                                               shouldAutoTerminate=False))
         # (按住) 摇臂向车头
-        self.io.getClimbArmForwardButton().whileActiveOnce(ArmCommand(self, 0.15).perpetually())
+        self.io.getClimbArmForwardButton().whileActiveOnce(ArmCommand(self, True).perpetually())
         # (按住) 摇臂向车尾
-        self.io.getClimbArmBackwardButton().whileActiveOnce(ArmCommand(self, -0.15).perpetually())
+        self.io.getClimbArmBackwardButton().whileActiveOnce(ArmCommand(self, False).perpetually())
         # (按住) 爬升, <缩>伸缩杆
         self.io.getClimbElevatorUpButton().whileActiveOnce(ElevatorCommand(self, 1.0).perpetually())
         # (按住) 爬升, <升>伸缩杆
